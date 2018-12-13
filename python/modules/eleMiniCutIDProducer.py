@@ -9,7 +9,7 @@ class eleMiniCutIDProducer(Module):
     def __init__(self):
         self.eleCuts = []
         self.nbit = 0
-        pass
+
     def beginJob(self):
         pass
     def endJob(self):
