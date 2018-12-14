@@ -28,10 +28,10 @@ class Stop0lObjectsProducer(Module):
         self.out.branch("IsoTrack_Stop0l", "O", lenVar="nIsoTrack")
         self.out.branch("Photon_Stop0l",   "O", lenVar="nPhoton")
         self.out.branch("Jet_Stop0l",      "O", lenVar="nJet")
-        self.out.branch("BJet_Stop0l",     "O", lenVar="nJet")
+        self.out.branch("Jet_btagStop0l",  "O", lenVar="nJet")
         self.out.branch("FatJet_Stop0l",   "O", lenVar="nFatJet")
         self.out.branch("Jet_dPhiMET",     "F", lenVar="nJet")
-        self.out.branch("HT_Stop0l",      "F")
+        self.out.branch("HT_Stop0l",       "F")
 
     def endFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
         pass
@@ -65,9 +65,7 @@ class Stop0lObjectsProducer(Module):
         if abs(isk.pdgId) == 211:
             if isk.pt < 10 or iso > 0.1:
                 return False
-        ( met_px, met_py) = ( met.pt*math.cos(met.phi), met.pt*math.sin(met.phi) )
-        ( isk_px, isk_py) = ( isk.pt*math.cos(isk.phi), isk.pt*math.sin(isk.phi) )
-        mtW = math.sqrt( 2 * (met.pt * isk.pt - (met_px * isk_px + met_py * isk_py )))
+        mtW = math.sqrt( 2 * met.pt * isk.pt * (1 - math.cos(met.phi-isk.phi)))
         if mtW  > 100:
             return False
         return True
@@ -98,11 +96,11 @@ class Stop0lObjectsProducer(Module):
         flags     = Object(event, "Flag")
 
         ## Selecting objects
-        Electron_Stop0l = [ self.SelEle(ele) for ele in electrons]
-        Muon_Stop0l     = [ self.SelMuon(mu) for mu in muons]
-        IsoTrack_Stop0l = [ self.SelIsotrack(isk, met) for isk in isotracks]
-        BJet_Stop0l     = [ self.SelBtagJets(jet) for jet in jets]
-        Jet_Stop0l      = [ self.SelJets(jet) for jet in jets]
+        Electron_Stop0l = map(self.SelEle, electrons)
+        Muon_Stop0l     = map(self.SelMuon, muons)
+        IsoTrack_Stop0l = map(lambda x : self.SelIsotrack(x, met), isotracks)
+        BJet_Stop0l     = map(self.SelBtagJets, jets)
+        Jet_Stop0l      = map(self.SelJets, jets)
 
         ## Jet variables
         Jet_dPhi = [math.fabs(ROOT.TVector2.Phi_mpi_pi( jet.phi - met.phi )) for jet in jets]
@@ -112,7 +110,7 @@ class Stop0lObjectsProducer(Module):
         self.out.fillBranch("Electron_Stop0l", Electron_Stop0l)
         self.out.fillBranch("Muon_Stop0l", Muon_Stop0l)
         self.out.fillBranch("IsoTrack_Stop0l", IsoTrack_Stop0l)
-        self.out.fillBranch("BJet_Stop0l", BJet_Stop0l)
+        self.out.fillBranch("Jet_btagStop0l", BJet_Stop0l)
         self.out.fillBranch("Jet_Stop0l", Jet_Stop0l)
         self.out.fillBranch("Jet_dPhiMET", Jet_dPhi)
         self.out.fillBranch("HT_Stop0l", HT)

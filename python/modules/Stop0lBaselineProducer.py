@@ -18,6 +18,7 @@ class Stop0lBaselineProducer(Module):
 
     def beginFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
         self.out = wrappedOutputTree
+        self.out.branch("Pass_JetID",         "O")
         self.out.branch("Pass_EventFilter",   "O")
         self.out.branch("Pass_LeptonVeto",    "O")
         self.out.branch("Pass_NJets20",       "O")
@@ -70,6 +71,15 @@ class Stop0lBaselineProducer(Module):
 
         return passEventFilter
 
+    def PassJetID(self, jets):
+        # https://twiki.cern.ch/twiki/bin/view/CMS/JetID#Recommendations_for_13_TeV_2017
+        # For 2016, loose and tight ID is the same : https://twiki.cern.ch/twiki/bin/view/CMS/JetID13TeVRun2016
+        # For 2017, only tight ID available: https://twiki.cern.ch/twiki/bin/view/CMS/JetID13TeVRun2017
+        # Select jet pt > 30GeV, which is used in jet ID study:
+        # https://indico.cern.ch/event/592313/contributions/2398387/attachments/1384663/2106630/JetID_JMARmeeting_7_12_2016.pdf
+        jetIDs = [j.jetId & 0b010 for j in jets if j.pt > 30]
+        return (0 not in jetIDs)
+
 
     def PassNjets(self, jets):
         countJets = sum([j.Stop0l for j in jets])
@@ -99,7 +109,7 @@ class Stop0lBaselineProducer(Module):
 
     def analyze(self, event):
         """process event, return True (go to next module) or False (fail, go to next event)"""
-        # self.CheckisData(event)
+        self.CheckisData(event)
         electrons = Collection(event, "Electron")
         muons     = Collection(event, "Muon")
         isotracks = Collection(event, "IsoTrack")
@@ -109,7 +119,8 @@ class Stop0lBaselineProducer(Module):
         flags     = Object(event,     "Flag")
 
         ## Baseline Selection
-        PassEventFilter = self.PassEventFilter(flags)
+        PassJetID       = self.PassJetID(jets)
+        PassEventFilter = self.PassEventFilter(flags) and PassJetID
         PassLeptonVeto  = self.PassLeptonVeto(electrons, muons, isotracks)
         PassNjets       = self.PassNjets(jets)
         PassMET         = met.pt >= 250
@@ -120,6 +131,7 @@ class Stop0lBaselineProducer(Module):
 
 
         ### Store output
+        self.out.fillBranch("Pass_JetID",         PassJetID)
         self.out.fillBranch("Pass_EventFilter",   PassEventFilter)
         self.out.fillBranch("Pass_LeptonVeto",    PassLeptonVeto)
         self.out.fillBranch("Pass_NJets20",       PassNjets)
