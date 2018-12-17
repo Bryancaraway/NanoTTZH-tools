@@ -23,7 +23,7 @@ class Stop0lObjectsProducer(Module):
 
     def beginFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
         self.out = wrappedOutputTree
-        self.out.branch("Electron_Stop0l", "O", lenVar="nElectron")
+        self.out.branch("Electron_Stop0l", "O", lenVar="nElectron", title="cutBased Veto ID with miniISO < 0.1, pT > 5")
         self.out.branch("Muon_Stop0l",     "O", lenVar="nMuon")
         self.out.branch("IsoTrack_Stop0l", "O", lenVar="nIsoTrack")
         self.out.branch("Photon_Stop0l",   "O", lenVar="nPhoton")
@@ -103,17 +103,18 @@ class Stop0lObjectsProducer(Module):
         Jet_Stop0l      = map(self.SelJets, jets)
 
         ## Jet variables
+        ## TODO: Need to improve speed
         Jet_dPhi = [math.fabs(ROOT.TVector2.Phi_mpi_pi( jet.phi - met.phi )) for jet in jets]
         HT = self.CalHT(jets, Jet_Stop0l)
 
         ### Store output
         self.out.fillBranch("Electron_Stop0l", Electron_Stop0l)
-        self.out.fillBranch("Muon_Stop0l", Muon_Stop0l)
+        self.out.fillBranch("Muon_Stop0l",     Muon_Stop0l)
         self.out.fillBranch("IsoTrack_Stop0l", IsoTrack_Stop0l)
-        self.out.fillBranch("Jet_btagStop0l", BJet_Stop0l)
-        self.out.fillBranch("Jet_Stop0l", Jet_Stop0l)
-        self.out.fillBranch("Jet_dPhiMET", Jet_dPhi)
-        self.out.fillBranch("HT_Stop0l", HT)
+        self.out.fillBranch("Jet_btagStop0l",  BJet_Stop0l)
+        self.out.fillBranch("Jet_Stop0l",      Jet_Stop0l)
+        self.out.fillBranch("Jet_dPhiMET",     Jet_dPhi)
+        self.out.fillBranch("HT_Stop0l",       HT)
         return True
 
 
