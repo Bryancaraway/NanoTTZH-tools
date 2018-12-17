@@ -34,6 +34,7 @@ class qcdSmearProducer(Module):
 	jets      = Collection(event, "Jet")
 	genjets   = Collection(event, "GenJet")
 	met       = Object(event,     self.metBranchName)
+	weight    = Object(event,     "genWeight")
 
 	for j in jets :
         	self.out.fillBranch("jetFlav", j.partonFlavour)
