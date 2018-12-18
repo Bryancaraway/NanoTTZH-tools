@@ -39,7 +39,7 @@ class qcdSmearProducer(Module):
 
     def beginFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
         self.out = wrappedOutputTree
-	self.out.branch("origRes", "F", lenVar="nJet*nGenJet");
+	self.out.branch("origRes", "F", lenVar=2);
 	self.out.branch("jetFlav", "F");
 
     def endFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
@@ -67,8 +67,7 @@ class qcdSmearProducer(Module):
 	# matching gen jet can be called by the index Jet_genJetIdx, jet.genJetIdx == matched GenJet
 
 	#bootstrapping should be done here
-	print "Try to get bin content: %d", self.targeth.GetNBinsX()
-	nbinx = self.targeth.GetNBinsX()
+	#the histogram can be accessed by doing self.targeth.{some root function to get the value}
 	
 	#begin smearing
 	smearWeight = 1
@@ -88,7 +87,6 @@ class qcdSmearProducer(Module):
 		self.out.fillBranch("jetFlav", jetFlavour)
 		#This calculates the response with matched gen and reco jets
 		origRes_ = [ self.jetResFunction(j, genjets[gj]) ]
-		#print "Try to get bin content: %d", self.targeth.GetBinContent(self.jetResFunction(j, genjets[gj]))
 
 	self.out.fillBranch("origRes", origRes_)
         return True
