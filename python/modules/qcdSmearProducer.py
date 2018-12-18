@@ -12,6 +12,7 @@ class qcdSmearProducer(Module):
     def __init__(self):
 	self.writeHistFile=True
 	self.metBranchName="MET"
+	self.xBinWidth = 0.01
 	self.minWindow = 0.01
 	self.maxWindow = 0.5;
 	self.nSmears = 100;
@@ -39,7 +40,7 @@ class qcdSmearProducer(Module):
 
     def beginFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
         self.out = wrappedOutputTree
-	self.out.branch("origRes", "F", lenVar=2);
+	self.out.branch("origRes", "F");
 	self.out.branch("jetFlav", "F");
 
     def endFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
@@ -68,6 +69,8 @@ class qcdSmearProducer(Module):
 
 	#bootstrapping should be done here
 	#the histogram can be accessed by doing self.targeth.{some root function to get the value}
+	#xBinWidth = float(2/self.targeth.GetNbinsX())
+	xBinWidth = 0.01
 	
 	#begin smearing
 	smearWeight = 1
@@ -80,13 +83,13 @@ class qcdSmearProducer(Module):
         	gj = j.genJetIdx
 		#you know have a matching index to the reco jet
 		testMet = self.addFourVector(met, j).Pt()
-		print "nj: %i", nj
-		print "index: %i", gj
-		print "testMet: %f", testMet
+		print "nj: ", nj
+		print "index: ", gj
+		print "testMet: ", testMet
 		jetFlavour = j.partonFlavour
 		self.out.fillBranch("jetFlav", jetFlavour)
 		#This calculates the response with matched gen and reco jets
-		origRes_ = [ self.jetResFunction(j, genjets[gj]) ]
-
-	self.out.fillBranch("origRes", origRes_)
+		origRes_ = self.jetResFunction(j, genjets[gj])
+		print "CDF: ", self.targeth.GetBinContent(int(origRes_/self.xBinWidth))
+		self.out.fillBranch("origRes", origRes_)
         return True
