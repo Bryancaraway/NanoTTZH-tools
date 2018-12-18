@@ -21,7 +21,17 @@ class qcdSmearProducer(Module):
 	self.winType = self.LINEAR_GRANULATED;
 	self.doFlatSampling = True;
 	self.respInputName = "JetResByFlav";
+	self.respFileName = "file:/eos/uscms/store/user/mkilpatr/13TeV/qcd_smearing/resTailOut_combined_filtered_CHEF_puWeight_weight_WoH_NORMALIZED.root"
+	self.respHistoName = "res_b_comp_14"
+	self.targeth = self.loadHisto(self.respFileName,self.respHistoName)
  
+    def loadHisto(self,filename,hname):
+	tf = ROOT.TFile.Open(filename)
+	hist = tf.Get(hname)
+	hist.SetDirectory(None)
+	tf.Close()
+	return hist
+
     def beginJob(self,histFile=None,histDirName=None):
    	pass
     def endJob(self):
@@ -57,6 +67,8 @@ class qcdSmearProducer(Module):
 	# matching gen jet can be called by the index Jet_genJetIdx, jet.genJetIdx == matched GenJet
 
 	#bootstrapping should be done here
+	print "Try to get bin content: %d", self.targeth.GetNBinsX()
+	nbinx = self.targeth.GetNBinsX()
 	
 	#begin smearing
 	smearWeight = 1
@@ -69,10 +81,14 @@ class qcdSmearProducer(Module):
         	gj = j.genJetIdx
 		#you know have a matching index to the reco jet
 		testMet = self.addFourVector(met, j).Pt()
+		print "nj: %i", nj
+		print "index: %i", gj
+		print "testMet: %f", testMet
 		jetFlavour = j.partonFlavour
 		self.out.fillBranch("jetFlav", jetFlavour)
 		#This calculates the response with matched gen and reco jets
 		origRes_ = [ self.jetResFunction(j, genjets[gj]) ]
+		#print "Try to get bin content: %d", self.targeth.GetBinContent(self.jetResFunction(j, genjets[gj]))
 
 	self.out.fillBranch("origRes", origRes_)
         return True
