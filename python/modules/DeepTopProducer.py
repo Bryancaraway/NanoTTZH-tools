@@ -8,15 +8,19 @@ import itertools
 
 from PhysicsTools.NanoAODTools.postprocessing.framework.datamodel import Collection, Object
 from PhysicsTools.NanoAODTools.postprocessing.framework.eventloop import Module
+from PhysicsTools.NanoSUSYTools.modules.Stop0lObjectsProducer import DeepCSVMediumWP
+
 
 class DeepTopProducer(Module):
-    def __init__(self):
+    def __init__(self, era):
         ## WP from Hui's study https://indico.cern.ch/event/780000/contributions/3248659/attachments/1768782/2873013/Search_bin_study_with_combine_tools_v13.pdf
         self.DeepAK8TopWP  = 0.9377
         self.minAK8TopMass = 105
         self.minAK8WMass = 65
         self.DeepAK8WWP    = 0.9530
         self.DeepResolveWP = 0.92
+        self.era = era
+        self.metBranchName = "MET"
 
     def beginJob(self):
         pass
@@ -27,6 +31,11 @@ class DeepTopProducer(Module):
         self.out = wrappedOutputTree
         self.out.branch("FatJet_Stop0l",      "O", lenVar="nFatJet")
         self.out.branch("ResolvedTop_Stop0l", "O", lenVar="nResolvedTop")
+        self.out.branch("Stop0l_nTop", "I")
+        self.out.branch("Stop0l_nW", "I")
+        self.out.branch("Stop0l_nResolved", "I")
+        self.out.branch("Stop0l_ISRJetIdx", "I")
+        self.out.branch("Stop0l_ISRJetPt", "F")
 
     def endFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
         pass
@@ -53,7 +62,6 @@ class DeepTopProducer(Module):
             return False
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Getting jets ~~~~~
-        # deepak8 = [ j
         ### Subjet method
         subjetides  = []
         for i, j in enumerate(fatj):
@@ -113,9 +121,25 @@ class DeepTopProducer(Module):
         self.FatJet_Stop0l = []
         self.ResolvedTop_Stop0l = []
 
-    def GetISRJets(self, fatjets, jets, subjets):
-        ISRcans = [j for i, j in enumerate(fatjets) if self.FatJet_Stop0l[i] and j.pt > 200 ]
+    def GetISRJets(self, fatjets, subjets, met_phi):
+        if (self.nTop + self.nW + self.nResolved ) != 0:
+            return -1
+        if len(fatjets) == 0:
+            return -1
 
+        leadingjet = fatjets[0]
+        if leadingjet.pt < 200 or math.fabs(leadingjet.eta) > 2.4 or \
+           leadingjet.btagDeepB > DeepCSVMediumWP[self.era]:
+            return -1
+
+        if subjets[leadingjet.subJetIdx1]  > DeepCSVMediumWP[self.era] or \
+           subjets[leadingjet.subJetIdx2]  > DeepCSVMediumWP[self.era]:
+            return -1
+
+        if math.fabs(ROOT.TVector2.Phi_mpi_pi( leadingjet.phi - met_phi )):
+            return -1
+
+        return 0
 
 
     def analyze(self, event):
@@ -125,6 +149,7 @@ class DeepTopProducer(Module):
         fatjets  = Collection(event, "FatJet")
         subjets  = Collection(event, "SubJet")
         resolves = Collection(event, "ResolvedTop")
+        met       = Object(event, self.metBranchName)
         self.Clear()
 
         ## Selecting objects
@@ -134,11 +159,20 @@ class DeepTopProducer(Module):
         self.ResovleOverlapDeepAK8(resolves, fatjets, jets, subjets)
         # if (temp != self.ResolvedTop_Stop0l) :
             # print (temp, self.ResolvedTop_Stop0l)
+        self.nTop = sum( [ i for i in self.FatJet_Stop0l if i == 1 ])
+        self.nW = sum( [ 1 for i in self.FatJet_Stop0l if i == 2 ])
+        self.nResolved = sum(self.ResolvedTop_Stop0l)
+        self.ISRJetidx = self.GetISRJets(fatjets, subjets, met.phi)
+        ISRJetPt = fatjets[self.ISRJetidx].pt if self.ISRJetidx != -1 else 0
 
         ### Store output
         self.out.fillBranch("FatJet_Stop0l", self.FatJet_Stop0l)
         self.out.fillBranch("ResolvedTop_Stop0l", self.ResolvedTop_Stop0l)
+        self.out.fillBranch("Stop0l_nTop", self.nTop)
+        self.out.fillBranch("Stop0l_nW", self.nW)
+        self.out.fillBranch("Stop0l_nResolved", self.nResolved)
+        self.out.fillBranch("Stop0l_ISRJetIdx", self.ISRJetidx)
+        self.out.fillBranch("Stop0l_ISRJetPt", ISRJetPt)
         return True
-
 
 # define modules using the syntax 'name = lambda : constructor' to avoid having them loaded when not needed

@@ -1,20 +1,22 @@
 import ROOT
 ROOT.PyConfig.IgnoreCommandLineOptions = True
 import math
+import numpy as np
 
 from PhysicsTools.NanoAODTools.postprocessing.framework.datamodel import Collection, Object
 from PhysicsTools.NanoAODTools.postprocessing.framework.eventloop import Module
+
+#2016 MC: https://twiki.cern.ch/twiki/bin/view/CMS/BtagRecommendation80XReReco#Data_MC_Scale_Factors_period_dep
+#2017 MC: https://twiki.cern.ch/twiki/bin/view/CMS/BtagRecommendation94X
+DeepCSVMediumWP ={
+    "2016" : 0.8484,
+    "2017" : 0.8838
+}
 
 class Stop0lObjectsProducer(Module):
     def __init__(self, era):
         self.era = era
         self.metBranchName = "MET"
-        #2016 MC: https://twiki.cern.ch/twiki/bin/view/CMS/BtagRecommendation80XReReco#Data_MC_Scale_Factors_period_dep
-        #2017 MC: https://twiki.cern.ch/twiki/bin/view/CMS/BtagRecommendation94X
-        self.DeepCSVMediumWP ={
-            "2016" : 0.8484,
-            "2017" : 0.8838
-        }
 
     def beginJob(self):
         pass
@@ -31,7 +33,11 @@ class Stop0lObjectsProducer(Module):
         self.out.branch("Jet_btagStop0l",  "O", lenVar="nJet")
         self.out.branch("FatJet_Stop0l",   "O", lenVar="nFatJet")
         self.out.branch("Jet_dPhiMET",     "F", lenVar="nJet")
-        self.out.branch("HT_Stop0l",       "F")
+        self.out.branch("Stop0l_HT",       "F")
+        self.out.branch("Stop0l_Mtb",       "F")
+        self.out.branch("Stop0l_Ptb",       "F")
+        self.out.branch("Stop0l_nJets",       "I")
+        self.out.branch("Stop0l_nbtags",       "I")
 
     def endFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
         pass
@@ -71,7 +77,8 @@ class Stop0lObjectsProducer(Module):
         return True
 
     def SelBtagJets(self, jet):
-        if jet.btagDeepB < self.DeepCSVMediumWP[self.era]:
+        global DeepCSVMediumWP
+        if jet.btagDeepB < DeepCSVMediumWP[self.era]:
             return False
         return True
 
@@ -80,9 +87,26 @@ class Stop0lObjectsProducer(Module):
             return False
         return True
 
-    def CalHT(self, jets, Jet_Stop0l):
-        HT = sum([j.pt for i, j in enumerate(jets) if Jet_Stop0l[i]])
+    def CalHT(self, jets):
+        HT = sum([j.pt for i, j in enumerate(jets) if self.Jet_Stop0l[i]])
         return HT
+
+    def CalMTbPTb(self, jets, met):
+        Mtb = float('inf')  #Max value
+        Ptb = 0
+
+        # Getting bjet, ordered by pt
+        bjets = [ j for i,j in enumerate(jets) if self.BJet_Stop0l[i]]
+        # Getting btag index, ordered by b discriminator value
+        btagidx = sorted(range(len(bjets)), key=lambda k: bjets[k].btagDeepB , reverse=True)
+
+        for i in range(min(len(bjets), 2)):
+            Ptb += bjets[i].pt
+
+        for i in range(min(len(btagidx), 2)):
+            bj = bjets[btagidx[i]]
+            Mtb = min(Mtb, math.sqrt( 2 * met.pt * bj.pt * (1 - math.cos(met.phi-bj.phi))))
+        return Mtb, Ptb
 
 
     def analyze(self, event):
@@ -96,26 +120,35 @@ class Stop0lObjectsProducer(Module):
         flags     = Object(event, "Flag")
 
         ## Selecting objects
-        Electron_Stop0l = map(self.SelEle, electrons)
-        Muon_Stop0l     = map(self.SelMuon, muons)
-        IsoTrack_Stop0l = map(lambda x : self.SelIsotrack(x, met), isotracks)
-        BJet_Stop0l     = map(self.SelBtagJets, jets)
-        Jet_Stop0l      = map(self.SelJets, jets)
+        self.Electron_Stop0l = map(self.SelEle, electrons)
+        self.Muon_Stop0l     = map(self.SelMuon, muons)
+        self.IsoTrack_Stop0l = map(lambda x : self.SelIsotrack(x, met), isotracks)
+        self.BJet_Stop0l     = map(self.SelBtagJets, jets)
+        self.Jet_Stop0l      = map(self.SelJets, jets)
 
         ## Jet variables
+        jet_phi = np.asarray([jet.phi for jet in jets])
+        Jet_dPhi = jet_phi - met.phi
+        np.subtract(Jet_dPhi, 2*math.pi, out = Jet_dPhi, where= (Jet_dPhi >=math.pi))
+        np.add(Jet_dPhi, 2*math.pi,  out =Jet_dPhi , where=(Jet_dPhi < -1*math.pi))
+        np.fabs(Jet_dPhi, out=Jet_dPhi)
         ## TODO: Need to improve speed
-        Jet_dPhi = [math.fabs(ROOT.TVector2.Phi_mpi_pi( jet.phi - met.phi )) for jet in jets]
-        HT = self.CalHT(jets, Jet_Stop0l)
+        HT = self.CalHT(jets)
+        Mtb, Ptb = self.CalMTbPTb(jets, met)
 
         ### Store output
-        self.out.fillBranch("Electron_Stop0l", Electron_Stop0l)
-        self.out.fillBranch("Muon_Stop0l",     Muon_Stop0l)
-        self.out.fillBranch("IsoTrack_Stop0l", IsoTrack_Stop0l)
-        self.out.fillBranch("Jet_btagStop0l",  BJet_Stop0l)
-        self.out.fillBranch("Jet_Stop0l",      Jet_Stop0l)
+        self.out.fillBranch("Electron_Stop0l", self.Electron_Stop0l)
+        self.out.fillBranch("Muon_Stop0l",     self.Muon_Stop0l)
+        self.out.fillBranch("IsoTrack_Stop0l", self.IsoTrack_Stop0l)
+        self.out.fillBranch("Jet_btagStop0l",  self.BJet_Stop0l)
+        self.out.fillBranch("Jet_Stop0l",      self.Jet_Stop0l)
         self.out.fillBranch("Jet_dPhiMET",     Jet_dPhi)
-        self.out.fillBranch("HT_Stop0l",       HT)
+        self.out.fillBranch("Stop0l_HT",       HT)
+        self.out.fillBranch("Stop0l_Mtb",      Mtb)
+        self.out.fillBranch("Stop0l_Ptb",      Ptb)
+        self.out.fillBranch("Stop0l_nJets",    sum(self.Jet_Stop0l))
+        self.out.fillBranch("Stop0l_nbtags",   sum(self.BJet_Stop0l))
         return True
 
 
-# define modules using the syntax 'name = lambda : constructor' to avoid having them loaded when not needed
+ # define modules using the syntax 'name = lambda : constructor' to avoid having them loaded when not needed
