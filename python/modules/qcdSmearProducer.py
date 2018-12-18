@@ -12,6 +12,15 @@ class qcdSmearProducer(Module):
     def __init__(self):
 	self.writeHistFile=True
 	self.metBranchName="MET"
+	self.minWindow = 0.01
+	self.maxWindow = 0.5;
+	self.nSmears = 100;
+	self.nSmearJets = 2;
+	self.nBootstraps = 50;
+	self.LINEAR_GRANULATED=True
+	self.winType = self.LINEAR_GRANULATED;
+	self.doFlatSampling = True;
+	self.respInputName = "JetResByFlav";
  
     def beginJob(self,histFile=None,histDirName=None):
    	pass
@@ -30,16 +39,40 @@ class qcdSmearProducer(Module):
 	res = jets.pt/genjets.pt
 	return res
 
+    def addFourVector(self, obj1, obj2):
+	tot = ROOT.TLorentzVector()
+	v1 = ROOT.TLorentzVector()
+	v2 = ROOT.TLorentzVector()
+	v1.SetPtEtaPhiM(obj1.pt, 0, obj1.phi, 0)
+	v2.SetPtEtaPhiM(obj2.pt, 0, obj2.phi, 0)
+	tot = v1+v2
+	return tot
+
     def analyze(self, event):
 	jets      = Collection(event, "Jet")
 	genjets   = Collection(event, "GenJet")
 	met       = Object(event,     self.metBranchName)
 	weight    = Object(event,     "genWeight")
 
+	# matching gen jet can be called by the index Jet_genJetIdx, jet.genJetIdx == matched GenJet
+
+	#bootstrapping should be done here
+	
+	#begin smearing
+	smearWeight = 1
+	nj = 0
 	for j in jets :
-        	self.out.fillBranch("jetFlav", j.partonFlavour)
-		for gj in genjets :
-			origRes_ = [ self.jetResFunction(j, gj) ]
+		if nj == self.nSmearJets:
+			break
+		else:
+			nj+=1
+        	gj = j.genJetIdx
+		#you know have a matching index to the reco jet
+		testMet = self.addFourVector(met, j).Pt()
+		jetFlavour = j.partonFlavour
+		self.out.fillBranch("jetFlav", jetFlavour)
+		#This calculates the response with matched gen and reco jets
+		origRes_ = [ self.jetResFunction(j, genjets[gj]) ]
 
 	self.out.fillBranch("origRes", origRes_)
         return True
