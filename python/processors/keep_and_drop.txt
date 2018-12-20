@@ -3,3 +3,5 @@ drop * # start with all
 keep Electron*
 keep Muon*
 keep Jet*
+keep GenJet*
+keep MET*
