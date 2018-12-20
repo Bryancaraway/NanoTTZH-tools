@@ -75,7 +75,7 @@ class qcdSmearProducer(Module):
 	#begin smearing
 	smearWeight = 1
 	nj = 0
-	for j in jets :
+	for gJ in genjets :
 		if nj == self.nSmearJets:
 			break
 		else:
