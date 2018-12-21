@@ -30,14 +30,17 @@ class Stop0lObjectsProducer(Module):
         self.out.branch("IsoTrack_Stop0l", "O", lenVar="nIsoTrack")
         self.out.branch("Photon_Stop0l",   "O", lenVar="nPhoton")
         self.out.branch("Jet_Stop0l",      "O", lenVar="nJet")
+        self.out.branch("SB_Stop0l",       "O", lenVar="nSB")
         self.out.branch("Jet_btagStop0l",  "O", lenVar="nJet")
         self.out.branch("FatJet_Stop0l",   "O", lenVar="nFatJet")
         self.out.branch("Jet_dPhiMET",     "F", lenVar="nJet")
         self.out.branch("Stop0l_HT",       "F")
-        self.out.branch("Stop0l_Mtb",       "F")
-        self.out.branch("Stop0l_Ptb",       "F")
-        self.out.branch("Stop0l_nJets",       "I")
-        self.out.branch("Stop0l_nbtags",       "I")
+        self.out.branch("Stop0l_Mtb",      "F")
+        self.out.branch("Stop0l_Ptb",      "F")
+        self.out.branch("Stop0l_METSig",   "F")
+        self.out.branch("Stop0l_nJets",    "I")
+        self.out.branch("Stop0l_nbtags",   "I")
+        self.out.branch("Stop0l_nSoftb",   "I")
 
     def endFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
         pass
@@ -82,6 +85,18 @@ class Stop0lObjectsProducer(Module):
             return False
         return True
 
+    def SelSoftb(self, isv):
+        ## Select soft bs
+        ## SV is not associate with selected jets
+        if self.Jet_Stop0l[isv.jetIdx]:
+            return False
+        if isv.ntracks < 3 or math.fabs(isv.dxy)>3. or isv.dlenSig <4:
+            return False
+        if isv.DdotP < 0.98 :
+            return False
+        return True
+
+
     def SelJets(self, jet):
         if jet.pt < 20 or math.fabs(jet.eta) > 2.4 :
             return False
@@ -116,6 +131,7 @@ class Stop0lObjectsProducer(Module):
         muons     = Collection(event, "Muon")
         isotracks = Collection(event, "IsoTrack")
         jets      = Collection(event, "Jet")
+        isvs      = Collection(event, "SB")
         met       = Object(event, self.metBranchName)
         flags     = Object(event, "Flag")
 
@@ -125,6 +141,7 @@ class Stop0lObjectsProducer(Module):
         self.IsoTrack_Stop0l = map(lambda x : self.SelIsotrack(x, met), isotracks)
         self.BJet_Stop0l     = map(self.SelBtagJets, jets)
         self.Jet_Stop0l      = map(self.SelJets, jets)
+        self.SB_Stop0l       = map(self.SelSoftb, isvs)
 
         ## Jet variables
         jet_phi = np.asarray([jet.phi for jet in jets])
@@ -142,12 +159,15 @@ class Stop0lObjectsProducer(Module):
         self.out.fillBranch("IsoTrack_Stop0l", self.IsoTrack_Stop0l)
         self.out.fillBranch("Jet_btagStop0l",  self.BJet_Stop0l)
         self.out.fillBranch("Jet_Stop0l",      self.Jet_Stop0l)
+        self.out.fillBranch("SB_Stop0l",       self.SB_Stop0l)
         self.out.fillBranch("Jet_dPhiMET",     Jet_dPhi)
         self.out.fillBranch("Stop0l_HT",       HT)
         self.out.fillBranch("Stop0l_Mtb",      Mtb)
         self.out.fillBranch("Stop0l_Ptb",      Ptb)
         self.out.fillBranch("Stop0l_nJets",    sum(self.Jet_Stop0l))
         self.out.fillBranch("Stop0l_nbtags",   sum(self.BJet_Stop0l))
+        self.out.fillBranch("Stop0l_nSoftb",   sum(self.SB_Stop0l))
+        self.out.fillBranch("Stop0l_METSig",   met.pt / math.sqrt(HT))
         return True
 
 

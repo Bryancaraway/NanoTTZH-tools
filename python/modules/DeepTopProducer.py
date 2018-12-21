@@ -124,6 +124,7 @@ class DeepTopProducer(Module):
     def GetISRJets(self, fatjets, subjets, met_phi):
         if (self.nTop + self.nW + self.nResolved ) != 0:
             return -1
+
         if len(fatjets) == 0:
             return -1
 
@@ -136,7 +137,7 @@ class DeepTopProducer(Module):
            subjets[leadingjet.subJetIdx2]  > DeepCSVMediumWP[self.era]:
             return -1
 
-        if math.fabs(ROOT.TVector2.Phi_mpi_pi( leadingjet.phi - met_phi )):
+        if math.fabs(ROOT.TVector2.Phi_mpi_pi( leadingjet.phi - met_phi )) < -2:
             return -1
 
         return 0
