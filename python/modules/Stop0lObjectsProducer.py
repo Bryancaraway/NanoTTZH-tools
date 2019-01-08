@@ -88,7 +88,7 @@ class Stop0lObjectsProducer(Module):
     def SelSoftb(self, isv):
         ## Select soft bs
         ## SV is not associate with selected jets
-        if self.Jet_Stop0l[isv.jetIdx]:
+        if isv.JetIdx >0 and isv.JetIdx < len(self.Jet_Stop0l) and self.Jet_Stop0l[isv.JetIdx]:
             return False
         if isv.ntracks < 3 or math.fabs(isv.dxy)>3. or isv.dlenSig <4:
             return False
@@ -167,7 +167,7 @@ class Stop0lObjectsProducer(Module):
         self.out.fillBranch("Stop0l_nJets",    sum(self.Jet_Stop0l))
         self.out.fillBranch("Stop0l_nbtags",   sum(self.BJet_Stop0l))
         self.out.fillBranch("Stop0l_nSoftb",   sum(self.SB_Stop0l))
-        self.out.fillBranch("Stop0l_METSig",   met.pt / math.sqrt(HT))
+        self.out.fillBranch("Stop0l_METSig",   met.pt / math.sqrt(HT) if HT > 0 else 0)
         return True
 
 

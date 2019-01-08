@@ -28,6 +28,8 @@ class Stop0lBaselineProducer(Module):
         self.out.branch("Pass_dPhiMETLowDM",  "O")
         self.out.branch("Pass_dPhiMETHighDM", "O")
         self.out.branch("Pass_Baseline",      "O")
+        self.out.branch("Pass_highDM",      "O")
+        self.out.branch("Pass_lowDM",      "O")
 
     def endFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
         pass
@@ -115,7 +117,6 @@ class Stop0lBaselineProducer(Module):
         isotracks = Collection(event, "IsoTrack")
         jets      = Collection(event, "Jet")
         met       = Object(event,     "MET")
-        HT        = Object(event,     "HT")
         flags     = Object(event,     "Flag")
         stop0l    = Object(event,     "Stop0l")
 
@@ -125,7 +126,7 @@ class Stop0lBaselineProducer(Module):
         PassLeptonVeto  = self.PassLeptonVeto(electrons, muons, isotracks)
         PassNjets       = self.PassNjets(jets)
         PassMET         = met.pt >= 250
-        PassHT          = HT >= 300
+        PassHT          = stop0l.HT >= 300
         PassdPhiLowDM   = self.PassdPhi(jets, [0.5, 0.15, 0.15])
         PassdPhiHighDM  = self.PassdPhi(jets, [0.5, 0.5, 0.5, 0.5])
         PassBaseline    = PassEventFilter and PassLeptonVeto and PassNjets and PassMET and PassHT and PassdPhiLowDM

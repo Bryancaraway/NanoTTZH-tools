@@ -36,6 +36,12 @@ class DeepTopProducer(Module):
         self.out.branch("Stop0l_nResolved", "I")
         self.out.branch("Stop0l_ISRJetIdx", "I")
         self.out.branch("Stop0l_ISRJetPt", "F")
+        self.out.branch("Stop0l_nHOT", "I")
+        self.out.branch("Stop0l_HOTpt",   "F", lenVar = "Stop0l_nHOT")
+        self.out.branch("Stop0l_HOTeta",  "F", lenVar = "Stop0l_nHOT")
+        self.out.branch("Stop0l_HOTphi",  "F", lenVar = "Stop0l_nHOT")
+        self.out.branch("Stop0l_HOTmass", "F", lenVar = "Stop0l_nHOT")
+        self.out.branch("Stop0l_HOTtype", "I", lenVar = "Stop0l_nHOT")
 
     def endFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
         pass
@@ -49,6 +55,8 @@ class DeepTopProducer(Module):
             return 0
 
     def SelDeepResolved(self, res, jets):
+        if math.fabs(res.eta) > 2.0:
+            return False
         if res.discriminator < self.DeepResolveWP:
             return False
         ## Veto resolved with two b-tagged jets
@@ -142,6 +150,38 @@ class DeepTopProducer(Module):
 
         return 0
 
+    def CreateHOTs(self, fatjets, resolves ):
+        ptmap = defaultdict(list) ## in case two tops with same pt
+        for i, f in enumerate(fatjets):
+            if self.FatJet_Stop0l[i] >0:
+                ptmap[f.pt].append(i)
+
+        for i, r in enumerate(resolves):
+            if self.ResolvedTop_Stop0l[i]:
+                ptmap[r.pt].append(1000 + i)
+
+        HOTpt = []
+        HOTeta = []
+        HOTphi = []
+        HOTmass = []
+        HOTtype = []
+
+        for k in sorted(ptmap.keys(), reverse=True):
+            for idx in ptmap[k]:
+                obj = None
+                Type = 0
+                if idx >= 1000:
+                    obj = resolves[idx-1000]
+                    Type = 3
+                else:
+                    obj = fatjets[idx]
+                    Type = self.FatJet_Stop0l[idx]
+                HOTpt.append(obj.pt)
+                HOTeta.append(obj.eta)
+                HOTphi.append(obj.phi)
+                HOTmass.append(obj.mass)
+                HOTtype.append(Type)
+        return (HOTpt, HOTeta, HOTphi, HOTmass, HOTtype)
 
     def analyze(self, event):
         """process event, return True (go to next module) or False (fail, go to next event)"""
@@ -149,22 +189,20 @@ class DeepTopProducer(Module):
         jets     = Collection(event, "Jet")
         fatjets  = Collection(event, "FatJet")
         subjets  = Collection(event, "SubJet")
-        resolves = Collection(event, "ResolvedTop")
+        resolves = Collection(event, "ResolvedTopCandidate")
         met       = Object(event, self.metBranchName)
         self.Clear()
 
         ## Selecting objects
         self.FatJet_Stop0l = map(self.SelDeepAK8, fatjets)
         self.ResolvedTop_Stop0l = map(lambda x : self.SelDeepResolved(x, jets), resolves)
-        temp =  self.ResolvedTop_Stop0l
         self.ResovleOverlapDeepAK8(resolves, fatjets, jets, subjets)
-        # if (temp != self.ResolvedTop_Stop0l) :
-            # print (temp, self.ResolvedTop_Stop0l)
         self.nTop = sum( [ i for i in self.FatJet_Stop0l if i == 1 ])
         self.nW = sum( [ 1 for i in self.FatJet_Stop0l if i == 2 ])
         self.nResolved = sum(self.ResolvedTop_Stop0l)
         self.ISRJetidx = self.GetISRJets(fatjets, subjets, met.phi)
         ISRJetPt = fatjets[self.ISRJetidx].pt if self.ISRJetidx != -1 else 0
+        (HOTpt, HOTeta, HOTphi, HOTmass, HOTtype) =  self.CreateHOTs(fatjets, resolves)
 
         ### Store output
         self.out.fillBranch("FatJet_Stop0l", self.FatJet_Stop0l)
@@ -174,6 +212,12 @@ class DeepTopProducer(Module):
         self.out.fillBranch("Stop0l_nResolved", self.nResolved)
         self.out.fillBranch("Stop0l_ISRJetIdx", self.ISRJetidx)
         self.out.fillBranch("Stop0l_ISRJetPt", ISRJetPt)
+        self.out.fillBranch("Stop0l_nHOT", len(HOTpt))
+        self.out.fillBranch("Stop0l_HOTpt", HOTpt)
+        self.out.fillBranch("Stop0l_HOTeta", HOTeta)
+        self.out.fillBranch("Stop0l_HOTphi", HOTphi)
+        self.out.fillBranch("Stop0l_HOTmass", HOTmass)
+        self.out.fillBranch("Stop0l_HOTtype", HOTtype)
         return True
 
 # define modules using the syntax 'name = lambda : constructor' to avoid having them loaded when not needed
