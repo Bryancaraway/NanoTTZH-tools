@@ -10,7 +10,7 @@ from PhysicsTools.NanoSUSYTools.modules.Stop0lBaselineProducer import *
 from PhysicsTools.NanoSUSYTools.modules.DeepTopProducer import *
 
 
-era = "2016"
+era = "2017"
 isFastSim = False
 mods = [
     eleMiniCutID(),
@@ -19,7 +19,6 @@ mods = [
     Stop0lBaselineProducer(era, isFastSim),
 ]
 
-files=["/uscms_data/d3/lpcsusyhad/benwu/Moriond2019/TestNanoAOD/CMSSW_10_2_6/src/PhysicsTools/NanoSUSY/test/test94X_NANO.root"]
-
+files= ["root://cmseos.fnal.gov//store/user/benwu/Stop18/NtupleSyncMiniAOD/NanoSUSY/2018Xmas/prod2017MC_NANO.root"]
 p=PostProcessor(".",files,cut=None, branchsel=None, outputbranchsel=None, modules=mods,provenance=False)
 p.run()
