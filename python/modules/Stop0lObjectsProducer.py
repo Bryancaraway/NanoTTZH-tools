@@ -33,6 +33,7 @@ class Stop0lObjectsProducer(Module):
         self.out.branch("SB_Stop0l",       "O", lenVar="nSB")
         self.out.branch("Jet_btagStop0l",  "O", lenVar="nJet")
         self.out.branch("FatJet_Stop0l",   "O", lenVar="nFatJet")
+        self.out.branch("Photon_Stop0l",   "O", lenVar="nPhoton")
         self.out.branch("Jet_dPhiMET",     "F", lenVar="nJet")
         self.out.branch("Stop0l_HT",       "F")
         self.out.branch("Stop0l_Mtb",      "F")
@@ -102,6 +103,17 @@ class Stop0lObjectsProducer(Module):
             return False
         return True
 
+    def SelPhotons(self, photon):
+        if photon.pt < 200:
+            return False
+        abeta = math.fabs(photon.eta)
+        if (abeta > 1.442 and abeta < 1.566) or (abeta > 2.5):
+            return False
+        ## cut-base ID, 2^0 loose ID
+        if not photon.cutBasedBitmap & 0b1:
+            return False
+        return True
+
     def CalHT(self, jets):
         HT = sum([j.pt for i, j in enumerate(jets) if self.Jet_Stop0l[i]])
         return HT
@@ -135,6 +147,7 @@ class Stop0lObjectsProducer(Module):
         isotracks = Collection(event, "IsoTrack")
         jets      = Collection(event, "Jet")
         isvs      = Collection(event, "SB")
+        photons   = Collection(event, "Photon")
         met       = Object(event, self.metBranchName)
         flags     = Object(event, "Flag")
 
@@ -146,6 +159,7 @@ class Stop0lObjectsProducer(Module):
         local_BJet_Stop0l    = map(self.SelBtagJets, jets)
         self.BJet_Stop0l     = [a and b for a, b in zip(self.Jet_Stop0l, local_BJet_Stop0l )]
         self.SB_Stop0l       = map(self.SelSoftb, isvs)
+        self.Photon_Stop0l   = map(self.SelPhotons, photons)
 
         ## Jet variables
         jet_phi = np.asarray([jet.phi for jet in jets])
@@ -164,6 +178,7 @@ class Stop0lObjectsProducer(Module):
         self.out.fillBranch("Jet_btagStop0l",  self.BJet_Stop0l)
         self.out.fillBranch("Jet_Stop0l",      self.Jet_Stop0l)
         self.out.fillBranch("SB_Stop0l",       self.SB_Stop0l)
+        self.out.fillBranch("Photon_Stop0l",   self.Photon_Stop0l)
         self.out.fillBranch("Jet_dPhiMET",     Jet_dPhi)
         self.out.fillBranch("Stop0l_HT",       HT)
         self.out.fillBranch("Stop0l_Mtb",      Mtb)
