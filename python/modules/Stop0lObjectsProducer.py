@@ -9,8 +9,8 @@ from PhysicsTools.NanoAODTools.postprocessing.framework.eventloop import Module
 #2016 MC: https://twiki.cern.ch/twiki/bin/view/CMS/BtagRecommendation80XReReco#Data_MC_Scale_Factors_period_dep
 #2017 MC: https://twiki.cern.ch/twiki/bin/view/CMS/BtagRecommendation94X
 DeepCSVMediumWP ={
-    "2016" : 0.8484,
-    "2017" : 0.8838
+    "2016" : 0.6324,
+    "2017" : 0.4941,
 }
 
 class Stop0lObjectsProducer(Module):
@@ -120,7 +120,10 @@ class Stop0lObjectsProducer(Module):
 
         for i in range(min(len(btagidx), 2)):
             bj = bjets[btagidx[i]]
-            Mtb = min(Mtb, math.sqrt( 2 * met.pt * bj.pt * (1 - math.cos(met.phi-bj.phi))))
+            Mtb = min(Mtb, math.sqrt( 2 * met.pt * bj.pt * (1 - math.cos(ROOT.TVector2.Phi_mpi_pi(met.phi-bj.phi)))))
+
+        if Mtb == float('inf'):
+            Mtb = 0
         return Mtb, Ptb
 
 
@@ -139,8 +142,9 @@ class Stop0lObjectsProducer(Module):
         self.Electron_Stop0l = map(self.SelEle, electrons)
         self.Muon_Stop0l     = map(self.SelMuon, muons)
         self.IsoTrack_Stop0l = map(lambda x : self.SelIsotrack(x, met), isotracks)
-        self.BJet_Stop0l     = map(self.SelBtagJets, jets)
         self.Jet_Stop0l      = map(self.SelJets, jets)
+        local_BJet_Stop0l    = map(self.SelBtagJets, jets)
+        self.BJet_Stop0l     = [a and b for a, b in zip(self.Jet_Stop0l, local_BJet_Stop0l )]
         self.SB_Stop0l       = map(self.SelSoftb, isvs)
 
         ## Jet variables
