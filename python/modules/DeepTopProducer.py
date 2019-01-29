@@ -37,10 +37,10 @@ class DeepTopProducer(Module):
         self.out.branch("Stop0l_ISRJetIdx", "I")
         self.out.branch("Stop0l_ISRJetPt", "F")
         self.out.branch("Stop0l_nHOT", "I")
-        self.out.branch("Stop0l_HOTpt",   "F", lenVar = "Stop0l_nHOT")
-        self.out.branch("Stop0l_HOTeta",  "F", lenVar = "Stop0l_nHOT")
-        self.out.branch("Stop0l_HOTphi",  "F", lenVar = "Stop0l_nHOT")
-        self.out.branch("Stop0l_HOTmass", "F", lenVar = "Stop0l_nHOT")
+        self.out.branch("Stop0l_HOTpt",   "F", lenVar = "Stop0l_nHOT", limitedPrecision=True)
+        self.out.branch("Stop0l_HOTeta",  "F", lenVar = "Stop0l_nHOT", limitedPrecision=True)
+        self.out.branch("Stop0l_HOTphi",  "F", lenVar = "Stop0l_nHOT", limitedPrecision=True)
+        self.out.branch("Stop0l_HOTmass", "F", lenVar = "Stop0l_nHOT", limitedPrecision=True)
         self.out.branch("Stop0l_HOTtype", "I", lenVar = "Stop0l_nHOT")
 
     def endFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):

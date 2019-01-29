@@ -1,7 +1,27 @@
 # this is a comment
-drop * # start with all
-keep Electron*
-keep Muon*
-keep Jet*
-keep GenJet*
-keep MET*
+drop SV_*
+drop TrigObj_*
+drop Tau_*
+drop TkMET_*
+drop RawMET_*
+drop CaloMET_*
+drop ChsMET_*
+drop PuppiMET_*
+drop GenDressedLepton_*
+drop SoftActivity*
+drop fixedGridRho*
+drop Electron_mva*
+drop *btagCSVV2*
+drop *btagCMVA*
+drop FatJet_deepTagMD_*
+drop OtherPV_*
+## Input for Track TauMVA
+drop PFcand_*
+## Input for DeepResolved
+drop Jet_deepFlavour*
+drop Jet_deepCSV*
+drop Jet_qg*
+drop Jet_Cvs*
+drop Jet_btagDeepFlavB
+drop Jet_*Mult 
+drop Jet_*EF
