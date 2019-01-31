@@ -32,7 +32,6 @@ class Stop0lObjectsProducer(Module):
         self.out.branch("Jet_Stop0l",      "O", lenVar="nJet")
         self.out.branch("SB_Stop0l",       "O", lenVar="nSB")
         self.out.branch("Jet_btagStop0l",  "O", lenVar="nJet")
-        self.out.branch("FatJet_Stop0l",   "O", lenVar="nFatJet")
         self.out.branch("Photon_Stop0l",   "O", lenVar="nPhoton")
         self.out.branch("Jet_dPhiMET",     "F", lenVar="nJet", limitedPrecision=True)
         self.out.branch("Stop0l_HT",       "F")

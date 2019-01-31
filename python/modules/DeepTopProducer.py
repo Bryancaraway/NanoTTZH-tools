@@ -15,22 +15,28 @@ class DeepTopProducer(Module):
     def __init__(self, era):
         ## WP from Hui's study https://indico.cern.ch/event/780000/contributions/3248659/attachments/1768782/2873013/Search_bin_study_with_combine_tools_v13.pdf
         self.DeepAK8TopWP  = 0.9377
+        self.DeepAK8TopPt  = 400.0
         self.minAK8TopMass = 105
-        self.minAK8WMass = 65
+        self.minAK8WMass   = 65
         self.DeepAK8WWP    = 0.9530
+        self.DeepAK8WPt    = 200.0
         self.DeepResolveWP = 0.92
+        self.etaMax        = 2.0
+        self.bJetEtaMax    = 2.4
+        self.resAK4bTagWP  = 0.8484
+        self.dR2AK4Subjet  = 0.4*0.4
         self.era = era
         self.metBranchName = "MET"
 
     def beginJob(self):
-        pass
+        self.count = 1
     def endJob(self):
         pass
 
     def beginFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
         self.out = wrappedOutputTree
-        self.out.branch("FatJet_Stop0l",      "O", lenVar="nFatJet")
-        self.out.branch("ResolvedTop_Stop0l", "O", lenVar="nResolvedTop")
+        self.out.branch("FatJet_Stop0l", "I", lenVar="nFatJet")
+        self.out.branch("ResolvedTop_Stop0l", "O", lenVar="nResolvedTopCandidate")
         self.out.branch("Stop0l_nTop", "I")
         self.out.branch("Stop0l_nW", "I")
         self.out.branch("Stop0l_nResolved", "I")
@@ -42,33 +48,29 @@ class DeepTopProducer(Module):
         self.out.branch("Stop0l_HOTphi",  "F", lenVar = "Stop0l_nHOT", limitedPrecision=True)
         self.out.branch("Stop0l_HOTmass", "F", lenVar = "Stop0l_nHOT", limitedPrecision=True)
         self.out.branch("Stop0l_HOTtype", "I", lenVar = "Stop0l_nHOT")
-
+        
     def endFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
         pass
 
     def SelDeepAK8(self, fatj):
-        if fatj.deepTag_TvsQCD > self.DeepAK8TopWP and fatj.msoftdrop > self.minAK8TopMass:
+        if fatj.deepTag_TvsQCD > self.DeepAK8TopWP and fatj.msoftdrop > self.minAK8TopMass and fatj.pt > self.DeepAK8TopPt and abs(fatj.eta) < self.etaMax:
             return 1
-        elif fatj.deepTag_WvsQCD > self.DeepAK8WWP and fatj.msoftdrop > self.minAK8WMass:
+        elif fatj.deepTag_WvsQCD > self.DeepAK8WWP and fatj.msoftdrop > self.minAK8WMass and fatj.pt > self.DeepAK8WPt and abs(fatj.eta) < self.etaMax:
             return 2
         else:
             return 0
 
     def SelDeepResolved(self, res, jets):
-        if math.fabs(res.eta) > 2.0:
+        if math.fabs(res.eta) > self.etaMax:
             return False
         if res.discriminator < self.DeepResolveWP:
             return False
-        ## Veto resolved with two b-tagged jets
-        if (jets[res.j1Idx].btagStop0l + jets[res.j2Idx].btagStop0l+ jets[res.j3Idx].btagStop0l) >= 2 :
+        if ((abs(jets[res.j1Idx].eta) < self.bJetEtaMax and jets[res.j1Idx].btagCSVV2 > self.resAK4bTagWP) + (abs(jets[res.j2Idx].eta) < self.bJetEtaMax and jets[res.j2Idx].btagCSVV2 > self.resAK4bTagWP) + (abs(jets[res.j3Idx].eta) < self.bJetEtaMax and jets[res.j3Idx].btagCSVV2 > self.resAK4bTagWP)) >= 2 :
             return False
         return True
 
     def ResovleOverlapDeepAK8(self, res, fatj, jets, subjets):
         ## Counting number of tops
-        if sum(self.FatJet_Stop0l ) == 0  or sum(self.ResolvedTop_Stop0l) == 0:
-            return False
-
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Getting jets ~~~~~
         ### Subjet method
         subjetides  = []
@@ -76,53 +78,51 @@ class DeepTopProducer(Module):
             if self.FatJet_Stop0l[i] > 0 :
                 subjetides.append(j.subJetIdx1)
                 subjetides.append(j.subJetIdx2)
-        ## Resolved AK4 jets
+        ### Resolved AK4 jets
         resjets = defaultdict(list)
         for i, t in enumerate(res):
             if self.ResolvedTop_Stop0l[i]:
                 resjets[t.j1Idx].append(i)
                 resjets[t.j2Idx].append(i)
                 resjets[t.j3Idx].append(i)
-
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Making correlation ~~~~~
-        combs = np.asarray([(x,y) for x in subjetides for y in resjets.keys() ])
-        subjet_eta = np.asarray([ subjets[x].eta for x in combs[:, 0] ])
-        subjet_phi = np.asarray([ subjets[x].phi for x in combs[:, 0] ])
-        jet_eta = np.asarray([ jets[x].eta for x in combs[:, 1] ])
-        jet_phi = np.asarray([ jets[x].phi for x in combs[:, 1] ])
-        ## Using ufunc for vector operation
-        deta = np.power(subjet_eta-jet_eta, 2)
-        dPhi = subjet_phi - jet_phi
-        np.subtract(dPhi, 2*math.pi, out = dPhi, where= (dPhi >=math.pi))
-        np.add(dPhi, 2*math.pi,  out =dPhi , where=(dPhi < -1*math.pi))
-        np.power(dPhi, 2, out=dPhi)
-        dR2 = np.add(deta, dPhi)
-        overlap = combs[np.where(dR2 < 0.04)]
-        if overlap.size == 0:
-            return False
+
+        if len(subjetides) > 0 and len(resjets) > 0:
+            combs = np.asarray([(x,y) for x in subjetides for y in resjets.keys() ])
+            subjet_eta = np.asarray([ subjets[x].eta for x in combs[:, 0] ])
+            subjet_phi = np.asarray([ subjets[x].phi for x in combs[:, 0] ])
+            jet_eta = np.asarray([ jets[x].eta for x in combs[:, 1] ])
+            jet_phi = np.asarray([ jets[x].phi for x in combs[:, 1] ])
+            ## Using ufunc for vector operation
+            deta = np.power(subjet_eta-jet_eta, 2)
+            dPhi = subjet_phi - jet_phi
+            np.subtract(dPhi, 2*math.pi, out = dPhi, where= (dPhi >=math.pi))
+            np.add(dPhi, 2*math.pi,  out =dPhi , where=(dPhi < -1*math.pi))
+            np.power(dPhi, 2, out=dPhi)
+            dR2 = np.add(deta, dPhi)
+            overlap = combs[np.where(dR2 < self.dR2AK4Subjet)]
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Killing overlap ~~~~~
-        ## Has overlap
-        for j in overlap[:, 1]:
-            for overlapidx in resjets[j]:
-                self.ResolvedTop_Stop0l[overlapidx] = False
+            ## Has overlap
+            for j in overlap[:, 1]:
+                for overlapidx in resjets[j]:
+                    self.ResolvedTop_Stop0l[overlapidx] = False
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Clean up double counting in DeepResolved ~~~~~
-        for k, v in resjets.items():
-            ## counting tops per jets
-            if len(v) <= 1:
-                continue
-            ## Recount tops per jets
-            newtops = [ n for n in v if self.ResolvedTop_Stop0l[n] ]
-            if len(newtops) <= 1:
-                continue
-            ## Shit, duplicate tops, keep the highest discriminate
-            topbyscore = {}
-            for j in newtops:
-                topbyscore [ res[j].discriminator ] = j
+        usedJets = set()
+        remainingtops = [iTop for iTop in xrange(len(self.ResolvedTop_Stop0l)) if self.ResolvedTop_Stop0l[iTop]]
+        #Sort remaining tops by discriminator value 
+        remainingtops.sort(key=lambda x: -res[x].discriminator)
+        if len(remainingtops) > 1:
+            for iTop in remainingtops:
+                jetIndices = set( (res[iTop].j1Idx, res[iTop].j2Idx, res[iTop].j3Idx) )
+                if not (jetIndices & usedJets):
+                    #None of this top's jets are "used", its a good top, mark its jets as used
+                    usedJets |= jetIndices
+                else:
+                    #Top has duplicate jet, remove from consideration
+                    self.ResolvedTop_Stop0l[iTop] = False
 
-            for k in sorted(topbyscore.keys())[:-1]:
-                self.ResolvedTop_Stop0l[topbyscore[k]] = False
         return True
 
     def Clear(self):
