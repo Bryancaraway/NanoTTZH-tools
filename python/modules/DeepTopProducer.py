@@ -61,9 +61,9 @@ class DeepTopProducer(Module):
             return 0
 
     def SelDeepResolved(self, res, jets):
-        if math.fabs(res.eta) > self.etaMax:
+        if math.fabs(res.eta) >= self.etaMax:
             return False
-        if res.discriminator < self.DeepResolveWP:
+        if res.discriminator <= self.DeepResolveWP:
             return False
         if ((abs(jets[res.j1Idx].eta) < self.bJetEtaMax and jets[res.j1Idx].btagCSVV2 > self.resAK4bTagWP) + (abs(jets[res.j2Idx].eta) < self.bJetEtaMax and jets[res.j2Idx].btagCSVV2 > self.resAK4bTagWP) + (abs(jets[res.j3Idx].eta) < self.bJetEtaMax and jets[res.j3Idx].btagCSVV2 > self.resAK4bTagWP)) >= 2 :
             return False
