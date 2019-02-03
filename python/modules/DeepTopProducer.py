@@ -8,7 +8,7 @@ import itertools
 
 from PhysicsTools.NanoAODTools.postprocessing.framework.datamodel import Collection, Object
 from PhysicsTools.NanoAODTools.postprocessing.framework.eventloop import Module
-from PhysicsTools.NanoSUSYTools.modules.Stop0lObjectsProducer import DeepCSVMediumWP
+from PhysicsTools.NanoSUSYTools.modules.Stop0lObjectsProducer import DeepCSVMediumWP, CSVv2MediumWP
 
 
 class DeepTopProducer(Module):
@@ -23,7 +23,7 @@ class DeepTopProducer(Module):
         self.DeepResolveWP = 0.92
         self.etaMax        = 2.0
         self.bJetEtaMax    = 2.4
-        self.resAK4bTagWP  = 0.8484
+        self.resAK4bTagWP  = CSVv2MediumWP[era]
         self.dR2AK4Subjet  = 0.4*0.4
         self.era = era
         self.metBranchName = "MET"

@@ -13,6 +13,11 @@ DeepCSVMediumWP ={
     "2017" : 0.4941,
 }
 
+CSVv2MediumWP = {
+    "2016" : 0.8484,
+    "2017" : 0.8838
+}
+
 class Stop0lObjectsProducer(Module):
     def __init__(self, era):
         self.era = era
