@@ -12,7 +12,7 @@ from PhysicsTools.NanoAODTools.postprocessing.modules.common.puWeightProducer im
 
 def main(args):
 
-    era = "2016"
+    era = "2017"
     isFastSim = False
     mods = [
         eleMiniCutID(),
@@ -50,3 +50,4 @@ if __name__ == "__main__":
     #    help = 'Path to the output file location.')
     args = parser.parse_args()
     main(args)
+
