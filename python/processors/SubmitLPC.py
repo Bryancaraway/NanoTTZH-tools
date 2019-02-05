@@ -213,19 +213,6 @@ def my_process():
     NewNpro = {}
     Tarfiles = []
 
-    """
-    for key, value in Process.items():
-        if value[0] == "":
-            value[0] = "../FileList/"+key+".list"
-            #value[0] = "../FileList/"+key
-        if not os.path.isfile(value[0]):
-            continue
-
-        npro = GetProcess(key, value)
-        Tarfiles+=npro
-        NewNpro[key] = len(npro)
-    """
-
 
     for sample in Process:
         print("Getting process: " + sample[0] + " " + sample[1] + sample[2])
@@ -241,32 +228,37 @@ def my_process():
         tar.close()
 
     ### Update condor files
-    """
-    for key, value in Process.items():
-        if NewNpro[key] > 1:
-            arg = "\nArguments = %s.$(Process).list %s_$(Process).root \nQueue %d \n" % (key, key, NewNpro[key])
-        else:
-            arg = "\nArguments = %s.list %s.root \n Queue\n" % (key, key)
-
-        ## Prepare the condor file
-        condorfile = tempdir + "/" + "condor_" + ProjectName + "_" + key
-        with open(condorfile, "wt") as outfile:
-            for line in open("condor_template", "r"):
-                line = line.replace("EXECUTABLE", os.path.abspath(RunHTFile))
-                line = line.replace("TARFILES", tarballname)
-                line = line.replace("TEMPDIR", tempdir)
-                line = line.replace("PROJECTNAME", ProjectName)
-                line = line.replace("ARGUMENTS", arg)
-                outfile.write(line)
-
-    """
     for sample in Process:
+        if len(sample) == 8:
+            isData = "False"
+            xsec = sample[4]
+            nevents = sample[5] - sample[6]
+        else:
+            isData = "True"
+            xsec = ""
+            nevents = ""
+        #Look through sample[1] for "2016", "2017", "2018" to get era; TODO: verify that this string wouldn't otherwise appear (eg.- CMSSW version number)
+        if "2016" in sample[1]:
+            era = "2016"
+        else if "2017" in sample[1]:
+            era = "2017"
+        else if "2018" in sample[1]:
+            era = "2018"
+        else:
+            print("Could not find era in " + sample[1] + ". Defaulting to 2017.")
+            era = "2017"
+        #Look at sample[2] for a string like "fastsim"? 
+        
         if NewNpro[sample[0]] > 1:
-            #arg = "\nArguments = %s.$(Process).list %s_$(Process).root \nQueue %d \n" % (sample[0], sample[0], NewNpro[sample[0]])
-            arg = "\nArguments = %s.$(Process).list \nQueue %d \n" % (sample[0], sample[0], NewNpro[sample[0]])
+            arg = "\nArguments = {common_name}.$(Process).list {common_name}_$(Process).root {Era} {IsFastSim} {IsData} {cs} {nEvents} \nQueue {number} \n".format(common_name=sample[0],
+			Era=2017, IsFastSim="False", IsData="False", cs="", nEvents="", number=NewNpro[sample[0]])
+                        # TODO: Era = era, IsFastSim =, IsData=isData, cs = xsec, nEvents = nevents, number=NewNpro[sample[0]])
         else:
             #arg = "\nArguments = %s.list %s.root \n Queue\n" % (sample[0], sample[0])
-            arg = "\nArguments = %s.list %s.root \n Queue\n" % (sample[0], sample[0])
+            arg = "\nArguments = {common_name}.list {common_name}.root {Era} {IsFastSim} {IsData} {cs} {nEvents} \nQueue {number} \n".format(common_name=sample[0],
+                        Era=2017, IsFastSim="False", IsData="False", cs="", nEvents="", number=NewNpro[sample[0]])
+                        # TODO: Era = era, IsFastSim =, IsData=isData, cs = xsec, nEvents = nevents, number=NewNpro[sample[0]])
+
 
         ## Prepare the condor file
         condorfile = tempdir + "/" + "condor_" + ProjectName + "_" + sample[0]
@@ -287,24 +279,28 @@ def GetProcess(key, value):
         return SplitPro(key, value[0], 1)
     else :
         return SplitPro(key, value[0], value[1])
-"""
-def GetNeededFileList(key):
-    relist = []
-    g = glob.glob("../FileList/*.tar.gz")
-    relist += [os.path.abspath(h) for h in g]
-    g = glob.glob("../*root")
-    relist += [os.path.abspath(h) for h in g]
-    g = glob.glob("../*csv")
-    relist += [os.path.abspath(h) for h in g]
-    g = glob.glob("../*cfg")
-    relist += [os.path.abspath(h) for h in g]
-    g = glob.glob("../*model")
-    relist += [os.path.abspath(h) for h in g]
-    process = subprocess.Popen( "ldd %s " % os.path.abspath(DelExe) , shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    for l in process.stdout:
-        if os.getenv('USER') in l:
-            relist.append(l.strip().split(' ')[2])
-    return relist
-"""
+
+def tar_cmssw():
+    cmsswdir = os.environ['CMSSW_BASE']
+    cmsswtar = os.path.abspath(os.path.expandvars('$CMSSW_BASE/../CMSSW.tar.gz'))
+    if os.path.exists(cmsswtar):
+        ans = raw_input('CMSSW tarball %s already exists, remove? [yn] ' % cmsswtar)
+        if ans.lower()[0] == 'y':
+            os.remove(cmsswtar)
+        else:
+            return
+
+    def exclude(tarinfo):
+        exclude_patterns = ['/.git/', '/tmp/', '/jobs.*/', '/logs/', ]
+        for pattern in exclude_patterns:
+            if re.search(pattern, tarinfo.name):
+                logging.debug('ignoring %s in the tarball', tarinfo.name)
+                tarinfo = None
+                break
+        return tarinfo
+
+    with tarfile.open(cmsswtar, "w:gz") as tar:
+        tar.add(cmsswdir, arcname=os.path.basename(cmsswdir), filter=exclude)
+
 if __name__ == "__main__":
     my_process()
