@@ -16,8 +16,9 @@ eval `scramv1 project CMSSW ${CMSSW}`
 cd ${CMSSW}
 eval `scramv1 runtime -csh` # cmsenv is an alias not on the workers
 echo "CMSSW: "$CMSSW_BASE
-cd ${_CONDOR_SCRATCH_DIR}
+tar -xzvf ${_CONDOR_SCRATCH_DIR}/CMSSW.tar.gz
 
+cd ${_CONDOR_SCRATCH_DIR}
 foreach tarfile (`ls *gz FileList/*gz`)
   echo $tarfile
   tar -xzf $tarfile 
