@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import os, sys
+import argparse
 import ROOT
 ROOT.PyConfig.IgnoreCommandLineOptions = True
 from importlib import import_module
@@ -8,6 +9,7 @@ from PhysicsTools.NanoSUSYTools.modules.eleMiniCutIDProducer import *
 from PhysicsTools.NanoSUSYTools.modules.Stop0lObjectsProducer import *
 from PhysicsTools.NanoSUSYTools.modules.Stop0lBaselineProducer import *
 from PhysicsTools.NanoSUSYTools.modules.DeepTopProducer import *
+from PhysicsTools.NanoSUSYTools.modules.updateGenWeight import *
 from PhysicsTools.NanoAODTools.postprocessing.modules.common.puWeightProducer import *
 
 def main(args):
@@ -16,7 +18,8 @@ def main(args):
         eleMiniCutID(),
         Stop0lObjectsProducer(args.era),
         DeepTopProducer(args.era),
-        Stop0lBaselineProducer(args.era, args.isFastSim)
+        Stop0lBaselineProducer(args.era, args.isFastSim),
+        # UpdateGenWeight(args.crossSection, args.nEvents)
     ]
 
     if args.era == "2016":
@@ -31,11 +34,12 @@ def main(args):
 
     #files=["/uscms_data/d3/lpcsusyhad/benwu/Moriond2019/TestNanoAOD/CMSSW_10_4_X_2018-12-11-2300/src/prod2017MC_NANO.root"]
     #files=["/eos/uscms/store/user/benwu/Stop18/NtupleSyncMiniAOD/NanoSUSY/2018Xmas/prod2017MC_NANO.root"]
-    
+
     files = []
     lines = open(args.inputfile).readlines()
     for line in lines:
-        files.append(line)
+        files.append(line.strip())
+
 
     p=PostProcessor(args.outputfile,files,cut=None, branchsel=None, outputbranchsel="keep_and_drop.txt", modules=mods,provenance=False)
     p.run()
@@ -46,7 +50,8 @@ if __name__ == "__main__":
         default = "testing.txt",
         help = 'Path to the input filelist.')
     parser.add_argument('-o', '--outputfile',
-        help = 'Path to the output file location.')
+                        default="./",
+                        help = 'Path to the output file location.')
     parser.add_argument('-e', '--era',
         default = "2017", help = 'Year of production')
     parser.add_argument('-f', '--isFastSim', default = False)
