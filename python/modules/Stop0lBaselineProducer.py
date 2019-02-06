@@ -6,10 +6,10 @@ from PhysicsTools.NanoAODTools.postprocessing.framework.datamodel import Collect
 from PhysicsTools.NanoAODTools.postprocessing.framework.eventloop import Module
 
 class Stop0lBaselineProducer(Module):
-    def __init__(self, era, isFastSim=False):
+    def __init__(self, era, isData = False, isFastSim=False):
         self.era = era
         self.isFastSim = isFastSim
-        self.isData = None
+        self.isData = isData
 
     def beginJob(self):
         pass
@@ -87,16 +87,6 @@ class Stop0lBaselineProducer(Module):
         countJets = sum([j.Stop0l for j in jets])
         return countJets >= 2
 
-    def CheckisData(self, event):
-        if self.isData is not None:
-            return False
-        run = Object(event, "run")
-        if run > 1:
-            self.isData = True
-        else:
-            self.isData = False
-        return True
-
     def PassdPhi(self, jets, dPhiCuts):
         passdPhi = True
         jetcount = 0
@@ -111,7 +101,6 @@ class Stop0lBaselineProducer(Module):
 
     def analyze(self, event):
         """process event, return True (go to next module) or False (fail, go to next event)"""
-        self.CheckisData(event)
         electrons = Collection(event, "Electron")
         muons     = Collection(event, "Muon")
         isotracks = Collection(event, "IsoTrack")
