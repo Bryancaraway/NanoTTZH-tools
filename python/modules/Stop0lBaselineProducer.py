@@ -54,7 +54,7 @@ class Stop0lBaselineProducer(Module):
                     # and flags.BadPFMuonSummer16Filter and # flags.BadChargedCandidateSummer16Filter
             ## Only data
             if self.isData:
-                passEventFilter = passEventFilter and flags.globalSuperTightHalo2016Filter and flags.FlageeBadScFilter
+                passEventFilter = passEventFilter and flags.globalSuperTightHalo2016Filter and flags.eeBadScFilter
             elif not self.isFastSim:
                 passEventFilter = passEventFilter and flags.globalSuperTightHalo2016Filter
 
@@ -68,7 +68,7 @@ class Stop0lBaselineProducer(Module):
             ## Only data
             print(type(self.isData))
             if self.isData:
-                passEventFilter = passEventFilter and flags.globalSuperTightHalo2016Filter and flags.FlageeBadScFilter
+                passEventFilter = passEventFilter and flags.globalSuperTightHalo2016Filter and flags.eeBadScFilter
             elif not self.isFastSim:
                 passEventFilter = passEventFilter and flags.globalSuperTightHalo2016Filter
 
