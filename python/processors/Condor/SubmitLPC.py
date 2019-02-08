@@ -16,7 +16,7 @@ from collections import defaultdict
 DelExe    = '../Stop0l_postproc.py'
 #OutDir = '/store/user/%s/StopStudy' %  getpass.getuser()
 tempdir = '/uscms_data/d3/%s/condor_temp/' % getpass.getuser()
-ProjectName = 'PostProcess_v1'
+ShortProjectName = 'PostProcess_v1'
 argument = "--inputFiles=%s.$(Process).list "
 sendfiles = ["../keep_and_drop.txt"]
 
@@ -59,12 +59,12 @@ def ConfigList(config):
         print(stripped_entry)
         process[stripped_entry[0]] = {
             "Filepath__" : "%s/%s" % (stripped_entry[1], stripped_entry[2]),
-            "Outpath__" : "%s" % (stripped_entry[1]) + "/" + ProjectName + "/",
+            "Outpath__" : "%s" % (stripped_entry[1]) + "_" + ShortProjectName + "/",
             "isData" : "Data" in stripped_entry[0],
             "isFastSim" : "fastsim" in stripped_entry[0],
             "crossSection":  float(stripped_entry[4]) * float(stripped_entry[7]),
             "nEvents":  int(stripped_entry[5]) - int(stripped_entry[6]),
-            "era" : 2017, #Temp
+            "era" : 2016, #Temp
         }
 
     return process
@@ -125,7 +125,7 @@ def my_process(args):
     ## temp dir for submit
     global tempdir
     global ProjectName
-    ProjectName = time.strftime('%b%d') + ProjectName
+    ProjectName = time.strftime('%b%d') + ShortProjectName
     tempdir = tempdir + os.getlogin() + "/" + ProjectName +  "/"
     try:
         os.makedirs(tempdir)
