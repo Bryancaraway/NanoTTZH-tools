@@ -18,8 +18,8 @@ def main(args):
         eleMiniCutID(),
         Stop0lObjectsProducer(args.era),
         DeepTopProducer(args.era),
-        Stop0lBaselineProducer(args.era, args.isFastSim),
-        # UpdateGenWeight(args.crossSection, args.nEvents)
+        Stop0lBaselineProducer(args.era, isData = args.isData, isFastSim=args.isFastSim),
+        UpdateGenWeight(args.crossSection, args.nEvents)
     ]
 
     if args.era == "2016":
@@ -32,8 +32,6 @@ def main(args):
             puWeightProducer("auto",pufile_data2017,"pu_mc","pileup",verbose=False)
         ]
 
-    #files=["/uscms_data/d3/lpcsusyhad/benwu/Moriond2019/TestNanoAOD/CMSSW_10_4_X_2018-12-11-2300/src/prod2017MC_NANO.root"]
-    #files=["/eos/uscms/store/user/benwu/Stop18/NtupleSyncMiniAOD/NanoSUSY/2018Xmas/prod2017MC_NANO.root"]
 
     files = []
     lines = open(args.inputfile).readlines()
@@ -56,8 +54,12 @@ if __name__ == "__main__":
         default = "2017", help = 'Year of production')
     parser.add_argument('-f', '--isFastSim', default = False)
     parser.add_argument('-d', '--isData', default = False)
-    parser.add_argument('-c', '--crossSection')
-    parser.add_argument('-n', '--nEvents', help = 'Number of Events')
+    parser.add_argument('-c', '--crossSection',
+                        default = 1,
+                        help = 'Cross Section of MC')
+    parser.add_argument('-n', '--nEvents',
+                        default = 1,
+                        help = 'Number of Events')
     args = parser.parse_args()
     main(args)
 
