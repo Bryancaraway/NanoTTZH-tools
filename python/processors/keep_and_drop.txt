@@ -4,7 +4,7 @@ drop TrigObj_*
 drop Tau_*
 drop TkMET_*
 drop RawMET_*
-drop CaloMET_*
+#drop CaloMET_*
 drop ChsMET_*
 drop PuppiMET_*
 drop GenDressedLepton_*
