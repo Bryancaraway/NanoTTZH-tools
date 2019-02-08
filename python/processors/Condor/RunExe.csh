@@ -33,18 +33,26 @@ endif
 #============================================================================#
 #--------------------------   To Run the Process   --------------------------#
 #============================================================================#
-echo $EXE $argv
-python $EXE $argv
+
+#argv[1] is the hadd file name that will be copied over. Other arguments are for the postprocessor.
+echo $EXE $argv[2-]
+python $EXE $argv[2-]
 
 if ($? == 0) then
-  foreach tarfile (`ls *gz FileList/*gz`)
-    tar -tf $tarfile  | xargs rm -r
-  end
-  foreach outfile (`ls *root`)
-    echo "Copying ${outfile} to ${OUTPUT}"
-    xrdcp $outfile "root://cmseos.fnal.gov/${OUTPUT}"
-    if ($? == 0) then
-      rm $outfile
-    endif
+  echo "Process finished. Listing current files: "
+  ls
+  echo "Hadd file will be named: " $argv[1]
+  python $CMSSW_BASE/src/PhysicsTools/NanoAODTools/scripts/haddnano.py $argv[1] `ls *_Skim.root`
+  #foreach tarfile (`ls *gz FileList/*gz`)
+  #  tar -tf $tarfile  | xargs rm -r
+  #end
+  xrdcp $argv[1] "root://cmseos.fnal.gov/${OUTPUT}/$argv[1]"
+  foreach outfile (`ls *_Skim.root`)
+    #echo "Copying ${outfile} to ${OUTPUT}"
+    #xrdcp $outfile "root://cmseos.fnal.gov/${OUTPUT}"
+    #if ($? == 0) then
+    #  rm $outfile
+    #endif
+    rm $outfile
   end
 endif

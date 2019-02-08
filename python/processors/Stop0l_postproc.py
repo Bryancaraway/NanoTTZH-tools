@@ -9,7 +9,7 @@ from PhysicsTools.NanoSUSYTools.modules.eleMiniCutIDProducer import *
 from PhysicsTools.NanoSUSYTools.modules.Stop0lObjectsProducer import *
 from PhysicsTools.NanoSUSYTools.modules.Stop0lBaselineProducer import *
 from PhysicsTools.NanoSUSYTools.modules.DeepTopProducer import *
-from PhysicsTools.NanoSUSYTools.modules.updateGenWeight import *
+# from PhysicsTools.NanoSUSYTools.modules.updateGenWeight import *
 from PhysicsTools.NanoAODTools.postprocessing.modules.common.puWeightProducer import *
 
 def main(args):
