@@ -75,6 +75,12 @@ class Stop0lBaselineProducer(Module):
         return passEventFilter
 
     def PassJetID(self, jets):
+        # In case of fastsim, it has been observed with lower efficiency
+        # https://hypernews.cern.ch/HyperNews/CMS/get/jet-algorithms/379.html
+        # The conclusion is to ignore it but cover with systematics.
+        if self.isFastSim:
+            return True
+
         # https://twiki.cern.ch/twiki/bin/view/CMS/JetID#Recommendations_for_13_TeV_2017
         # For 2016, loose and tight ID is the same : https://twiki.cern.ch/twiki/bin/view/CMS/JetID13TeVRun2016
         # For 2017, only tight ID available: https://twiki.cern.ch/twiki/bin/view/CMS/JetID13TeVRun2017
