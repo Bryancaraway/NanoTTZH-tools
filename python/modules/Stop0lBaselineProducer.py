@@ -54,7 +54,7 @@ class Stop0lBaselineProducer(Module):
                     # and flags.BadPFMuonSummer16Filter and # flags.BadChargedCandidateSummer16Filter
             ## Only data
             if self.isData:
-                passEventFilter = passEventFilter and flags.globalSuperTightHalo2016Filter and flags.Flag_eeBadScFilter
+                passEventFilter = passEventFilter and flags.globalSuperTightHalo2016Filter and flags.FlageeBadScFilter
             elif not self.isFastSim:
                 passEventFilter = passEventFilter and flags.globalSuperTightHalo2016Filter
 
@@ -66,8 +66,9 @@ class Stop0lBaselineProducer(Module):
                     and flags.BadPFMuonFilter and flags.BadChargedCandidateFilter \
                     and flags.ecalBadCalibFilter  ## Need to double check whether is outdated
             ## Only data
+            print(type(self.isData))
             if self.isData:
-                passEventFilter = passEventFilter and flags.globalSuperTightHalo2016Filter and flags.Flag_eeBadScFilter
+                passEventFilter = passEventFilter and flags.globalSuperTightHalo2016Filter and flags.FlageeBadScFilter
             elif not self.isFastSim:
                 passEventFilter = passEventFilter and flags.globalSuperTightHalo2016Filter
 

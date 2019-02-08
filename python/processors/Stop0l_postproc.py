@@ -14,11 +14,20 @@ from PhysicsTools.NanoAODTools.postprocessing.modules.common.puWeightProducer im
 
 def main(args):
 
+    if "False" in args.isData:
+        isdata = False
+    else:
+         isdata = True
+    if "False" in args.isFastSim:
+        isfastsim = False
+    else:
+        isfastsim = True
+
     mods = [
         eleMiniCutID(),
         Stop0lObjectsProducer(args.era),
         DeepTopProducer(args.era),
-        Stop0lBaselineProducer(args.era, isData = args.isData, isFastSim=args.isFastSim),
+        Stop0lBaselineProducer(args.era, isData=isdata, isFastSim=isfastsim),
         UpdateGenWeight(args.crossSection, args.nEvents)
     ]
 
@@ -55,9 +64,11 @@ if __name__ == "__main__":
     parser.add_argument('-f', '--isFastSim', default = False)
     parser.add_argument('-d', '--isData', default = False)
     parser.add_argument('-c', '--crossSection',
+                        type=float,
                         default = 1,
                         help = 'Cross Section of MC')
     parser.add_argument('-n', '--nEvents',
+                        type=float,
                         default = 1,
                         help = 'Number of Events')
     args = parser.parse_args()

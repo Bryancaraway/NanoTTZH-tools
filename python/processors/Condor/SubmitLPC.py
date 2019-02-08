@@ -14,9 +14,9 @@ from collections import defaultdict
 
 # TODO: set OutDir (and ProjectName?) to be modified based on input filelist location
 DelExe    = '../Stop0l_postproc.py'
-OutDir = '/store/user/%s/StopStudy' %  getpass.getuser()
+#OutDir = '/store/user/%s/StopStudy' %  getpass.getuser()
 tempdir = '/uscms_data/d3/%s/condor_temp/' % getpass.getuser()
-ProjectName = 'PostProcess'
+ShortProjectName = 'PostProcess_v1'
 argument = "--inputFiles=%s.$(Process).list "
 sendfiles = ["../keep_and_drop.txt"]
 
@@ -59,22 +59,17 @@ def ConfigList(config):
         print(stripped_entry)
         process[stripped_entry[0]] = {
             "Filepath__" : "%s/%s" % (stripped_entry[1], stripped_entry[2]),
-            "isData" : len(stripped_entry) == 6,
+            "Outpath__" : "%s" % (stripped_entry[1]) + "_" + ShortProjectName + "/",
+            "isData" : "Data" in stripped_entry[0],
             "isFastSim" : "fastsim" in stripped_entry[0],
             "crossSection":  float(stripped_entry[4]) * float(stripped_entry[7]),
-            "nEvents":  int(stripped_entry[5])- int(stripped_entry[6]),
-            "era" : 2017, #Temp
+            "nEvents":  int(stripped_entry[5]) - int(stripped_entry[6]),
+            "era" : 2016, #Temp
         }
 
     return process
 
 
-# Process = {
-    # "ProcessName" : ['Path to filelist', split lines]
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ SM ~~~~~
-#Use SampleSet and SampleCollection configs to create a list instead.
-#Then add to Process from there? How to determine the line split number? There does seem to be a default for that.
-# }
 
 def Condor_Sub(condor_file):
     curdir = os.path.abspath(os.path.curdir)
@@ -94,8 +89,10 @@ def SplitPro(key, file, fraction=10):
 
     filename = os.path.abspath(file)
     if fraction == 1:
-        splitedfiles.append(os.path.abspath(filename))
-        shutil.copy2(os.path.abspath(filename), "%s/%s" % (filelistdir, os.path.basename(filename)))
+        #splitedfiles.append(os.path.abspath(filename))
+        #shutil.copy2(os.path.abspath(filename), "%s/%s" % (filelistdir, os.path.abspath(filename)))
+        shutil.copy2(os.path.abspath(filename), "%s/%s.0.list" % (filelistdir, key))
+        splitedfiles.append(os.path.abspath("%s/%s.0.list" % (filelistdir, key)))
         return splitedfiles
 
     print(filename)
@@ -128,7 +125,7 @@ def my_process(args):
     ## temp dir for submit
     global tempdir
     global ProjectName
-    ProjectName = time.strftime('%b%d') + ProjectName
+    ProjectName = time.strftime('%b%d') + ShortProjectName
     tempdir = tempdir + os.getlogin() + "/" + ProjectName +  "/"
     try:
         os.makedirs(tempdir)
@@ -136,13 +133,13 @@ def my_process(args):
         pass
 
     ## Create the output directory
-    outdir = OutDir +  "/" + ProjectName + "/"
-    try:
-        os.makedirs("/eos/uscms/%s" % outdir)
-    except OSError:
-        pass
+    #outdir = OutDir +  "/" + ProjectName + "/"
+    #try:
+    #    os.makedirs("/eos/uscms/%s" % outdir)
+    #except OSError:
+    #    pass
 
-
+    """
     ## Update RunHT.csh with DelDir and pileups
     RunHTFile = tempdir + "/" + "RunExe.csh"
     with open(RunHTFile, "wt") as outfile:
@@ -152,6 +149,10 @@ def my_process(args):
             line = line.replace("DELEXE", DelExe.split('/')[-1])
             line = line.replace("OUTDIR", outdir)
             outfile.write(line)
+    """
+    #To have each job copy to a directory based on the input file, looks like I'd need to have a copy of RunExe.csh for name, sample in Process.items() as well.
+    #Needs to be inside the same name, sample for loop for the condor file so the condor file gets the correct EXECUTABLE name.  
+    
 
     ### Create Tarball
     Tarfiles = []
@@ -174,10 +175,27 @@ def my_process(args):
     tarballname += " , ".join([os.path.abspath(i) for i in sendfiles])
     print(tarballname)
 
-    ### Update condor files
+    ### Update condor and RunExe files
     for name, sample in Process.items():
-        arg = "\nArguments = --inputfile={common_name}.$(Process).list ".format(common_name=name)
-        # arg = "\nArguments = --inputfile={common_name}.$(Process).list --outputfile={common_name}_$(Process).root ".format(common_name=name)
+        
+        #define output directory
+        outdir = sample["Outpath__"]
+        # outputfile = "{common_name}_$(Process).root ".format(common_name=name)
+
+        #Update RunExe.csh
+        RunHTFile = tempdir + "/" + name + "_RunExe"
+        with open(RunHTFile, "wt") as outfile:
+            for line in open("RunExe.csh","r"):
+                line = line.replace("DELSCR", os.environ['SCRAM_ARCH'])
+                line = line.replace("DELDIR", os.environ['CMSSW_VERSION'])
+                line = line.replace("DELEXE", DelExe.split('/')[-1])
+                line = line.replace("OUTDIR", outdir)
+                # line = line.replace("OUTFILE", outputfile)
+                outfile.write(line)
+
+        #Update condor file        
+        # arg = "\nArguments = --inputfile={common_name}.$(Process).list ".format(common_name=name)
+        arg = "\nArguments = {common_name}_$(Process).root --inputfile={common_name}.$(Process).list ".format(common_name=name)
         for k, v in sample.items():
             if "__" not in k:
                 arg+=" --%s=%s" % (k, v)
@@ -191,11 +209,10 @@ def my_process(args):
                 line = line.replace("TARFILES", tarballname)
                 line = line.replace("TEMPDIR", tempdir)
                 line = line.replace("PROJECTNAME", ProjectName)
-                #line = line.replace("OUTDIR", sample[1] + "_" + ProjectName)
                 line = line.replace("ARGUMENTS", arg)
                 outfile.write(line)
 
-        Condor_Sub(condorfile)
+        Condor_Sub(condorfile) 
 
 def GetProcess(key, value):
     if len(value) == 1:
@@ -207,7 +224,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='NanoAOD postprocessing.')
     parser.add_argument('-c', '--config',
         default = "sampleconfig.cfg",
-        help = 'Path to the input filelist.')
+        help = 'Path to the input config file.')
 
     args = parser.parse_args()
     my_process(args)
