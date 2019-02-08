@@ -17,7 +17,7 @@ class UpdateGenWeight(Module):
 
     def beginFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
         self.out = wrappedOutputTree
-        self.out.branch("Stop0l_evtWeight",         "F")
+        self.out.branch("Stop0l_evtWeight",         "F", title="Storing cross section/nEvent for MC, lumi for Data")
 
     def endFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
         pass

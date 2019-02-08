@@ -13,11 +13,10 @@ from PhysicsTools.NanoSUSYTools.modules.updateGenWeight import *
 from PhysicsTools.NanoAODTools.postprocessing.modules.common.puWeightProducer import *
 
 def main(args):
-
     if "False" in args.isData:
         isdata = False
     else:
-         isdata = True
+        isdata = True
     if "False" in args.isFastSim:
         isfastsim = False
     else:
@@ -73,4 +72,3 @@ if __name__ == "__main__":
                         help = 'Number of Events')
     args = parser.parse_args()
     main(args)
-
