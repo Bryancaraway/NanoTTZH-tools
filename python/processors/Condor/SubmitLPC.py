@@ -51,7 +51,8 @@ def ConfigList(config, era):
     process = defaultdict(dict)
     #TODO: Split between sample set and sample collection configs
     lines = open(config).readlines()
-    for line in lines:
+    for line_ in lines:
+        line = line_.strip()
         if(len(line) <= 0 or line[0] == '#'):
             continue
         entry = line.split(",")
