@@ -43,16 +43,15 @@ if ($? == 0) then
   ls
   echo "Hadd file will be named: " $argv[1]
   python $CMSSW_BASE/src/PhysicsTools/NanoAODTools/scripts/haddnano.py $argv[1] `ls *_Skim.root`
-  #foreach tarfile (`ls *gz FileList/*gz`)
-  #  tar -tf $tarfile  | xargs rm -r
-  #end
+  ## Remove skim files once they are merged
+  if ($? == 0) then
+    foreach outfile (`ls *_Skim.root`)
+      rm $outfile
+    end
+  endif
   xrdcp $argv[1] "root://cmseos.fnal.gov/${OUTPUT}/$argv[1]"
-  foreach outfile (`ls *_Skim.root`)
-    #echo "Copying ${outfile} to ${OUTPUT}"
-    #xrdcp $outfile "root://cmseos.fnal.gov/${OUTPUT}"
-    #if ($? == 0) then
-    #  rm $outfile
-    #endif
-    rm $outfile
-  end
+  ## Remove output file once it is copied
+  if ($? == 0) then
+    rm $argv[1] 
+  endif
 endif
