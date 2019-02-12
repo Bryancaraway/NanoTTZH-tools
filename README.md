@@ -20,3 +20,11 @@ git clone git@github.com:susy2015/NanoSUSY-tools.git PhysicsTools/NanoSUSYTools
 scram b
 ```
 
+
+## To Do:
+* PDF uncertainty module
+* lepton SF module follow [SUSY](https://twiki.cern.ch/twiki/bin/viewauth/CMS/SUSLeptonSF#Scale_Factors_for_SUSY_IDs)
+* PU reweighting (need updates)
+* btag SF update (instead of the btag weight stored during production)
+* JEC uncertainty update
+* DeepAK8/DeepResolved SF
