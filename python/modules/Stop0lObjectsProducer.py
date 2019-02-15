@@ -22,6 +22,10 @@ class Stop0lObjectsProducer(Module):
     def __init__(self, era):
         self.era = era
         self.metBranchName = "MET"
+        # EE noise mitigation in PF MET
+        # https://hypernews.cern.ch/HyperNews/CMS/get/JetMET/1865.html
+        if self.era == "2017":
+            self.metBranchName = "METFixEE2017"
 
     def beginJob(self):
         pass
@@ -46,6 +50,13 @@ class Stop0lObjectsProducer(Module):
         self.out.branch("Stop0l_nJets",    "I")
         self.out.branch("Stop0l_nbtags",   "I")
         self.out.branch("Stop0l_nSoftb",   "I")
+        # Copying METFixEE2017 to MET for 2017 Data/MC
+        if self.era == "2017":
+            self.out.branch("MET_phi",                  "F")
+            self.out.branch("MET_pt",                   "F")
+            self.out.branch("MET_sumEt",                "F")
+            self.out.branch("MET_MetUnclustEnUpDeltaX", "F")
+            self.out.branch("MET_MetUnclustEnUpDeltaY", "F")
 
     def endFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
         pass
@@ -143,6 +154,16 @@ class Stop0lObjectsProducer(Module):
             Mtb = 0
         return Mtb, Ptb
 
+    def CopyMETFixEE2017(self, METFixEE):
+        self.out.fillBranch("MET_phi", METFixEE.phi)
+        self.out.fillBranch("MET_pt", METFixEE.pt)
+        self.out.fillBranch("MET_sumEt", METFixEE.sumEt)
+        self.out.fillBranch("MET_MetUnclustEnUpDeltaX", METFixEE.MetUnclustEnUpDeltaX)
+        self.out.fillBranch("MET_MetUnclustEnUpDeltaY", METFixEE.MetUnclustEnUpDeltaY)
+        return True
+
+
+
 
     def analyze(self, event):
         """process event, return True (go to next module) or False (fail, go to next event)"""
@@ -177,6 +198,8 @@ class Stop0lObjectsProducer(Module):
         Mtb, Ptb = self.CalMTbPTb(jets, met)
 
         ### Store output
+        if self.era == "2017":
+            self.CopyMETFixEE2017(met)
         self.out.fillBranch("Electron_Stop0l", self.Electron_Stop0l)
         self.out.fillBranch("Muon_Stop0l",     self.Muon_Stop0l)
         self.out.fillBranch("IsoTrack_Stop0l", self.IsoTrack_Stop0l)
