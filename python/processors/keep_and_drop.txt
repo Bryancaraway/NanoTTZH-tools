@@ -4,14 +4,14 @@ drop TrigObj_*
 drop Tau_*
 drop TkMET_*
 drop RawMET_*
-drop CaloMET_*
+#drop CaloMET_*
 drop ChsMET_*
 drop PuppiMET_*
 drop GenDressedLepton_*
 drop SoftActivity*
 drop fixedGridRho*
 drop Electron_mva*
-drop *btagCSVV2*
+# drop *btagCSVV2*
 drop *btagCMVA*
 drop FatJet_deepTagMD_*
 drop OtherPV_*

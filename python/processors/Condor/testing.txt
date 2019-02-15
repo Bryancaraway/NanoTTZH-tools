@@ -1,0 +1,2 @@
+root://cmseos.fnal.gov//store/user/benwu/Stop18/NtupleSyncMiniAOD/NanoSUSY/2018Xmas/prod2017MC_NANO.root
+root://cmseos.fnal.gov//store/user/ahenckel/StopStudy/testroot/prod2017MC_NANO_copy.root

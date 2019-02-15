@@ -6,10 +6,10 @@ from PhysicsTools.NanoAODTools.postprocessing.framework.datamodel import Collect
 from PhysicsTools.NanoAODTools.postprocessing.framework.eventloop import Module
 
 class Stop0lBaselineProducer(Module):
-    def __init__(self, era, isFastSim=False):
+    def __init__(self, era, isData = False, isFastSim=False):
         self.era = era
         self.isFastSim = isFastSim
-        self.isData = None
+        self.isData = isData
 
     def beginJob(self):
         pass
@@ -54,7 +54,7 @@ class Stop0lBaselineProducer(Module):
                     # and flags.BadPFMuonSummer16Filter and # flags.BadChargedCandidateSummer16Filter
             ## Only data
             if self.isData:
-                passEventFilter = passEventFilter and flags.globalSuperTightHalo2016Filter and flags.Flag_eeBadScFilter
+                passEventFilter = passEventFilter and flags.globalSuperTightHalo2016Filter and flags.eeBadScFilter
             elif not self.isFastSim:
                 passEventFilter = passEventFilter and flags.globalSuperTightHalo2016Filter
 
@@ -66,14 +66,21 @@ class Stop0lBaselineProducer(Module):
                     and flags.BadPFMuonFilter and flags.BadChargedCandidateFilter \
                     and flags.ecalBadCalibFilter  ## Need to double check whether is outdated
             ## Only data
+            print(type(self.isData))
             if self.isData:
-                passEventFilter = passEventFilter and flags.globalSuperTightHalo2016Filter and flags.Flag_eeBadScFilter
+                passEventFilter = passEventFilter and flags.globalSuperTightHalo2016Filter and flags.eeBadScFilter
             elif not self.isFastSim:
                 passEventFilter = passEventFilter and flags.globalSuperTightHalo2016Filter
 
         return passEventFilter
 
     def PassJetID(self, jets):
+        # In case of fastsim, it has been observed with lower efficiency
+        # https://hypernews.cern.ch/HyperNews/CMS/get/jet-algorithms/379.html
+        # The conclusion is to ignore it but cover with systematics.
+        if self.isFastSim:
+            return True
+
         # https://twiki.cern.ch/twiki/bin/view/CMS/JetID#Recommendations_for_13_TeV_2017
         # For 2016, loose and tight ID is the same : https://twiki.cern.ch/twiki/bin/view/CMS/JetID13TeVRun2016
         # For 2017, only tight ID available: https://twiki.cern.ch/twiki/bin/view/CMS/JetID13TeVRun2017
@@ -86,16 +93,6 @@ class Stop0lBaselineProducer(Module):
     def PassNjets(self, jets):
         countJets = sum([j.Stop0l for j in jets])
         return countJets >= 2
-
-    def CheckisData(self, event):
-        if self.isData is not None:
-            return False
-        run = Object(event, "run")
-        if run > 1:
-            self.isData = True
-        else:
-            self.isData = False
-        return True
 
     def PassdPhi(self, jets, dPhiCuts):
         passdPhi = True
@@ -111,7 +108,6 @@ class Stop0lBaselineProducer(Module):
 
     def analyze(self, event):
         """process event, return True (go to next module) or False (fail, go to next event)"""
-        self.CheckisData(event)
         electrons = Collection(event, "Electron")
         muons     = Collection(event, "Muon")
         isotracks = Collection(event, "IsoTrack")
