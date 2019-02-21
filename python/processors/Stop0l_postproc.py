@@ -30,15 +30,16 @@ def main(args):
         UpdateGenWeight(isdata, args.crossSection, args.nEvents)
     ]
 
-    if args.era == "2016":
-        mods += [
-            puWeightProducer(pufile_mc,pufile_data,"pu_mc","pileup",verbose=False)
-        ]
+    if not isdata:
+        if args.era == "2016":
+            mods += [
+                puWeightProducer(pufile_mc,pufile_data,"pu_mc","pileup",verbose=False)
+            ]
 
-    if args.era == "2017":
-        mods += [
-            puWeightProducer("auto",pufile_data2017,"pu_mc","pileup",verbose=False)
-        ]
+        if args.era == "2017":
+            mods += [
+                puWeightProducer("auto",pufile_data2017,"pu_mc","pileup",verbose=False)
+            ]
 
 
     files = []
