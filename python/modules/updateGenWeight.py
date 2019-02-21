@@ -6,7 +6,8 @@ from PhysicsTools.NanoAODTools.postprocessing.framework.datamodel import Collect
 from PhysicsTools.NanoAODTools.postprocessing.framework.eventloop import Module
 
 class UpdateGenWeight(Module):
-    def __init__(self, CrossSection, nEvent):
+    def __init__(self, isData, CrossSection, nEvent):
+        self.isData = isData
         self.xs = CrossSection
         self.nEvent = nEvent
 
@@ -24,9 +25,11 @@ class UpdateGenWeight(Module):
 
     def analyze(self, event):
         """process event, return True (go to next module) or False (fail, go to next event)"""
-        initgenWeight = getattr(event, "genWeight")
+        sign = 1
+        if not self.isData:
+            initgenWeight = getattr(event, "genWeight")
+            sign          = 1 if initgenWeight > 0 else -1
 
-        sign          = 1 if initgenWeight > 0 else -1
         neweight = self.xs/self.nEvent * sign
 
         ### Store output

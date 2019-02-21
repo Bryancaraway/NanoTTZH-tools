@@ -27,7 +27,7 @@ def main(args):
         Stop0lObjectsProducer(args.era),
         DeepTopProducer(args.era),
         Stop0lBaselineProducer(args.era, isData=isdata, isFastSim=isfastsim),
-        UpdateGenWeight(args.crossSection, args.nEvents)
+        UpdateGenWeight(isdata, args.crossSection, args.nEvents)
     ]
 
     if args.era == "2016":
