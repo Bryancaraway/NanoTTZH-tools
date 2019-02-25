@@ -49,9 +49,12 @@ if ($? == 0) then
       rm $outfile
     end
   endif
-  xrdcp $argv[1] "root://cmseos.fnal.gov/${OUTPUT}/$argv[1]"
-  ## Remove output file once it is copied
-  if ($? == 0) then
-    rm $argv[1] 
-  endif
+  foreach i (1 2 3)
+    xrdcp -f $argv[1] "root://cmseos.fnal.gov/${OUTPUT}/$argv[1]"
+    ## Remove output file once it is copied
+    if ($? == 0) then
+      rm $argv[1] 
+      break
+    endif
+  end
 endif
