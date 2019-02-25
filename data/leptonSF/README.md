@@ -13,6 +13,7 @@ Only Fall2017V2 ID is used here.
 
 Data: Run2018A -17Sep2018-v2, Run2018B -17Sep2018-v1, Run2018C -17Sep2018-v1, Run2018D -PromptReco-v1, Run2018D -PromptReco-v2
 MC: RunIIAutumn18MiniAOD 
+
  | Type                                           | URL                                                                                   | Rename file name                                | 
  | ---                                            | ----                                                                                  | ---                                             | 
  | Electron Reconstruction Efficiencies pT>20 Gev | https://twiki.cern.ch/twiki/pub/CMS/EgammaIDRecipesRun2/egammaEffi.txt_EGM2D.root     | Electron_GT20GeV_RecoSF_2017v2ID_Run2018.root   | 
