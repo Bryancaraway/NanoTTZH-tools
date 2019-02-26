@@ -10,6 +10,7 @@ from PhysicsTools.NanoSUSYTools.modules.Stop0lObjectsProducer import *
 from PhysicsTools.NanoSUSYTools.modules.Stop0lBaselineProducer import *
 from PhysicsTools.NanoSUSYTools.modules.DeepTopProducer import *
 from PhysicsTools.NanoSUSYTools.modules.updateGenWeight import *
+from PhysicsTools.NanoSUSYTools.modules.lepSFProducer import *
 from PhysicsTools.NanoAODTools.postprocessing.modules.common.puWeightProducer import *
 
 def main(args):
@@ -31,6 +32,9 @@ def main(args):
     ]
 
     if not isdata:
+        mods += [
+            lepSFProducer(args.era)
+        ]
         if args.era == "2016":
             mods += [
                 puWeightProducer(pufile_mc,pufile_data,"pu_mc","pileup",verbose=False)
