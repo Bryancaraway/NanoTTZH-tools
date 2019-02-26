@@ -8,9 +8,11 @@ from PhysicsTools.NanoAODTools.postprocessing.framework.eventloop import Module
 
 #2016 MC: https://twiki.cern.ch/twiki/bin/view/CMS/BtagRecommendation80XReReco#Data_MC_Scale_Factors_period_dep
 #2017 MC: https://twiki.cern.ch/twiki/bin/view/CMS/BtagRecommendation94X
+#2018 MC: https://twiki.cern.ch/twiki/bin/view/CMS/BtagRecommendation102X
 DeepCSVMediumWP ={
     "2016" : 0.6324,
     "2017" : 0.4941,
+    "2018" : 0.4184
 }
 
 CSVv2MediumWP = {
