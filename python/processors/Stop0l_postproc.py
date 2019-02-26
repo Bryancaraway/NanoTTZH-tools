@@ -13,7 +13,18 @@ from PhysicsTools.NanoSUSYTools.modules.updateGenWeight import *
 from PhysicsTools.NanoSUSYTools.modules.lepSFProducer import *
 from PhysicsTools.NanoAODTools.postprocessing.modules.common.puWeightProducer import *
 
+DataDepInputs = {
+    "2016" : { "pileup": "Cert271036_284044_23Sep2016ReReco_Collisions16.root"
+   },
+    "2017" : { "pileup": "Cert294927_306462_EOY2017ReReco_Collisions17.root"
+   },
+    "2018" : { "pileup": "Cert314472_325175_PromptReco_Collisions18.root"
+   }
+}
+
 def main(args):
+    # isdata = False
+    # isfastsim = False
     if "False" in args.isData:
         isdata = False
     else:
@@ -31,19 +42,13 @@ def main(args):
         UpdateGenWeight(isdata, args.crossSection, args.nEvents)
     ]
 
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ For MC ~~~~~
     if not isdata:
+        pufile = "%s/src/PhysicsTools/NanoSUSYTools/data/pileup/%s" % (os.environ['CMSSW_BASE'], DataDepInputs[args.era]["pileup"])
         mods += [
-            lepSFProducer(args.era)
+            lepSFProducer(args.era),
+            puWeightProducer("auto", pufile, "pu_mc","pileup", verbose=False)
         ]
-        if args.era == "2016":
-            mods += [
-                puWeightProducer(pufile_mc,pufile_data,"pu_mc","pileup",verbose=False)
-            ]
-
-        if args.era == "2017":
-            mods += [
-                puWeightProducer("auto",pufile_data2017,"pu_mc","pileup",verbose=False)
-            ]
 
 
     files = []
