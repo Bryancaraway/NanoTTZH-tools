@@ -24,6 +24,11 @@ foreach tarfile (`ls *gz FileList/*gz`)
   tar -xzf $tarfile 
 end
 
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Setup for rootpy ~~~~~
+setenv PYTHONPATH  ${_CONDOR_SCRATCH_DIR}
+setenv XDG_CONFIG_HOME ${_CONDOR_SCRATCH_DIR}/.config
+setenv XDG_CACHE_HOME ${_CONDOR_SCRATCH_DIR}/.cache
+
 if ! $?LD_LIBRARY_PATH then
     setenv LD_LIBRARY_PATH ./
 else
