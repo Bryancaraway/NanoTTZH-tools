@@ -15,7 +15,7 @@ cmsenv
 ```tcsh
 cd $CMSSW_BASE/src
 cmsenv
-git clone https://github.com/cms-nanoAOD/nanoAOD-tools.git PhysicsTools/NanoAODTools
+git clone -b Stop0l git@github.com:susy2015/nanoAOD-tools.git PhysicsTools/NanoAODTools
 git clone git@github.com:susy2015/NanoSUSY-tools.git PhysicsTools/NanoSUSYTools
 scram b
 ```

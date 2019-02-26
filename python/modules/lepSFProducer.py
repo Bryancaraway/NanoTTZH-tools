@@ -95,11 +95,10 @@ class lepSFProducer(Module):
         photons   = Collection(event, "Photon")
         sf_el = [ self._worker_el.getSF(el.pdgId,el.pt,el.eta) for el in electrons ]
         sf_mu = [ self._worker_mu.getSF(mu.pdgId,mu.pt,mu.eta) for mu in muons ]
-        ## Using electron pdgId for Photon SF
-        sf_pho = [ self._worker_pho.getSF(13,pho.pt,pho.eta) for pho in photons ]
+        sf_pho = [ self._worker_pho.getSF(pho.pdgId,pho.pt,pho.eta) for pho in photons ]
         sferr_el = [ self._worker_el.getSFErr(el.pdgId,el.pt,el.eta) for el in electrons ]
         sferr_mu = [ self._worker_mu.getSFErr(mu.pdgId,mu.pt,mu.eta) for mu in muons ]
-        sferr_pho = [ self._worker_pho.getSFErr(13,pho.pt,pho.eta) for pho in photons ]
+        sferr_pho = [ self._worker_pho.getSFErr(pho.pdgId,pho.pt,pho.eta) for pho in photons ]
         self.out.fillBranch("Muon_%sSF" % self.muonSelectionTag            , sf_mu)
         self.out.fillBranch("Muon_%sSFErr" % self.muonSelectionTag         , sferr_mu)
         self.out.fillBranch("Electron_%sSF" % self.electronSelectionTag    , sf_el)
