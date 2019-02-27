@@ -17,7 +17,8 @@ DeepCSVMediumWP ={
 
 CSVv2MediumWP = {
     "2016" : 0.8484,
-    "2017" : 0.8838
+    "2017" : 0.8838,
+    "2018" : 0.8838  # Not recommended, use 2017 as temp
 }
 
 class Stop0lObjectsProducer(Module):
