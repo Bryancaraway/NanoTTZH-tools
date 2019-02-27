@@ -55,7 +55,7 @@ Electron Veto only available for  Moriond 2017 for now : https://twiki.cern.ch/t
 
    | Era  | URL                                                                                      | Rename                          | 
    | ---  | ----                                                                                     | ---                             | 
-   | 2018 | https://twiki.cern.ch/twiki/pub/CMS/EgammaIDRecipesRun2/ScalingFactors_80X_Summer16.root | Photon_Loose_Cutbased_2018.root | 
+   | 2018 | https://twiki.cern.ch/twiki/pub/CMS/EgammaIDRecipesRun2/2018_PhotonsLoose.root           | Photon_Loose_Cutbased_2018.root | 
    | 2017 | https://twiki.cern.ch/twiki/pub/CMS/EgammaIDRecipesRun2/2017_PhotonsLoose.root           | Photon_Loose_Cutbased_2017.root | 
    | 2016 | https://twiki.cern.ch/twiki/pub/CMS/EgammaIDRecipesRun2/Fall17V2_2016_Loose_photons.root | Photon_Loose_Cutbased_2016.root | 
 
