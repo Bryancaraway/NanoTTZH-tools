@@ -11,6 +11,7 @@ from PhysicsTools.NanoSUSYTools.modules.Stop0lBaselineProducer import *
 from PhysicsTools.NanoSUSYTools.modules.DeepTopProducer import *
 from PhysicsTools.NanoSUSYTools.modules.updateGenWeight import *
 from PhysicsTools.NanoSUSYTools.modules.lepSFProducer import *
+from PhysicsTools.NanoSUSYTools.modules.updateJetIDProducer import *
 from PhysicsTools.NanoAODTools.postprocessing.modules.common.puWeightProducer import *
 
 DataDepInputs = {
@@ -41,6 +42,8 @@ def main(args):
         Stop0lBaselineProducer(args.era, isData=isdata, isFastSim=isfastsim),
         UpdateGenWeight(isdata, args.crossSection, args.nEvents)
     ]
+    if args.era == "2018":
+        mods.append(UpdateJetID(args.era))
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ For MC ~~~~~
     if not isdata:
