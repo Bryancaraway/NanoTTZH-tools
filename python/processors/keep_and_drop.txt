@@ -25,3 +25,6 @@ drop Jet_Cvs*
 drop Jet_btagDeepFlavB
 drop Jet_*Mult 
 drop Jet_*EF
+## With PDFUncertiantyProducer, we will only store the systematic
+drop LHEPdfWeight
+drop nLHEPdfWeight

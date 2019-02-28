@@ -22,11 +22,11 @@ scram b
 
 
 ## To Do:
-* PDF uncertainty module 
+* PDF uncertainty module (Done)
     * weights stored in NanoAOD accordingly already, need code to extract the envelope
-* lepton SF module follow [SUSY](https://twiki.cern.ch/twiki/bin/viewauth/CMS/SUSLeptonSF#Scale_Factors_for_SUSY_IDs)
+* lepton SF module follow [SUSY](https://twiki.cern.ch/twiki/bin/viewauth/CMS/SUSLeptonSF#Scale_Factors_for_SUSY_IDs) (Done with latest SF)
     * Need to update based upon the existing example code from NanoAOD-tools
-* PU reweighting 
+* PU reweighting  (Done, to be tested)
     * Example code existed, but need recompute the pileup distribution from data
 * btag SF update (instead of the btag weight stored during production)
     * Need follow up with which method to be apply (iterative fit for DeepCSV?)
@@ -34,7 +34,7 @@ scram b
     * Need to understand the existing tool in NanoAOD-Tools
 * DeepAK8/DeepResolved SF
     * Are they available yet?
-* update Jet ID : [JetID Twiki](https://twiki.cern.ch/twiki/bin/viewauth/CMS/JetID13TeVRun2018)
+* update Jet ID : [JetID Twiki](https://twiki.cern.ch/twiki/bin/viewauth/CMS/JetID13TeVRun2018) (Done with temp fix )
     * Do we need it in post-processing, or wait for next production?
 * L1EcalPrefiring [twiki]* (https://twiki.cern.ch/twiki/bin/viewauth/CMS/L1ECALPrefiringWeightRecipe#Call_the_producer_in_your_config)
     * Rumor is it will be included in next NanoAOD
