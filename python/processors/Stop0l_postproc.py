@@ -14,14 +14,23 @@ from PhysicsTools.NanoSUSYTools.modules.lepSFProducer import *
 from PhysicsTools.NanoSUSYTools.modules.updateJetIDProducer import *
 from PhysicsTools.NanoSUSYTools.modules.PDFUncertaintyProducer import *
 from PhysicsTools.NanoAODTools.postprocessing.modules.common.puWeightProducer import *
+from PhysicsTools.NanoAODTools.postprocessing.modules.jme.jecUncertainties import jecUncertProducer
 
+# JEC files are those recomended here (as of Mar 1, 2019)
+# https://twiki.cern.ch/twiki/bin/view/CMS/JECDataMC#Recommended_for_MC
+# Actual text files are found here 
+# https://github.com/cms-jet/JECDatabase/tree/master/textFiles
 DataDepInputs = {
-    "2016" : { "pileup": "Cert271036_284044_23Sep2016ReReco_Collisions16.root"
-   },
-    "2017" : { "pileup": "Cert294927_306462_EOY2017ReReco_Collisions17.root"
-   },
+    "2016" : { "pileup": "Cert271036_284044_23Sep2016ReReco_Collisions16.root",
+               "JECU": "Summer16_07Aug2017_V11_MC"
+               },
+    "2017" : { "pileup": "Cert294927_306462_EOY2017ReReco_Collisions17.root",
+               "JECU": "Fall17_17Nov2017_V32_MC"
+               },
     "2018" : { "pileup": "Cert314472_325175_PromptReco_Collisions18.root"
-   }
+                #The 2018 files is actually a softlink to this file 
+               "JECU": "Fall17_17Nov2017_V32_MC"
+               }
 }
 
 def main(args):
@@ -35,6 +44,10 @@ def main(args):
         isfastsim = False
     else:
         isfastsim = True
+
+    if not args.era in DataDepInputs.keys():
+        print "ERROR: Era \"" + args.era + "\" not recognized"
+        exit(0)
 
     mods = [
         eleMiniCutID(),
@@ -50,11 +63,11 @@ def main(args):
     if not isdata:
         pufile = "%s/src/PhysicsTools/NanoSUSYTools/data/pileup/%s" % (os.environ['CMSSW_BASE'], DataDepInputs[args.era]["pileup"])
         mods += [
+            jecUncertProducer(DataDepInputs[args.era]["JECU"])
             PDFUncertiantyProducer(isdata),
             lepSFProducer(args.era),
             puWeightProducer("auto", pufile, "pu_mc","pileup", verbose=False)
         ]
-
 
     files = []
     lines = open(args.inputfile).readlines()
