@@ -18,7 +18,7 @@ class PDFUncertiantyProducer(Module):
         # For reading in type ROOT.TTreeReaderArray<float>, the postprocessor
         # can't read in the value properly for the first event in the root file
         # So we use below boolean to read it twice
-        self.isFirstEventOfFile = False
+        self.isFirstEventOfFile = True
         self.out = wrappedOutputTree
         self.out.branch("Stop0l_pdfWeightUp",   "F", title="PDF weight uncertainty up, scaled to central value")
         self.out.branch("Stop0l_pdfWeightDown", "F", title="PDF weight uncertainty down,, scaled to central value")
