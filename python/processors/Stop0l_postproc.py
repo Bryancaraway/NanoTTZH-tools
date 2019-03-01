@@ -27,7 +27,7 @@ DataDepInputs = {
     "2017" : { "pileup": "Cert294927_306462_EOY2017ReReco_Collisions17.root",
                "JECU": "Fall17_17Nov2017_V32_MC"
                },
-    "2018" : { "pileup": "Cert314472_325175_PromptReco_Collisions18.root"
+    "2018" : { "pileup": "Cert314472_325175_PromptReco_Collisions18.root",
                 #The 2018 files is actually a softlink to this file 
                "JECU": "Fall17_17Nov2017_V32_MC"
                }
@@ -59,7 +59,7 @@ def main(args):
     if not isdata:
         pufile = "%s/src/PhysicsTools/NanoSUSYTools/data/pileup/%s" % (os.environ['CMSSW_BASE'], DataDepInputs[args.era]["pileup"])
         mods += [
-            jecUncertProducer(DataDepInputs[args.era]["JECU"])
+            jecUncertProducer(DataDepInputs[args.era]["JECU"]),
             PDFUncertiantyProducer(isdata),
             lepSFProducer(args.era),
             puWeightProducer("auto", pufile, "pu_mc","pileup", verbose=False)
