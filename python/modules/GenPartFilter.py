@@ -41,14 +41,14 @@ class GenPartFilter(Module):
     def beginFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
         self.out = wrappedOutputTree
 
-        self.out.branch("GenPartCut_eta",              "F", lenVar = "nGenPartCut", title="")
-        self.out.branch("GenPartCut_mass",             "F", lenVar = "nGenPartCut", title="")
-        self.out.branch("GenPartCut_phi",              "F", lenVar = "nGenPartCut", title="")
-        self.out.branch("GenPartCut_pt",               "F", lenVar = "nGenPartCut", title="")
-        self.out.branch("GenPartCut_genPartIdxMother", "I", lenVar = "nGenPartCut", title="")
-        self.out.branch("GenPartCut_pdgId",            "I", lenVar = "nGenPartCut", title="")
-        self.out.branch("GenPartCut_status",           "I", lenVar = "nGenPartCut", title="")
-        self.out.branch("GenPartCut_statusFlags",      "I", lenVar = "nGenPartCut", title="")
+        self.out.branch("GenPartCut_eta",              "F", lenVar = "nGenPartCut", title=inputTree.GetBranch("GenPart_eta").GetTitle() )
+        self.out.branch("GenPartCut_mass",             "F", lenVar = "nGenPartCut", title=inputTree.GetBranch("GenPart_mass").GetTitle())
+        self.out.branch("GenPartCut_phi",              "F", lenVar = "nGenPartCut", title=inputTree.GetBranch("GenPart_phi").GetTitle())
+        self.out.branch("GenPartCut_pt",               "F", lenVar = "nGenPartCut", title=inputTree.GetBranch("GenPart_pt").GetTitle())
+        self.out.branch("GenPartCut_genPartIdxMother", "I", lenVar = "nGenPartCut", title=inputTree.GetBranch("GenPart_genPartIdxMother").GetTitle())
+        self.out.branch("GenPartCut_pdgId",            "I", lenVar = "nGenPartCut", title=inputTree.GetBranch("GenPart_pdgId").GetTitle())
+        self.out.branch("GenPartCut_status",           "I", lenVar = "nGenPartCut", title=inputTree.GetBranch("GenPart_status").GetTitle())
+        self.out.branch("GenPartCut_statusFlags",      "I", lenVar = "nGenPartCut", title=inputTree.GetBranch("GenPart_statusFlags").GetTitle())
 
     def endFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
         pass

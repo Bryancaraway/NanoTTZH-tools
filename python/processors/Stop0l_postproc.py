@@ -64,6 +64,8 @@ def main(args):
             PDFUncertiantyProducer(isdata),
             lepSFProducer(args.era),
             puWeightProducer("auto", pufile, "pu_mc","pileup", verbose=False),
+            # statusFlag 0x2100 corresponds to "isLastCopy and fromHardProcess"
+            # statusFlag 0x2080 corresponds to "IsLastCopy and isHardProcess"
             GenPartFilter(statusFlags = [0x2100, 0x2080]),
         ]
 
