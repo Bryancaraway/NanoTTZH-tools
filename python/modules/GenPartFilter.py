@@ -41,14 +41,14 @@ class GenPartFilter(Module):
     def beginFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
         self.out = wrappedOutputTree
 
-        self.out.branch("GenPartCut_eta",              "F", lenVar = "nGenPartCut", title=inputTree.GetBranch("GenPart_eta").GetTitle() )
-        self.out.branch("GenPartCut_mass",             "F", lenVar = "nGenPartCut", title=inputTree.GetBranch("GenPart_mass").GetTitle())
-        self.out.branch("GenPartCut_phi",              "F", lenVar = "nGenPartCut", title=inputTree.GetBranch("GenPart_phi").GetTitle())
-        self.out.branch("GenPartCut_pt",               "F", lenVar = "nGenPartCut", title=inputTree.GetBranch("GenPart_pt").GetTitle())
-        self.out.branch("GenPartCut_genPartIdxMother", "I", lenVar = "nGenPartCut", title=inputTree.GetBranch("GenPart_genPartIdxMother").GetTitle())
-        self.out.branch("GenPartCut_pdgId",            "I", lenVar = "nGenPartCut", title=inputTree.GetBranch("GenPart_pdgId").GetTitle())
-        self.out.branch("GenPartCut_status",           "I", lenVar = "nGenPartCut", title=inputTree.GetBranch("GenPart_status").GetTitle())
-        self.out.branch("GenPartCut_statusFlags",      "I", lenVar = "nGenPartCut", title=inputTree.GetBranch("GenPart_statusFlags").GetTitle())
+        self.out.branch("GenPart_eta",              "F", lenVar = "nGenPart", title=inputTree.GetBranch("GenPart_eta").GetTitle() )
+        self.out.branch("GenPart_mass",             "F", lenVar = "nGenPart", title=inputTree.GetBranch("GenPart_mass").GetTitle())
+        self.out.branch("GenPart_phi",              "F", lenVar = "nGenPart", title=inputTree.GetBranch("GenPart_phi").GetTitle())
+        self.out.branch("GenPart_pt",               "F", lenVar = "nGenPart", title=inputTree.GetBranch("GenPart_pt").GetTitle())
+        self.out.branch("GenPart_genPartIdxMother", "I", lenVar = "nGenPart", title=inputTree.GetBranch("GenPart_genPartIdxMother").GetTitle())
+        self.out.branch("GenPart_pdgId",            "I", lenVar = "nGenPart", title=inputTree.GetBranch("GenPart_pdgId").GetTitle())
+        self.out.branch("GenPart_status",           "I", lenVar = "nGenPart", title=inputTree.GetBranch("GenPart_status").GetTitle())
+        self.out.branch("GenPart_statusFlags",      "I", lenVar = "nGenPart", title=inputTree.GetBranch("GenPart_statusFlags").GetTitle())
 
     def endFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
         pass
@@ -108,15 +108,15 @@ class GenPartFilter(Module):
         vMapDict = np.vectorize(mapDict.__getitem__)
         GenPartCut_genPartIdxMother_filtered = vMapDict(GenPartCut_genPartIdxMother[filterArray])
 
-        self.out.fillBranch("GenPartCut_pt",               GenPartCut_pt[filterArray])
-        self.out.fillBranch("GenPartCut_eta",              GenPartCut_eta[filterArray])
-        self.out.fillBranch("GenPartCut_phi",              GenPartCut_phi[filterArray])
-        self.out.fillBranch("GenPartCut_mass",             GenPartCut_mass[filterArray])
+        self.out.fillBranch("GenPart_pt",               GenPartCut_pt[filterArray])
+        self.out.fillBranch("GenPart_eta",              GenPartCut_eta[filterArray])
+        self.out.fillBranch("GenPart_phi",              GenPartCut_phi[filterArray])
+        self.out.fillBranch("GenPart_mass",             GenPartCut_mass[filterArray])
 
-        self.out.fillBranch("GenPartCut_genPartIdxMother", GenPartCut_genPartIdxMother_filtered)
-        self.out.fillBranch("GenPartCut_pdgId",            GenPartCut_pdgId[filterArray])
-        self.out.fillBranch("GenPartCut_status",           GenPartCut_status[filterArray])
-        self.out.fillBranch("GenPartCut_statusFlags",      GenPartCut_statusFlags[filterArray])
+        self.out.fillBranch("GenPart_genPartIdxMother", GenPartCut_genPartIdxMother_filtered)
+        self.out.fillBranch("GenPart_pdgId",            GenPartCut_pdgId[filterArray])
+        self.out.fillBranch("GenPart_status",           GenPartCut_status[filterArray])
+        self.out.fillBranch("GenPart_statusFlags",      GenPartCut_statusFlags[filterArray])
 
         return True
 
