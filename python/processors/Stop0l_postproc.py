@@ -13,6 +13,7 @@ from PhysicsTools.NanoSUSYTools.modules.updateGenWeight import *
 from PhysicsTools.NanoSUSYTools.modules.lepSFProducer import *
 from PhysicsTools.NanoSUSYTools.modules.updateJetIDProducer import *
 from PhysicsTools.NanoSUSYTools.modules.PDFUncertaintyProducer import *
+from PhysicsTools.NanoSUSYTools.modules.GenPartFilter import GenPartFilter
 from PhysicsTools.NanoAODTools.postprocessing.modules.common.puWeightProducer import *
 from PhysicsTools.NanoAODTools.postprocessing.modules.jme.jecUncertainties import jecUncertProducer
 
@@ -38,7 +39,7 @@ def main(args):
     isfastsim = args.isFastSim
 
     if isdata and isfastsim:
-        print "ERROR: It is impossible to have a dataset that is both data fastsim"
+        print "ERROR: It is impossible to have a dataset that is both data and fastsim"
         exit(0)
 
     if not args.era in DataDepInputs.keys():
@@ -55,14 +56,15 @@ def main(args):
     if args.era == "2018":
         mods.append(UpdateJetID(args.era))
 
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ For MC ~~~~~
+    #~~~~~ For MC ~~~~~
     if not isdata:
         pufile = "%s/src/PhysicsTools/NanoSUSYTools/data/pileup/%s" % (os.environ['CMSSW_BASE'], DataDepInputs[args.era]["pileup"])
         mods += [
             jecUncertProducer(DataDepInputs[args.era]["JECU"]),
             PDFUncertiantyProducer(isdata),
             lepSFProducer(args.era),
-            puWeightProducer("auto", pufile, "pu_mc","pileup", verbose=False)
+            puWeightProducer("auto", pufile, "pu_mc","pileup", verbose=False),
+            GenPartFilter(statusFlags = [0x2100, 0x2080]),
         ]
 
     files = []
@@ -76,6 +78,8 @@ def main(args):
 
     p=PostProcessor(args.outputfile,files,cut=None, branchsel=None, outputbranchsel="keep_and_drop.txt", modules=mods,provenance=False)
     p.run()
+
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='NanoAOD postprocessing.')
