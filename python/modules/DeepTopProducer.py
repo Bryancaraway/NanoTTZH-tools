@@ -42,13 +42,12 @@ class DeepTopProducer(Module):
         self.out.branch("Stop0l_nResolved", "I")
         self.out.branch("Stop0l_ISRJetIdx", "I")
         self.out.branch("Stop0l_ISRJetPt", "F")
-        self.out.branch("Stop0l_nHOT", "I")
-        self.out.branch("Stop0l_HOTpt",   "F", lenVar = "Stop0l_nHOT")
-        self.out.branch("Stop0l_HOTeta",  "F", lenVar = "Stop0l_nHOT")
-        self.out.branch("Stop0l_HOTphi",  "F", lenVar = "Stop0l_nHOT")
-        self.out.branch("Stop0l_HOTmass", "F", lenVar = "Stop0l_nHOT")
-        self.out.branch("Stop0l_HOTtype", "I", lenVar = "Stop0l_nHOT")
-        
+        self.out.branch("HOT_pt",   "F", lenVar = "nHOT")
+        self.out.branch("HOT_eta",  "F", lenVar = "nHOT")
+        self.out.branch("HOT_phi",  "F", lenVar = "nHOT")
+        self.out.branch("HOT_mass", "F", lenVar = "nHOT")
+        self.out.branch("HOT_type", "I", lenVar = "nHOT")
+
     def endFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
         pass
 
@@ -111,7 +110,7 @@ class DeepTopProducer(Module):
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Clean up double counting in DeepResolved ~~~~~
         usedJets = set()
         remainingtops = [iTop for iTop in xrange(len(self.ResolvedTop_Stop0l)) if self.ResolvedTop_Stop0l[iTop]]
-        #Sort remaining tops by discriminator value 
+        #Sort remaining tops by discriminator value
         remainingtops.sort(key=lambda x: -res[x].discriminator)
         if len(remainingtops) > 1:
             for iTop in remainingtops:
@@ -212,12 +211,11 @@ class DeepTopProducer(Module):
         self.out.fillBranch("Stop0l_nResolved", self.nResolved)
         self.out.fillBranch("Stop0l_ISRJetIdx", self.ISRJetidx)
         self.out.fillBranch("Stop0l_ISRJetPt", ISRJetPt)
-        self.out.fillBranch("Stop0l_nHOT", len(HOTpt))
-        self.out.fillBranch("Stop0l_HOTpt", HOTpt)
-        self.out.fillBranch("Stop0l_HOTeta", HOTeta)
-        self.out.fillBranch("Stop0l_HOTphi", HOTphi)
-        self.out.fillBranch("Stop0l_HOTmass", HOTmass)
-        self.out.fillBranch("Stop0l_HOTtype", HOTtype)
+        self.out.fillBranch("HOT_pt", HOTpt)
+        self.out.fillBranch("HOT_eta", HOTeta)
+        self.out.fillBranch("HOT_phi", HOTphi)
+        self.out.fillBranch("HOT_mass", HOTmass)
+        self.out.fillBranch("HOT_type", HOTtype)
         return True
 
 # define modules using the syntax 'name = lambda : constructor' to avoid having them loaded when not needed
