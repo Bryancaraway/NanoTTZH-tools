@@ -9,7 +9,7 @@ from PhysicsTools.NanoSUSYTools.modules.eleMiniCutIDProducer import *
 from PhysicsTools.NanoSUSYTools.modules.Stop0lObjectsProducer import *
 from PhysicsTools.NanoSUSYTools.modules.Stop0lBaselineProducer import *
 from PhysicsTools.NanoSUSYTools.modules.DeepTopProducer import *
-from PhysicsTools.NanoSUSYTools.modules.updateGenWeight import *
+from PhysicsTools.NanoSUSYTools.modules.updateEvtWeight import *
 from PhysicsTools.NanoSUSYTools.modules.lepSFProducer import *
 from PhysicsTools.NanoSUSYTools.modules.updateJetIDProducer import *
 from PhysicsTools.NanoSUSYTools.modules.PDFUncertaintyProducer import *
@@ -19,7 +19,7 @@ from PhysicsTools.NanoAODTools.postprocessing.modules.jme.jecUncertainties impor
 
 # JEC files are those recomended here (as of Mar 1, 2019)
 # https://twiki.cern.ch/twiki/bin/view/CMS/JECDataMC#Recommended_for_MC
-# Actual text files are found here 
+# Actual text files are found here
 # https://github.com/cms-jet/JECDatabase/tree/master/textFiles
 DataDepInputs = {
     "2016" : { "pileup": "Cert271036_284044_23Sep2016ReReco_Collisions16.root",
@@ -29,7 +29,7 @@ DataDepInputs = {
                "JECU": "Fall17_17Nov2017_V32_MC"
                },
     "2018" : { "pileup": "Cert314472_325175_PromptReco_Collisions18.root",
-                #The 2018 files is actually a softlink to this file 
+                #The 2018 files is actually a softlink to this file
                "JECU": "Fall17_17Nov2017_V32_MC"
                }
 }
@@ -37,6 +37,7 @@ DataDepInputs = {
 def main(args):
     isdata = args.isData
     isfastsim = args.isFastSim
+    print(isdata, isfastsim)
 
     if isdata and isfastsim:
         print "ERROR: It is impossible to have a dataset that is both data and fastsim"
@@ -51,7 +52,7 @@ def main(args):
         Stop0lObjectsProducer(args.era),
         DeepTopProducer(args.era),
         Stop0lBaselineProducer(args.era, isData=isdata, isFastSim=isfastsim),
-        UpdateGenWeight(isdata, args.crossSection, args.nEvents)
+        UpdateEvtWeight(isdata, args.crossSection, args.nEvents)
     ]
     if args.era == "2018":
         mods.append(UpdateJetID(args.era))
@@ -60,9 +61,9 @@ def main(args):
     if not isdata:
         pufile = "%s/src/PhysicsTools/NanoSUSYTools/data/pileup/%s" % (os.environ['CMSSW_BASE'], DataDepInputs[args.era]["pileup"])
         mods += [
-            jecUncertProducer(DataDepInputs[args.era]["JECU"]),
+            # jecUncertProducer(DataDepInputs[args.era]["JECU"]),
             PDFUncertiantyProducer(isdata),
-            lepSFProducer(args.era),
+            # lepSFProducer(args.era),
             puWeightProducer("auto", pufile, "pu_mc","pileup", verbose=False),
             # statusFlag 0x2100 corresponds to "isLastCopy and fromHardProcess"
             # statusFlag 0x2080 corresponds to "IsLastCopy and isHardProcess"
@@ -74,12 +75,13 @@ def main(args):
         #This is just a single test input file
         files.append(args.inputfile[5:])
     else:
-        #this is a file list 
+        #this is a file list
         with open(args.inputfile) as f:
             files = [line.strip() for line in f]
 
     p=PostProcessor(args.outputfile,files,cut=None, branchsel=None, outputbranchsel="keep_and_drop.txt", modules=mods,provenance=False)
     p.run()
+
 
 
 

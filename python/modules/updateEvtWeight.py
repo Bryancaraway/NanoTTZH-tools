@@ -5,7 +5,7 @@ import math
 from PhysicsTools.NanoAODTools.postprocessing.framework.datamodel import Collection, Object
 from PhysicsTools.NanoAODTools.postprocessing.framework.eventloop import Module
 
-class UpdateGenWeight(Module):
+class UpdateEvtWeight(Module):
     def __init__(self, isData, CrossSection, nEvent):
         self.isData = isData
         self.xs = CrossSection
