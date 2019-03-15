@@ -6,9 +6,6 @@ ROOT.PyConfig.IgnoreCommandLineOptions = True
 from PhysicsTools.NanoAODTools.postprocessing.framework.datamodel import Collection
 from PhysicsTools.NanoAODTools.postprocessing.framework.eventloop import Module
 
-
-
-
 class lepSFProducer(Module):
     """ This module is copied from the NanoAOD-tools,
     but developed for lastest SUSY Lepton ID
@@ -57,7 +54,10 @@ class lepSFProducer(Module):
         for i in range(len(pho_f)): self.pho_f[i] = pho_f[i]; self.pho_h[i] = pho_h[i];
 
 
-        if "/LeptonEfficiencyCorrector_cc.so" not in ROOT.gSystem.GetLibraries():
+        if os.path.isfile("%s/src/PhysicsTools/NanoAODTools/python/postprocessing/helpers/LeptonEfficiencyCorrector_cc.so" % os.environ['CMSSW_BASE']):
+            ROOT.gSystem.Load("%s/src/PhysicsTools/NanoAODTools/python/postprocessing/helpers/LeptonEfficiencyCorrector_cc.so" % os.environ['CMSSW_BASE'])
+            print("Loaded precompiled LeptonEfficiencyCorrector_cc.so")
+        else:
             print "Load C++ Worker"
             ROOT.gROOT.SetBatch(True)
             ROOT.gROOT.ProcessLine(".include %s/src/PhysicsTools/NanoAODTools/src" % os.environ['CMSSW_BASE'])
