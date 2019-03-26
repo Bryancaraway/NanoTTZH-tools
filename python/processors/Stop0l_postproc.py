@@ -67,7 +67,7 @@ def main(args):
             puWeightProducer("auto", pufile, "pu_mc","pileup", verbose=False),
             # statusFlag 0x2100 corresponds to "isLastCopy and fromHardProcess"
             # statusFlag 0x2080 corresponds to "IsLastCopy and isHardProcess"
-            GenPartFilter(statusFlags = [0x2100, 0x2080]),
+            GenPartFilter(statusFlags = [0x2100, 0x2080, 0x2000], pdgIds = [0, 0, 22], statuses = [0, 0, 1]),
         ]
 
     files = []
