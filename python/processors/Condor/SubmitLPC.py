@@ -196,7 +196,7 @@ def my_process(args):
         # arg = "\nArguments = --inputfile={common_name}.$(Process).list ".format(common_name=name)
         arg = "\nArguments = {common_name}_$(Process).root --inputfile={common_name}.$(Process).list ".format(common_name=name)
         for k, v in sample.items():
-            if "__" not in k:
+            if "__" not in k and v is not False:
                 arg+=" --%s=%s" % (k, v)
         arg += "\nQueue {number} \n".format(number = NewNpro[name])
 
