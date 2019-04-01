@@ -40,10 +40,25 @@ class Stop0l_trigger(Module):
 	eff_hist = self.tf.Get(trigger_name)
 	return eff_hist.GetBinContent(eff_hist.FindBinNumber(kinematic))
 
+    def SelPhotons(self, photon):
+        #if photon.pt < 200:
+        #    return False
+        abeta = math.fabs(photon.eta)
+        if (abeta > 1.442 and abeta < 1.566) or (abeta > 2.5):
+            return False
+        ## cut-base ID, 2^0 loose ID
+        cutbase =  photon.cutBasedBitmap  if self.era != "2016" else photon.cutBased
+        if not cutbase & 0b1:
+            return False
+        return True
+
     def analyze(self, event):
         """process event, return True (go to next module) or False (fail, go to next event)"""
         hlt       = Object(event, "HLT")
         met       = Object(event, "MET")
+	electrons = Collection(event, "Electron")
+	muons	  = Collection(event, "Muon")
+	photons   = Collection(event, "Photon")
 
         Pass_trigger_MET = (
 	self.mygetattr(hlt, 'PFMET100_PFMHT100_IDTight', False)
@@ -109,7 +124,77 @@ class Stop0l_trigger(Module):
 	or self.mygetattr(hlt, 'Photon200', False)
 	)
 
-	MET_trigger_eff_loose_baseline = get_efficiency("MET_loose_baseline", met.pt)
+	ele_veto = []
+	ele_mid = []
+	ele_tight = []
+	for ele in electrons:
+		if (ele.pt > 5 and abs(ele.eta) < 2.5 and ele.cutBasedNoIso >= 1 and ele.miniPFRelIso_all < 0.1):
+			ele_veto.append(ele)
+			if (ele.cutBasedNoIso >= 3):
+				ele_mid.append(ele)
+			if (ele.cutBasedNoIso >= 4):
+				ele_tight.append(ele)
+	n_ele = len(ele_veto)
+	n_ele_mid = len(ele_mid)
+	n_ele_tight = len(ele_tight)
+
+	zee_mid = []
+	if (n_ele_mid == 2 and ele_mid[0].pt > 40 and ele_mid[1].pt > 20 and (ele_mid[0].charge + ele_mid[1].charge) == 0):
+		zee_cand = ROOT.TLorentzVector()
+		zee_cand = ele_mid[0].p4() + ele_mid[1].p4()
+		#Z mass = 91 GeV
+		#print "zee_cand mass = ", zee_cand.M()
+		if (zee_cand.M() > 81 and zee_cand.M() < 101):
+			zee_mid.append(zee_cand)
+	n_zee = len(zee_mid)
+		
+	mu_loose = []
+	mu_mid = []
+	for mu in muons:
+		if (mu.pt > 5 and abs(mu.eta) < 2.4 and mu.miniPFRelIso_all < 0.2):
+			mu_loose.append(mu)
+			if (mu.mediumId):
+				mu_mid.append(mu)
+	n_mu = len(mu_loose)
+	n_mu_mid = len(mu_mid)
+
+	zmumu_mid = []
+	if (n_mu_mid == 2 and mu_mid[0].pt > 50 and mu_mid[1].pt > 20 and (mu_mid[0].charge + mu_mid[1].charge) == 0):
+		zmumu_cand = ROOT.TLorentzVector()
+		zmumu_cand = mu_mid[0].p4() + mu_mid[1].p4()
+		#Z mass = 91 GeV
+		#print "zmumu_cand mass = ", zmumu_cand.M()
+		if (zmumu_cand.M() > 81 and zmumu_cand.M() < 101):
+			zmumu_mid.append(zmumu_cand)
+	n_zmumu = len(zmumu_mid)
+
+	photon_loose = []
+	for photon in photons:
+		if (self.SelPhotons(photon)):
+			photon_loose.append(photon)
+	n_photon = len(photon_loose)
+
+	MET_trigger_eff_loose_baseline = self.get_efficiency("MET_loose_baseline", met.pt)
+	MET_trigger_eff_high_dm = self.get_efficiency("MET_high_dm", met.pt)
+	MET_trigger_eff_low_dm = self.get_efficiency("MET_low_dm", met.pt)
+	MET_trigger_eff_high_dm_QCD = self.get_efficiency("MET_high_dm_QCD", met.pt)
+	MET_trigger_eff_low_dm_QCD = self.get_efficiency("MET_low_dm_QCD", met.pt)
+	Electron_trigger_eff_pt = 0
+	if (n_ele_mid >=1): Electron_trigger_eff_pt = self.get_efficiency("Electron_pt", ele_mid[0].pt)
+	Electron_trigger_eff_eta = 0
+	if (n_ele_mid >=1): Electron_trigger_eff_eta = self.get_efficiency("Electron_eta", ele_mid[0].eta)
+	Muon_trigger_eff_pt = 0
+	if (n_mu_mid >=1): Muon_trigger_eff_pt = self.get_efficiency("Muon_pt", mu_mid[0].pt)
+	Muon_trigger_eff_eta = 0
+	if (n_mu_mid >=1): Muon_trigger_eff_eta = self.get_efficiency("Muon_eta", mu_mid[0].eta)
+	Photon_trigger_eff_pt = 0
+	if (n_photon >=1): Photon_trigger_eff_pt = self.get_efficiency("Photon_pt", photon_loose[0].pt)
+	Photon_trigger_eff_eta = 0
+	if (n_photon >=1): Photon_trigger_eff_eta = self.get_efficiency("Photon_eta", photon_loose[0].eta)
+	Zee_trigger_eff_pt = 0
+	if (n_zee ==1): Zee_trigger_eff_pt = self.get_efficiency("Zee_pt", zee_mid[0].pt)
+	Zmumu_trigger_eff_pt = 0
+	if (n_zmumu ==1): Zmumu_trigger_eff_pt = self.get_efficiency("Zmumu_pt", zmumu_mid[0].pt)
 
         ### Store output
         self.out.fillBranch("Pass_trigger_MET", Pass_trigger_MET)
