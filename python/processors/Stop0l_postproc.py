@@ -14,9 +14,11 @@ from PhysicsTools.NanoSUSYTools.modules.lepSFProducer import *
 from PhysicsTools.NanoSUSYTools.modules.updateJetIDProducer import *
 from PhysicsTools.NanoSUSYTools.modules.PDFUncertaintyProducer import *
 from PhysicsTools.NanoSUSYTools.modules.GenPartFilter import GenPartFilter
+#from PhysicsTools.NanoSUSYTools.modules.BtagSFWeightProducer import BtagSFWeightProducer
 from PhysicsTools.NanoAODTools.postprocessing.modules.common.puWeightProducer import *
 from PhysicsTools.NanoAODTools.postprocessing.modules.jme.jetmetUncertainties import jetmetUncertaintiesProducer
 from PhysicsTools.NanoAODTools.postprocessing.modules.jme.jetRecalib import jetRecalib
+from PhysicsTools.NanoAODTools.postprocessing.modules.btv.btagSFProducer import btagSFProducer
 from TopTagger.TopTagger.TopTaggerProducer import TopTaggerProducer
 
 # JEC files are those recomended here (as of Mar 1, 2019)
@@ -38,11 +40,11 @@ DataDepInputs = {
                    },
         "2018" : { "pileup": "Cert314472_325175_PromptReco_Collisions18.root",
                    "JERMC": "Autumn18_V1_MC",
-                    #The 2018 files are actually a softlink to this file
                    "JECMC": "Autumn18_V8_MC",
-                   "redoJEC": False,
+                   "redoJEC": True,
                    }
             },
+
     "Data": {
         "2016B" : { "JEC": "Summer16_07Aug2017BCD_V11_DATA",
                     "redoJEC": False,
@@ -83,22 +85,22 @@ DataDepInputs = {
                    },
 
         "2018A" : { "JEC": "Autumn18_RunA_V8_DATA",
-                    "redoJEC": False,
+                    "redoJEC": True,
                    },
         "2018B" : { "JEC": "Autumn18_RunB_V8_DATA",
-                    "redoJEC": False,
+                    "redoJEC": True,
                    },
         "2018C" : { "JEC": "Autumn18_RunC_V8_DATA",
-                    "redoJEC": False,
+                    "redoJEC": True,
                    },
         "2018D" : { "JEC": "Autumn18_RunD_V8_DATA",
-                    "redoJEC": False,
+                    "redoJEC": True,
                    },
             }
 }
 
 def main(args):
-    isdata = args.isData
+    isdata = len(args.isData) > 0
     isfastsim = args.isFastSim
 
     if isdata and isfastsim:
@@ -106,7 +108,7 @@ def main(args):
         exit(0)
 
     if isdata:
-        if not args.era in DataDepInputs["Data"].keys():
+        if not args.era + args.isData in DataDepInputs["Data"].keys():
             print "ERROR: Era \"" + args.era + "\" not recognized"
             exit(0)
     else:
@@ -129,10 +131,12 @@ def main(args):
         pufile = "%s/src/PhysicsTools/NanoSUSYTools/data/pileup/%s" % (os.environ['CMSSW_BASE'], DataDepInputs["MC"][args.era]["pileup"])
         mods += [
             # jecUncertProducer(DataDepInputs[args.era]["JECU"]),
-            jetmetUncertaintiesProducer(args.era, DataDepInputs["MC"][args.era]["JECMC"], jerTag=DataDepInputs["MC"][args.era]["JERMC"], redoJEC=DataDepInputs["MC"][args.era]["redoJEC"]),
+            jetmetUncertaintiesProducer(args.era, DataDepInputs["MC"][args.era]["JECMC"], jerTag=DataDepInputs["MC"][args.era]["JERMC"], redoJEC=DataDepInputs["MC"][args.era]["redoJEC"], doSmearing=False),
             PDFUncertiantyProducer(isdata),
             # lepSFProducer(args.era),
             puWeightProducer("auto", pufile, "pu_mc","pileup", verbose=False),
+            btagSFProducer(era=args.era, algo="deepcsv"),
+#            BtagSFWeightProducer(),
             # statusFlag 0x2100 corresponds to "isLastCopy and fromHardProcess"
             # statusFlag 0x2080 corresponds to "IsLastCopy and isHardProcess"
             GenPartFilter(statusFlags = [0x2100, 0x2080, 0x2000], pdgIds = [0, 0, 22], statuses = [0, 0, 1]),
@@ -141,13 +145,13 @@ def main(args):
             TopTaggerProducer(recalculateFromRawInputs=True, suffix="JESDown", AK4JetInputs=("Jet_pt_jesTotalDown", "Jet_eta", "Jet_phi", "Jet_mass_jesTotalDown"), topDiscCut=0.6),
         ]
     else:
-        if DataDepInputs["Data"][args.era]["redoJEC"]:
+        if DataDepInputs["Data"][args.era + args.isData]["redoJEC"]:
             mods += [
-                jetRecalib(DataDepInputs["Data"][args.era]["JECData"]),
+                jetRecalib(DataDepInputs["Data"][args.era + args.isData]["JEC"]),
                 ]
             
         mods += [
-            jetRecalib(DataDepInputs["Data"][args.era]["JECData"]),
+            TopTaggerProducer(recalculateFromRawInputs=True, AK4JetInputs=("Jet_pt", "Jet_eta", "Jet_phi", "Jet_mass"),  topDiscCut=0.6),
         ]
         
 
@@ -178,7 +182,7 @@ if __name__ == "__main__":
         default = "2017", help = 'Year of production')
     parser.add_argument('-f', '--isFastSim', action="store_true",  default = False,
                         help = "Input file is fastsim (Default: false)")
-    parser.add_argument('-d', '--isData',    action="store_true",  default = False,
+    parser.add_argument('-d', '--isData',    action="store",  type=str, default = "",
                         help = "Input file is data (Default: false)")
     parser.add_argument('-c', '--crossSection',
                         type=float,
