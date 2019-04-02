@@ -14,7 +14,7 @@ from PhysicsTools.NanoSUSYTools.modules.lepSFProducer import *
 from PhysicsTools.NanoSUSYTools.modules.updateJetIDProducer import *
 from PhysicsTools.NanoSUSYTools.modules.PDFUncertaintyProducer import *
 from PhysicsTools.NanoSUSYTools.modules.GenPartFilter import GenPartFilter
-#from PhysicsTools.NanoSUSYTools.modules.BtagSFWeightProducer import BtagSFWeightProducer
+from PhysicsTools.NanoSUSYTools.modules.BtagSFWeightProducer import BtagSFWeightProducer
 from PhysicsTools.NanoAODTools.postprocessing.modules.common.puWeightProducer import *
 from PhysicsTools.NanoAODTools.postprocessing.modules.jme.jetmetUncertainties import jetmetUncertaintiesProducer
 from PhysicsTools.NanoAODTools.postprocessing.modules.jme.jetRecalib import jetRecalib
