@@ -20,7 +20,7 @@ class BtagSFWeightProducer(Module):
     def beginJob(self):
         ROOT.TH1.AddDirectory(False)
         
-        fin = ROOT.TFile.Open(self.fileDirectory + "/" + bTagEffFile)
+        fin = ROOT.TFile.Open(self.fileDirectory + "/" + self.bTagEffFile)
 
         self.h_eff_b          = fin.Get(("n_eff_b_" + self.sampleName));
         self.h_eff_c          = fin.Get(("n_eff_c_" + self.sampleName));
@@ -67,32 +67,36 @@ class BtagSFWeightProducer(Module):
                 if pt_bin > self.h_eff_b.GetXaxis().GetNbins():
                     pt_bin = h_eff_b.GetXaxis().GetNbins(); 
                 eta_bin = self.h_eff_b.GetYaxis().FindBin(eta); 
-                if eta_bin > h_eff_b.GetYaxis().GetNbins():
-                    eta_bin = h_eff_b.GetYaxis().GetNbins();
+                if eta_bin > self.h_eff_b.GetYaxis().GetNbins():
+                    eta_bin = self.h_eff_b.GetYaxis().GetNbins();
 
-                eff = h_eff_b.GetBinContent(pt_bin, eta_bin);
+                eff = self.h_eff_b.GetBinContent(pt_bin, eta_bin);
 
             elif flavor == 4:
                 pt_bin = self.h_eff_c.GetXaxis().FindBin(pt); 
                 if pt_bin > self.h_eff_c.GetXaxis().GetNbins():
                     pt_bin = h_eff_c.GetXaxis().GetNbins(); 
                 eta_bin = self.h_eff_c.GetYaxis().FindBin(eta); 
-                if eta_bin > h_eff_c.GetYaxis().GetNbins():
-                    eta_bin = h_eff_c.GetYaxis().GetNbins();
+                if eta_bin > self.h_eff_c.GetYaxis().GetNbins():
+                    eta_bin = self.h_eff_c.GetYaxis().GetNbins();
 
-                eff = h_eff_c.GetBinContent(pt_bin, eta_bin);
+                eff = self.h_eff_c.GetBinContent(pt_bin, eta_bin);
 
             else:
                 pt_bin = self.h_eff_udsg.GetXaxis().FindBin(pt); 
                 if pt_bin > self.h_eff_udsg.GetXaxis().GetNbins():
                     pt_bin = h_eff_udsg.GetXaxis().GetNbins(); 
                 eta_bin = self.h_eff_udsg.GetYaxis().FindBin(eta); 
-                if eta_bin > h_eff_udsg.GetYaxis().GetNbins():
-                    eta_bin = h_eff_udsg.GetYaxis().GetNbins();
+                if eta_bin > self.h_eff_udsg.GetYaxis().GetNbins():
+                    eta_bin = self.h_eff_udsg.GetYaxis().GetNbins();
 
-                eff = h_eff_udsg.GetBinContent(pt_bin, eta_bin);
+                eff = self.h_eff_udsg.GetBinContent(pt_bin, eta_bin);
 
-            if jet.Jet_btagDeepB > self.bDiscCut:
+            #check if eff is zero
+            if eff < 0.001:
+                eff = 0.001
+
+            if jet.btagDeepB > self.bDiscCut:
                 BTagWeightN      *= jet.btagSF * eff
                 BTagWeightN_up   *= jet.btagSF_up * eff
                 BTagWeightN_down *= jet.btagSF_down * eff
@@ -104,8 +108,6 @@ class BtagSFWeightProducer(Module):
                 BTagWeightN_down *= 1 - jet.btagSF_down * eff
 
                 BTagWeightD      *= 1 - eff
-
-                
 
         self.out.fillBranch("BTagWeight",      BTagWeightN / BTagWeightD)
         self.out.fillBranch("BTagWeight_up",   BTagWeightN_up / BTagWeightD)

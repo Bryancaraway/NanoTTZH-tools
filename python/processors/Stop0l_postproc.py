@@ -100,7 +100,7 @@ DataDepInputs = {
 }
 
 def main(args):
-    isdata = len(args.isData) > 0
+    isdata = len(args.dataEra) > 0
     isfastsim = args.isFastSim
 
     if isdata and isfastsim:
@@ -108,7 +108,7 @@ def main(args):
         exit(0)
 
     if isdata:
-        if not args.era + args.isData in DataDepInputs["Data"].keys():
+        if not args.era + args.dataEra in DataDepInputs["Data"].keys():
             print "ERROR: Era \"" + args.era + "\" not recognized"
             exit(0)
     else:
@@ -132,11 +132,11 @@ def main(args):
         mods += [
             # jecUncertProducer(DataDepInputs[args.era]["JECU"]),
             jetmetUncertaintiesProducer(args.era, DataDepInputs["MC"][args.era]["JECMC"], jerTag=DataDepInputs["MC"][args.era]["JERMC"], redoJEC=DataDepInputs["MC"][args.era]["redoJEC"], doSmearing=False),
-            PDFUncertiantyProducer(isdata),
+#            PDFUncertiantyProducer(isdata),
             # lepSFProducer(args.era),
             puWeightProducer("auto", pufile, "pu_mc","pileup", verbose=False),
             btagSFProducer(era=args.era, algo="deepcsv"),
-#            BtagSFWeightProducer(),
+            BtagSFWeightProducer("allInOne_bTagEff_deepCSVb_med.root", args.sampleName, DeepCSVMediumWP[args.era]),
             # statusFlag 0x2100 corresponds to "isLastCopy and fromHardProcess"
             # statusFlag 0x2080 corresponds to "IsLastCopy and isHardProcess"
             GenPartFilter(statusFlags = [0x2100, 0x2080, 0x2000], pdgIds = [0, 0, 22], statuses = [0, 0, 1]),
@@ -182,8 +182,10 @@ if __name__ == "__main__":
         default = "2017", help = 'Year of production')
     parser.add_argument('-f', '--isFastSim', action="store_true",  default = False,
                         help = "Input file is fastsim (Default: false)")
-    parser.add_argument('-d', '--isData',    action="store",  type=str, default = "",
+    parser.add_argument('-d', '--dataEra',    action="store",  type=str, default = "",
                         help = "Input file is data (Default: false)")
+    parser.add_argument('-s', '--sampleName',    action="store",  type=str, default = "",
+                        help = "Name of MC sample (from sampleSet file) (Default: )")
     parser.add_argument('-c', '--crossSection',
                         type=float,
                         default = 1,
