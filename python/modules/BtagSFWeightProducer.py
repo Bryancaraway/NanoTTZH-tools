@@ -28,6 +28,18 @@ class BtagSFWeightProducer(Module):
         d_eff_b          = fin.Get(("d_eff_b_" + self.sampleName));
         d_eff_c          = fin.Get(("d_eff_c_" + self.sampleName));
         d_eff_udsg       = fin.Get(("d_eff_udsg_" + self.sampleName));
+
+        if not self.h_eff_b or not self.h_eff_c or not self.h_eff_udsg:
+            print "B-tag efficiency histograms for sample \"%s\" are not found in file \"%s\".  Using TTBar_2016 inclusive numbers as default setting!!!!"%( self.sampleName, self.bTagEffFile)
+
+            self.sampleName = "TTbarInc_2016"
+
+            self.h_eff_b          = fin.Get(("n_eff_b_" + self.sampleName));
+            self.h_eff_c          = fin.Get(("n_eff_c_" + self.sampleName));
+            self.h_eff_udsg       = fin.Get(("n_eff_udsg_" + self.sampleName));
+            d_eff_b          = fin.Get(("d_eff_b_" + self.sampleName));
+            d_eff_c          = fin.Get(("d_eff_c_" + self.sampleName));
+            d_eff_udsg       = fin.Get(("d_eff_udsg_" + self.sampleName));
         
         self.h_eff_b.Divide(d_eff_b);
         self.h_eff_c.Divide(d_eff_c);
@@ -92,17 +104,21 @@ class BtagSFWeightProducer(Module):
 
                 eff = self.h_eff_udsg.GetBinContent(pt_bin, eta_bin);
 
-            #check if eff is zero
-            if eff < 0.001:
-                eff = 0.001
-
             if jet.btagDeepB > self.bDiscCut:
+                #check if eff is zero
+                if eff < 0.001:
+                    eff = 0.001
+
                 BTagWeightN      *= jet.btagSF * eff
                 BTagWeightN_up   *= jet.btagSF_up * eff
                 BTagWeightN_down *= jet.btagSF_down * eff
 
                 BTagWeightD      *= eff
             else:
+                #check if eff is 1.0
+                if eff > 0.999:
+                    eff = 0.999
+
                 BTagWeightN      *= 1 - jet.btagSF * eff
                 BTagWeightN_up   *= 1 - jet.btagSF_up * eff
                 BTagWeightN_down *= 1 - jet.btagSF_down * eff
