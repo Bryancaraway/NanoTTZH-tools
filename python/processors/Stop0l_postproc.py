@@ -16,6 +16,7 @@ from PhysicsTools.NanoSUSYTools.modules.PDFUncertaintyProducer import *
 from PhysicsTools.NanoSUSYTools.modules.GenPartFilter import GenPartFilter
 from PhysicsTools.NanoSUSYTools.modules.BtagSFWeightProducer import BtagSFWeightProducer
 from PhysicsTools.NanoAODTools.postprocessing.modules.common.puWeightProducer import *
+from PhysicsTools.NanoAODTools.postprocessing.modules.jme.jecUncertainties import jecUncertProducer
 from PhysicsTools.NanoAODTools.postprocessing.modules.jme.jetmetUncertainties import jetmetUncertaintiesProducer
 from PhysicsTools.NanoAODTools.postprocessing.modules.jme.jetRecalib import jetRecalib
 from PhysicsTools.NanoAODTools.postprocessing.modules.btv.btagSFProducer import btagSFProducer
@@ -130,7 +131,7 @@ def main(args):
     if not isdata:
         pufile = "%s/src/PhysicsTools/NanoSUSYTools/data/pileup/%s" % (os.environ['CMSSW_BASE'], DataDepInputs["MC"][args.era]["pileup"])
         mods += [
-            # jecUncertProducer(DataDepInputs[args.era]["JECU"]),
+            jecUncertProducer(DataDepInputs["MC"][args.era]["JECMC"]),
             jetmetUncertaintiesProducer(args.era, DataDepInputs["MC"][args.era]["JECMC"], jerTag=DataDepInputs["MC"][args.era]["JERMC"], redoJEC=DataDepInputs["MC"][args.era]["redoJEC"], doSmearing=False),
 #            PDFUncertiantyProducer(isdata),
             # lepSFProducer(args.era),
@@ -145,9 +146,9 @@ def main(args):
             TopTaggerProducer(recalculateFromRawInputs=True, suffix="JESDown", AK4JetInputs=("Jet_pt_jesTotalDown", "Jet_eta", "Jet_phi", "Jet_mass_jesTotalDown"), topDiscCut=0.6),
         ]
     else:
-        if DataDepInputs["Data"][args.era + args.isData]["redoJEC"]:
+        if DataDepInputs["Data"][args.era + args.dataEra]["redoJEC"]:
             mods += [
-                jetRecalib(DataDepInputs["Data"][args.era + args.isData]["JEC"]),
+                jetRecalib(DataDepInputs["Data"][args.era + args.dataEra]["JEC"]),
                 ]
             
         mods += [
