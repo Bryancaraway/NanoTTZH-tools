@@ -74,6 +74,7 @@ def ConfigList(config, era):
             process[stripped_entry[0]].update( {
                 "crossSection":  float(stripped_entry[4]) * float(stripped_entry[7]),
                 "nEvents":  int(stripped_entry[5]) - int(stripped_entry[6]), # using all event weight
+                "process" : stripped_entry[0], #process
             })
     return process
 
@@ -85,7 +86,7 @@ def Condor_Sub(condor_file):
     os.chdir(curdir)
 
 
-def SplitPro(key, file, lineperfile=20):
+def SplitPro(key, file, lineperfile=20000000):
     splitedfiles = []
     filelistdir = tempdir + '/' + "FileList"
     try:

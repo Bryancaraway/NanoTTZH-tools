@@ -1,8 +1,8 @@
 #!/bin/csh -v
 
-set SCRAM = DELSCR
-set CMSSW = DELDIR
-set EXE   = DELEXE
+set SCRAM  = DELSCR
+set CMSSW  = DELDIR
+set EXE    = DELEXE
 set OUTPUT = OUTDIR
 
 #============================================================================#
@@ -13,10 +13,10 @@ cd ${_CONDOR_SCRATCH_DIR}
 source /cvmfs/cms.cern.ch/cmsset_default.csh
 setenv SCRAM_ARCH ${SCRAM}
 eval `scramv1 project CMSSW ${CMSSW}`
+tar -xzf ${_CONDOR_SCRATCH_DIR}/CMSSW.tar.gz
 cd ${CMSSW}
 eval `scramv1 runtime -csh` # cmsenv is an alias not on the workers
 echo "CMSSW: "$CMSSW_BASE
-tar -xzvf ${_CONDOR_SCRATCH_DIR}/CMSSW.tar.gz
 
 cd ${_CONDOR_SCRATCH_DIR}
 foreach tarfile (`ls *gz FileList/*gz`)
