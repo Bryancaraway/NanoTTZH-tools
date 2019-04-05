@@ -6,18 +6,35 @@ Postprocessing script for Stop 0L analysis
 ```tcsh
 source /cvmfs/cms.cern.ch/cmsset_default.csh
 setenv SCRAM_ARCH slc6_amd64_gcc700
-cmsrel CMSSW_10_2_6
-cd CMSSW_10_2_6/src/
+cmsrel CMSSW_10_2_9
+cd CMSSW_10_2_9/src/
 cmsenv
 ```
 
-### Set up CMSSW
+### Set up NanoSusyTools framework
 ```tcsh
 cd $CMSSW_BASE/src
 cmsenv
 git clone -b Stop0l git@github.com:susy2015/nanoAOD-tools.git PhysicsTools/NanoAODTools
 git clone git@github.com:susy2015/NanoSUSY-tools.git PhysicsTools/NanoSUSYTools
+git clone -b Stop0l_NanoAOD_production_V2.0 git@github.com:susy2015/TopTagger.git
 scram b
+cd $CMSSW_BASE/src/TopTagger/TopTagger/test
+./configure
+make
+cmsenv
+cd $CMSSW_BASE/src/PhysicsTools/NanoSUSYTools/python/processors
+getTaggerCfg.sh -t DeepResolved_DeepCSV_GR_nanoAOD_V1.0.0
+```
+
+### Run local MC test
+```tcsh
+python Stop0l_postproc.py -i file:[input file] -s [MC sample name (from sampleSet cfg file)] -e [year]
+```
+
+### Run local Data test
+```tcsh
+python Stop0l_postproc.py -i file:[input file] -d [data period] -e [year]
 ```
 
 
@@ -28,9 +45,9 @@ scram b
     * Need to update based upon the existing example code from NanoAOD-tools
 * PU reweighting  (Done, to be tested)
     * Example code existed, but need recompute the pileup distribution from data
-* btag SF update (instead of the btag weight stored during production)
+* btag SF update (instead of the btag weight stored during production) (done)
     * Need follow up with which method to be apply (iterative fit for DeepCSV?)
-* JEC uncertainty update
+* JEC uncertainty update (done)
     * Need to understand the existing tool in NanoAOD-Tools
 * DeepAK8/DeepResolved SF
     * Are they available yet?
