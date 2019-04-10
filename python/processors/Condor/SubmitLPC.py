@@ -12,11 +12,10 @@ import getpass
 import argparse
 from collections import defaultdict
 
-# TODO: set OutDir (and ProjectName?) to be modified based on input filelist location
 DelExe    = '../Stop0l_postproc.py'
-#OutDir = '/store/user/%s/StopStudy' %  getpass.getuser()
 tempdir = '/uscms_data/d3/%s/condor_temp/' % getpass.getuser()
-ShortProjectName = 'PostProcess_v1'
+ShortProjectName = 'PostProcess'
+VersionNumber = '_v1'
 argument = "--inputFiles=%s.$(Process).list "
 sendfiles = ["../keep_and_drop.txt"]
 
@@ -43,11 +42,24 @@ def tar_cmssw():
                 break
         return tarinfo
 
-    with tarfile.open(cmsswtar, "w:gz") as tar:
+    with tarfile.open(cmsswtar, "w:gz",dereference=True) as tar:
         tar.add(cmsswdir, arcname=os.path.basename(cmsswdir), filter=exclude)
     return cmsswtar
 
-def ConfigList(config, era):
+def ConfigList(config):
+    #Allow for grabbing the era from the config file name instead. Only does so if era argument is not given.
+    if args.era == 0:
+      if "2016" in config:
+        temp_era = 2016
+      elif "2017" in config:
+        temp_era = 2017
+      elif "2018" in config:
+        temp_era = 2018
+      else:
+        raise Exception('No era given and none found in config file name. Please specify an era.')
+    else:
+        temp_era = args.era
+
     process = defaultdict(dict)
     #TODO: Split between sample set and sample collection configs
     lines = open(config).readlines()
@@ -57,16 +69,20 @@ def ConfigList(config, era):
             continue
         entry = line.split(",")
         stripped_entry = [ i.strip() for i in entry]
-        print(stripped_entry)
+        #print(stripped_entry)
+        replaced_outdir = stripped_entry[1].replace("Pre","Post")
         process[stripped_entry[0]] = {
+            #Note that anything appended with __ will not be passed along. These are for bookkeeping. Furthermore, Outpath is not used if an output directory argument is given.
             "Filepath__" : "%s/%s" % (stripped_entry[1], stripped_entry[2]),
-            "Outpath__" : "%s" % (stripped_entry[1]) + "/" + ShortProjectName + "/" + stripped_entry[0]+"/",
-            "isData" : "Data" in stripped_entry[0],
-            "isFastSim" : "fastsim" in stripped_entry[0],
-            "era" : era, #era from args
+            #"Outpath__" : "%s" % (stripped_entry[1]) + "/" + ShortProjectName + VersionNumber + "/" + stripped_entry[0]+"/", #old
+            "Outpath__" : "%s" % (replaced_outdir) + VersionNumber + "/" + stripped_entry[0] + "/", #new
+            "isData__" : "Data" in stripped_entry[0],
+            "isfastsim__" : "fastsim" in stripped_entry[0], #isFastSim is a toggle in Stop0l_postproc.py, so it should be sent with no value.
+            "era" : temp_era,
         }
-        if process[stripped_entry[0]]["isData"]:
+        if process[stripped_entry[0]]["isData__"]:
             process[stripped_entry[0]].update( {
+                "dataEra": stripped_entry[0][-1], #Example naming convention: Data_MET_2018_PeriodC. Alternate option: match "Period", take location + 6.
                 "crossSection":  float(stripped_entry[4]) , #storing lumi for data
                 "nEvents":  int(stripped_entry[5]),
             })
@@ -74,8 +90,13 @@ def ConfigList(config, era):
             process[stripped_entry[0]].update( {
                 "crossSection":  float(stripped_entry[4]) * float(stripped_entry[7]),
                 "nEvents":  int(stripped_entry[5]) - int(stripped_entry[6]), # using all event weight
-                "process" : stripped_entry[0], #process
+                "sampleName": stripped_entry[0], #process
             })
+        if process[stripped_entry[0]]["isfastsim__"]:
+            process[stripped_entry[0]].update( {
+                "isFastSim": "",
+            })
+
     return process
 
 def Condor_Sub(condor_file):
@@ -86,7 +107,7 @@ def Condor_Sub(condor_file):
     os.chdir(curdir)
 
 
-def SplitPro(key, file, lineperfile=20000000):
+def SplitPro(key, file, lineperfile=20):
     splitedfiles = []
     filelistdir = tempdir + '/' + "FileList"
     try:
@@ -126,8 +147,11 @@ def my_process(args):
     ## temp dir for submit
     global tempdir
     global ProjectName
-    ProjectName = time.strftime('%b%d') + ShortProjectName
-    tempdir = tempdir + os.getlogin() + "/" + ProjectName +  "/"
+    ProjectName = time.strftime('%b%d') + ShortProjectName + VersionNumber
+    if args.era == 0:
+        tempdir = tempdir + os.getlogin() + "/" + ProjectName +  "/"
+    else:
+        tempdir = tempdir + os.getlogin() + "/" + ProjectName + "_" + str(args.era) + "/"
     try:
         os.makedirs(tempdir)
     except OSError:
@@ -140,17 +164,6 @@ def my_process(args):
     #except OSError:
     #    pass
 
-    """
-    ## Update RunHT.csh with DelDir and pileups
-    RunHTFile = tempdir + "/" + "RunExe.csh"
-    with open(RunHTFile, "wt") as outfile:
-        for line in open("RunExe.csh", "r"):
-            line = line.replace("DELSCR", os.environ['SCRAM_ARCH'])
-            line = line.replace("DELDIR", os.environ['CMSSW_VERSION'])
-            line = line.replace("DELEXE", DelExe.split('/')[-1])
-            line = line.replace("OUTDIR", outdir)
-            outfile.write(line)
-    """
     #To have each job copy to a directory based on the input file, looks like I'd need to have a copy of RunExe.csh for name, sample in Process.items() as well.
     #Needs to be inside the same name, sample for loop for the condor file so the condor file gets the correct EXECUTABLE name.
 
@@ -160,7 +173,8 @@ def my_process(args):
     NewNpro = {}
 
     ##Read config file
-    Process = ConfigList(os.path.abspath(args.config), args.era)
+    Process = ConfigList(os.path.abspath(args.config))
+    #Process = ConfigList(os.path.abspath(args.config), args.era)
     for key, sample in Process.items():
         print("Getting process: " + key + " " + sample['Filepath__'])
         npro = SplitPro(key, sample['Filepath__'])
@@ -179,8 +193,8 @@ def my_process(args):
     for name, sample in Process.items():
 
         #define output directory
-        outdir = sample["Outpath__"]
-        # outputfile = "{common_name}_$(Process).root ".format(common_name=name)
+        if args.outputdir == "": outdir = sample["Outpath__"]
+        else: outdir = args.outputdir + "/" + name + "/"
 
         #Update RunExe.csh
         RunHTFile = tempdir + "/" + name + "_RunExe.csh"
@@ -190,11 +204,10 @@ def my_process(args):
                 line = line.replace("DELDIR", os.environ['CMSSW_VERSION'])
                 line = line.replace("DELEXE", DelExe.split('/')[-1])
                 line = line.replace("OUTDIR", outdir)
-                # line = line.replace("OUTFILE", outputfile)
                 outfile.write(line)
 
         #Update condor file
-        # arg = "\nArguments = --inputfile={common_name}.$(Process).list ".format(common_name=name)
+        #First argument is output file name. Rest are to be passed to Stop0l_postproc.py.
         arg = "\nArguments = {common_name}_$(Process).root --inputfile={common_name}.$(Process).list ".format(common_name=name)
         for k, v in sample.items():
             if "__" not in k and v is not False:
@@ -226,8 +239,11 @@ if __name__ == "__main__":
         default = "sampleconfig.cfg",
         help = 'Path to the input config file.')
     parser.add_argument('-e', '--era',
-        default = "2016",type=int,
-        help = 'Era of the config file')
+        default = "0",type=int,
+        help = 'Era/Year of the config file. Use if this is not part of the config file name. Will also be appended to the condor directory in the user\'s nobackup area if used.')
+    parser.add_argument('-o', '--outputdir',
+        default = "", 
+        help = 'Path to the output directory.')
 
     args = parser.parse_args()
     my_process(args)
