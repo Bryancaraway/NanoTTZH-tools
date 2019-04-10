@@ -22,13 +22,22 @@ CSVv2MediumWP = {
 }
 
 class Stop0lObjectsProducer(Module):
-    def __init__(self, era):
+    def __init__(self, era, applyJETMETUncert = 0):
         self.era = era
         self.metBranchName = "MET"
         # EE noise mitigation in PF MET
         # https://hypernews.cern.ch/HyperNews/CMS/get/JetMET/1865.html
         if self.era == "2017":
             self.metBranchName = "METFixEE2017"
+
+        self.applyJETMETUncert = applyJETMETUncert
+
+        if self.applyJETMETUncert > 0:
+            self.JECSuffix = "_JESUp"
+        elif self.applyJETMETUncert < 0:
+            self.JECSuffix = "_JESDown"
+        else:
+            self.JECSuffix = ""
 
     def beginJob(self):
         pass
@@ -37,29 +46,34 @@ class Stop0lObjectsProducer(Module):
 
     def beginFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
         self.out = wrappedOutputTree
-        self.out.branch("Electron_Stop0l", "O", lenVar="nElectron", title="cutBased Veto ID with miniISO < 0.1, pT > 5")
-        self.out.branch("Muon_Stop0l",     "O", lenVar="nMuon")
-        self.out.branch("IsoTrack_Stop0l", "O", lenVar="nIsoTrack")
-        self.out.branch("Photon_Stop0l",   "O", lenVar="nPhoton")
-        self.out.branch("Jet_Stop0l",      "O", lenVar="nJet")
-        self.out.branch("SB_Stop0l",       "O", lenVar="nSB")
-        self.out.branch("Jet_btagStop0l",  "O", lenVar="nJet")
-        self.out.branch("Photon_Stop0l",   "O", lenVar="nPhoton")
-        self.out.branch("Jet_dPhiMET",     "F", lenVar="nJet")
-        self.out.branch("Stop0l_HT",       "F")
-        self.out.branch("Stop0l_Mtb",      "F")
-        self.out.branch("Stop0l_Ptb",      "F")
-        self.out.branch("Stop0l_METSig",   "F")
-        self.out.branch("Stop0l_nJets",    "I")
-        self.out.branch("Stop0l_nbtags",   "I")
-        self.out.branch("Stop0l_nSoftb",   "I")
-        # Copying METFixEE2017 to MET for 2017 Data/MC
-        if self.era == "2017":
-            self.out.branch("MET_phi",                  "F")
-            self.out.branch("MET_pt",                   "F")
-            self.out.branch("MET_sumEt",                "F")
-            self.out.branch("MET_MetUnclustEnUpDeltaX", "F")
-            self.out.branch("MET_MetUnclustEnUpDeltaY", "F")
+
+        if self.applyJETMETUncert == 0:
+            # Copying METFixEE2017 to MET for 2017 Data/MC
+            if self.era == "2017":
+                self.out.branch("MET_phi",                  "F")
+                self.out.branch("MET_pt",                   "F")
+                self.out.branch("MET_sumEt",                "F")
+                self.out.branch("MET_MetUnclustEnUpDeltaX", "F")
+                self.out.branch("MET_MetUnclustEnUpDeltaY", "F")
+
+            self.out.branch("Electron_Stop0l", "O", lenVar="nElectron", title="cutBased Veto ID with miniISO < 0.1, pT > 5")
+            self.out.branch("Muon_Stop0l",     "O", lenVar="nMuon")
+            self.out.branch("IsoTrack_Stop0l", "O", lenVar="nIsoTrack")
+            self.out.branch("Photon_Stop0l",   "O", lenVar="nPhoton")
+            self.out.branch("SB_Stop0l",       "O", lenVar="nSB")
+            self.out.branch("Photon_Stop0l",   "O", lenVar="nPhoton")
+            self.out.branch("Stop0l_nSoftb",   "I")
+
+            
+        self.out.branch("Jet_Stop0l" + self.JECSuffix,      "O", lenVar="nJet")
+        self.out.branch("Jet_btagStop0l" + self.JECSuffix,  "O", lenVar="nJet")
+        self.out.branch("Jet_dPhiMET" + self.JECSuffix,     "F", lenVar="nJet")
+        self.out.branch("Stop0l_HT" + self.JECSuffix,       "F")
+        self.out.branch("Stop0l_Mtb" + self.JECSuffix,      "F")
+        self.out.branch("Stop0l_Ptb" + self.JECSuffix,      "F")
+        self.out.branch("Stop0l_METSig" + self.JECSuffix,   "F")
+        self.out.branch("Stop0l_nJets" + self.JECSuffix,    "I")
+        self.out.branch("Stop0l_nbtags" + self.JECSuffix,   "I")
 
     def endFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
         pass
@@ -165,8 +179,34 @@ class Stop0lObjectsProducer(Module):
         self.out.fillBranch("MET_MetUnclustEnUpDeltaY", METFixEE.MetUnclustEnUpDeltaY)
         return True
 
+    class ObjectRemapped(Object):
+        def __init__(self, event, prefix, index=None, replaceMap=None):
+            Object.__init__(self, event, prefix, index)
+            self.replaceMap = replaceMap
+
+        def __getattr__(self, attr):
+            if self.replaceMap and attr in self.replaceMap:
+                return Object.__getattr__(self, self.replaceMap[attr])
+            else:
+                return Object.__getattr__(self, attr)
 
 
+    class CollectionRemapped(Collection):
+        def __init__(self, event, prefix, lenVar=None, replaceMap=None):
+            Collection.__init__(self, event, prefix, lenVar)
+            self.replaceMap = replaceMap
+
+        def __getitem__(self, index):
+            if not self.replaceMap:
+                return Collection.__getitem__(self, index)
+
+            if type(index) == int and index in self._cache: return self._cache[index]
+            if index >= self._len: raise IndexError, "Invalid index %r (len is %r) at %s" % (index,self._len,self._prefix)
+            ret = Stop0lObjectsProducer.ObjectRemapped(self._event,self._prefix,index=index,replaceMap=self.replaceMap)
+            if type(index) == int: self._cache[index] = ret
+            return ret
+
+        
 
     def analyze(self, event):
         """process event, return True (go to next module) or False (fail, go to next event)"""
@@ -174,12 +214,17 @@ class Stop0lObjectsProducer(Module):
         electrons = Collection(event, "Electron")
         muons     = Collection(event, "Muon")
         isotracks = Collection(event, "IsoTrack")
-        jets      = Collection(event, "Jet")
+        if self.applyJETMETUncert > 0:
+            jets      = self.CollectionRemapped(event, "Jet", replaceMap={"pt":"pt_jesTotalUp", "mass":"mass_jesTotalUp"})
+        elif self.applyJETMETUncert < 0:
+            jets      = self.CollectionRemapped(event, "Jet", replaceMap={"pt":"pt_jesTotalDown", "mass":"mass_jesTotalDown"})
+        else:
+            jets      = Collection(event, "Jet")
         isvs      = Collection(event, "SB")
         photons   = Collection(event, "Photon")
         met       = Object(event, self.metBranchName)
         flags     = Object(event, "Flag")
-
+        
         ## Selecting objects
         self.Electron_Stop0l = map(self.SelEle, electrons)
         self.Muon_Stop0l     = map(self.SelMuon, muons)
@@ -201,23 +246,26 @@ class Stop0lObjectsProducer(Module):
         Mtb, Ptb = self.CalMTbPTb(jets, met)
 
         ### Store output
-        if self.era == "2017":
-            self.CopyMETFixEE2017(met)
-        self.out.fillBranch("Electron_Stop0l", self.Electron_Stop0l)
-        self.out.fillBranch("Muon_Stop0l",     self.Muon_Stop0l)
-        self.out.fillBranch("IsoTrack_Stop0l", self.IsoTrack_Stop0l)
-        self.out.fillBranch("Jet_btagStop0l",  self.BJet_Stop0l)
-        self.out.fillBranch("Jet_Stop0l",      self.Jet_Stop0l)
-        self.out.fillBranch("SB_Stop0l",       self.SB_Stop0l)
-        self.out.fillBranch("Photon_Stop0l",   self.Photon_Stop0l)
-        self.out.fillBranch("Jet_dPhiMET",     Jet_dPhi)
-        self.out.fillBranch("Stop0l_HT",       HT)
-        self.out.fillBranch("Stop0l_Mtb",      Mtb)
-        self.out.fillBranch("Stop0l_Ptb",      Ptb)
-        self.out.fillBranch("Stop0l_nJets",    sum(self.Jet_Stop0l))
-        self.out.fillBranch("Stop0l_nbtags",   sum(self.BJet_Stop0l))
-        self.out.fillBranch("Stop0l_nSoftb",   sum(self.SB_Stop0l))
-        self.out.fillBranch("Stop0l_METSig",   met.pt / math.sqrt(HT) if HT > 0 else 0)
+        if self.applyJETMETUncert == 0:
+            if self.era == "2017":
+                self.CopyMETFixEE2017(met)
+            self.out.fillBranch("Electron_Stop0l", self.Electron_Stop0l)
+            self.out.fillBranch("Muon_Stop0l",     self.Muon_Stop0l)
+            self.out.fillBranch("IsoTrack_Stop0l", self.IsoTrack_Stop0l)
+            self.out.fillBranch("SB_Stop0l",       self.SB_Stop0l)
+            self.out.fillBranch("Photon_Stop0l",   self.Photon_Stop0l)
+    
+            self.out.fillBranch("Stop0l_nSoftb",   sum(self.SB_Stop0l))
+
+        self.out.fillBranch("Jet_btagStop0l" + self.JECSuffix,  self.BJet_Stop0l)
+        self.out.fillBranch("Jet_Stop0l" + self.JECSuffix,      self.Jet_Stop0l)
+        self.out.fillBranch("Jet_dPhiMET" + self.JECSuffix,     Jet_dPhi)
+        self.out.fillBranch("Stop0l_HT" + self.JECSuffix,       HT)
+        self.out.fillBranch("Stop0l_Mtb" + self.JECSuffix,      Mtb)
+        self.out.fillBranch("Stop0l_Ptb" + self.JECSuffix,      Ptb)
+        self.out.fillBranch("Stop0l_nJets" + self.JECSuffix,    sum(self.Jet_Stop0l))
+        self.out.fillBranch("Stop0l_nbtags" + self.JECSuffix,   sum(self.BJet_Stop0l))
+        self.out.fillBranch("Stop0l_METSig" + self.JECSuffix,   met.pt / math.sqrt(HT) if HT > 0 else 0)
         return True
 
 

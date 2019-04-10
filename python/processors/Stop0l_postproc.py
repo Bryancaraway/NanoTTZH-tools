@@ -120,7 +120,9 @@ def main(args):
             print "ERROR: Era \"" + args.era + "\" not recognized"
             exit(0)
 
-    mods = []
+    mods = [        
+        eleMiniCutID(),
+        ]
 
 #============================================================================#
 #-------------------------     Different modules     ------------------------#
@@ -132,6 +134,8 @@ def main(args):
         mods += [
             jecUncertProducer(DataDepInputs["MC"][args.era]["JECMC"]),
             jetmetUncertaintiesProducer(args.era, DataDepInputs["MC"][args.era]["JECMC"], jerTag=DataDepInputs["MC"][args.era]["JERMC"], redoJEC=DataDepInputs["MC"][args.era]["redoJEC"], doSmearing=False),
+            Stop0lObjectsProducer(args.era, -1),
+            Stop0lObjectsProducer(args.era, 1),
             PDFUncertiantyProducer(isdata),
             # lepSFProducer(args.era),
             puWeightProducer(pufile_mc, pufile_data, args.sampleName,"pileup"),
@@ -166,7 +170,6 @@ def main(args):
     if args.era == "2018":
         mods.append(UpdateJetID(args.era))
     mods += [
-        eleMiniCutID(),
         Stop0lObjectsProducer(args.era),
         DeepTopProducer(args.era),
         Stop0lBaselineProducer(args.era, isData=isdata, isFastSim=isfastsim),
