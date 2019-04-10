@@ -186,7 +186,7 @@ def main(args):
         with open(args.inputfile) as f:
             files = [line.strip() for line in f]
 
-    p=PostProcessor(args.outputfile,files,cut=None, branchsel=None, outputbranchsel="keep_and_drop.txt", modules=mods,provenance=False)
+    p=PostProcessor(args.outputfile,files,cut=None, branchsel=None, outputbranchsel="keep_and_drop.txt", modules=mods,provenance=False,maxEvents=args.maxEvents)
     p.run()
 
 
@@ -204,8 +204,8 @@ if __name__ == "__main__":
         default = "2017", help = 'Year of production')
     parser.add_argument('-f', '--isFastSim', action="store_true",  default = False,
                         help = "Input file is fastsim (Default: false)")
-    parser.add_argument('-d', '--dataEra',    action="store",  type=str, default = "",
-                        help = "Input file is data (Default: false)")
+    parser.add_argument('-d', '--dataEra',    action="store",  type=str, default = "B",
+                        help = "Data era (B, C, D, ...).  Using this flag also switches the procesor to data mode. (Default: B)")
     parser.add_argument('-s', '--sampleName',    action="store",  type=str, default = "",
                         help = "Name of MC sample (from sampleSet file) (Default: )")
     parser.add_argument('-c', '--crossSection',
@@ -216,5 +216,9 @@ if __name__ == "__main__":
                         type=float,
                         default = 1,
                         help = 'Number of events to use for MC x-sec*lumi weight (NOT the number of events to run over) (Default: 1.0)')
+    parser.add_argument('-m', '--maxEvents',
+                        type=int,
+                        default = -1,
+                        help = 'MAximum number of events to process (Default: all events)')
     args = parser.parse_args()
     main(args)
