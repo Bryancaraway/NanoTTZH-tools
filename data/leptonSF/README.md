@@ -3,6 +3,11 @@ This folder contains variarous lepton scale factor file for different era.
 ## Sources
 SUSY Lepton SF: https://twiki.cern.ch/twiki/bin/view/CMS/SUSLeptonSF
 EGamma SF: https://twiki.cern.ch/twiki/bin/view/CMS/EgammaIDRecipesRun2#Efficiencies_and_scale_factors
+Muon SF:
+
+https://twiki.cern.ch/twiki/bin/view/CMS/MuonReferenceEffs2016LegacyRereco
+https://twiki.cern.ch/twiki/bin/view/CMS/MuonReferenceEffs2017
+https://twiki.cern.ch/twiki/bin/view/CMS/MuonReferenceEffs2018
 
 
 ### Electron

@@ -17,27 +17,45 @@ class lepSFProducer(Module):
         self.photonSelectionTag = photonSelectionTag
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Muon ~~~~~
-        mu_f = []
-        mu_h = []
-        # mu_f=["Mu_Trg.root","Mu_ID.root","Mu_Iso.root"]
-        # mu_h = ["IsoMu24_OR_IsoTkMu24_PtEtaBins/pt_abseta_ratio",
-                # "MC_NUM_LooseID_DEN_genTracks_PAR_pt_eta/pt_abseta_ratio",
-                # "LooseISO_LooseID_pt_eta/pt_abseta_ratio"]
-
+        # TODO: Muon POG provides 2016 SF in different format!
+        # TODO: Add MiniIso0.2 for 2016 and 2018
+        mu_f =[]
+        mu_h =[]
+        if self.era == "2017":
+            mu_f+= [ "Muon_IDScaleFactor_%s.root" % self.era, 
+                    "Muon_%sID_MiniIso0p2SF_%s.root" % (self.muonSelectionTag, self.era)
+                   ]
+            mu_h += ["NUM_%sID_DEN_genTracks_pt_abseta" % self.muonSelectionTag, 
+                     "TnP_MC_NUM_MiniIso02Cut_DEN_%sID_PAR_pt_eta" % self.muonSelectionTag
+                    ]
+        elif self.era == "2018":
+            mu_f+= [ "Muon_IDScaleFactor_%s.root" % self.era
+                   ]
+            mu_h += ["NUM_%sID_DEN_TrackerMuons_pt_abseta" % self.muonSelectionTag, 
+                    ]
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Electron ~~~~~
-        el_f = [ "Electron_GT20GeV_RecoSF_2017v2ID_Run%s.root" % self.era,
-            "Electron_LT20GeV_RecoSF_2017v2ID_Run%s.root" % self.era,
-            "Electron_SUSYScaleFactors_2017v2ID_Run%s.root" % self.era
-        ]
-        el_h = ["EGamma_SF2D",
-                "EGamma_SF2D",
-                "Run%s_CutBased%sNoIso94XV2" % (self.era, self.electronSelectionTag)
-                ]
+        ## TODO: Missing the MiniISO SF
+        if self.era == "2018":
+            el_f = [ "Electron_GT10GeV_RecoSF_2017v2ID_Run%s.root" % self.era,
+                "Electron_SUSYScaleFactors_2017v2ID_Run%s.root" % self.era
+            ]
+            el_h = ["EGamma_SF2D",
+                    "Run%s_CutBased%sNoIso94XV2" % (self.era, self.electronSelectionTag)
+                    ]
+        else:
+            el_f = [ "Electron_GT20GeV_RecoSF_2017v2ID_Run%s.root" % self.era,
+                "Electron_LT20GeV_RecoSF_2017v2ID_Run%s.root" % self.era,
+                "Electron_SUSYScaleFactors_2017v2ID_Run%s.root" % self.era
+            ]
+            el_h = ["EGamma_SF2D",
+                    "EGamma_SF2D",
+                    "Run%s_CutBased%sNoIso94XV2" % (self.era, self.electronSelectionTag)
+                    ]
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Photon ~~~~~
-        pho_f = ["Photon_%s_Cutbased_%s.root" % (self.photonSelectionTag, self.era)]
+        # TODO: Missing the Electron Veto SF
+        pho_f = ["Photon_%s_2017v2Cutbased_%s.root" % (self.photonSelectionTag, self.era)]
         pho_h = ["EGamma_SF2D"]
-
 
         mu_f = ["%s/src/PhysicsTools/NanoSUSYTools/data/leptonSF/" % os.environ['CMSSW_BASE'] + f for f in mu_f]
         el_f = ["%s/src/PhysicsTools/NanoSUSYTools/data/leptonSF/" % os.environ['CMSSW_BASE'] + f for f in el_f]

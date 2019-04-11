@@ -141,7 +141,7 @@ def main(args):
     mods += [
         eleMiniCutID(),
         Stop0lObjectsProducer(args.era),
-        TopTaggerProducer(recalculateFromRawInputs=True, topDiscCut=0.6),
+        TopTaggerProducer(recalculateFromRawInputs=True, topDiscCut=0.6, cfgWD=os.environ["CMSSW_BASE"] + "/src/PhysicsTools/NanoSUSYTools/python/processors"),
         DeepTopProducer(args.era),
         Stop0lBaselineProducer(args.era, isData=isdata, isFastSim=isfastsim),
         UpdateEvtWeight(isdata, args.crossSection, args.nEvents, args.sampleName)
@@ -169,8 +169,8 @@ def main(args):
             # statusFlag 0x2100 corresponds to "isLastCopy and fromHardProcess"
             # statusFlag 0x2080 corresponds to "IsLastCopy and isHardProcess"
             GenPartFilter(statusFlags = [0x2100, 0x2080, 0x2000], pdgIds = [0, 0, 22], statuses = [0, 0, 1]),
-            TopTaggerProducer(recalculateFromRawInputs=True, suffix="JESUp",   AK4JetInputs=("Jet_pt_jesTotalUp",   "Jet_eta", "Jet_phi", "Jet_mass_jesTotalUp"),   topDiscCut=0.6),
-            TopTaggerProducer(recalculateFromRawInputs=True, suffix="JESDown", AK4JetInputs=("Jet_pt_jesTotalDown", "Jet_eta", "Jet_phi", "Jet_mass_jesTotalDown"), topDiscCut=0.6),
+            TopTaggerProducer(recalculateFromRawInputs=True, suffix="JESUp",   AK4JetInputs=("Jet_pt_jesTotalUp",   "Jet_eta", "Jet_phi", "Jet_mass_jesTotalUp"),   topDiscCut=0.6, cfgWD=os.environ["CMSSW_BASE"] + "/src/PhysicsTools/NanoSUSYTools/python/processors"),
+            TopTaggerProducer(recalculateFromRawInputs=True, suffix="JESDown", AK4JetInputs=("Jet_pt_jesTotalDown", "Jet_eta", "Jet_phi", "Jet_mass_jesTotalDown"), topDiscCut=0.6, cfgWD=os.environ["CMSSW_BASE"] + "/src/PhysicsTools/NanoSUSYTools/python/processors"),
             ]
         # Special PU reweighting for 2017 separately
         if args.era == "2017":
@@ -179,7 +179,14 @@ def main(args):
             mods += [
                 puWeightProducer(pufile_mc, pufile_dataBtoE, args.sampleName,"pileup", name="17BtoEpuWeight"),
                 puWeightProducer(pufile_mc, pufile_dataF, args.sampleName,"pileup", name="17FpuWeight")
-                ]
+            ]
+    else:
+        if DataDepInputs["Data"][args.era + args.dataEra]["redoJEC"]:
+            mods.append(jetRecalib(DataDepInputs["Data"][args.era + args.dataEra]["JEC"]))
+
+        mods += [
+            TopTaggerProducer(recalculateFromRawInputs=True, topDiscCut=0.6, cfgWD=os.environ["CMSSW_BASE"] + "/src/PhysicsTools/NanoSUSYTools/python/processors"),
+        ]
         
     #============================================================================#
     #-------------------------     Run PostProcessor     ------------------------#
