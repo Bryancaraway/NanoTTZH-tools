@@ -24,7 +24,7 @@ class DeepTopProducer(Module):
         self.DeepResolveWP = 0.92
         self.etaMax        = 2.0
         self.bJetEtaMax    = 2.4
-        self.resAK4bTagWP  = CSVv2MediumWP[era]
+        self.resAK4bTagWP  = DeepCSVMediumWP[era]
         self.dR2AK4Subjet  = 0.4*0.4
         self.era = era
         self.metBranchName = "MET"
@@ -74,7 +74,8 @@ class DeepTopProducer(Module):
             return False
         if res.discriminator <= self.DeepResolveWP:
             return False
-        #if ((abs(jets[res.j1Idx].eta) < self.bJetEtaMax and jets[res.j1Idx].btagCSVV2 > self.resAK4bTagWP) + (abs(jets[res.j2Idx].eta) < self.bJetEtaMax and jets[res.j2Idx].btagCSVV2 > self.resAK4bTagWP) + (abs(jets[res.j3Idx].eta) < self.bJetEtaMax and jets[res.j3Idx].btagCSVV2 > self.resAK4bTagWP)) >= 2 :
+
+        if ((abs(jets[res.j1Idx].eta) < self.bJetEtaMax and jets[res.j1Idx].btagDeepB > self.resAK4bTagWP) + (abs(jets[res.j2Idx].eta) < self.bJetEtaMax and jets[res.j2Idx].btagDeepB > self.resAK4bTagWP) + (abs(jets[res.j3Idx].eta) < self.bJetEtaMax and jets[res.j3Idx].btagDeepB > self.resAK4bTagWP)) >= 2 :
             return False
         return True
 
