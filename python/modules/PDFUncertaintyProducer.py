@@ -8,6 +8,8 @@ from PhysicsTools.NanoAODTools.postprocessing.framework.eventloop import Module
 class PDFUncertiantyProducer(Module):
     def __init__(self, isData):
         self.isData = isData
+        self.pset = None
+        self.pdfs = None
 
     def beginJob(self):
         pass
@@ -26,6 +28,50 @@ class PDFUncertiantyProducer(Module):
     def endFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
         pass
 
+    def SetupLHAPDF(self):
+        if self.pset is not None:
+            return True
+        # Get LHAPDF from CMSSW
+        import os
+        c= os.popen("scram tool info LHAPDF" ).read()
+        path = None
+        for l in c.split("\n"):
+            if "LIBDIR" in l:
+                path = l.split("=")[-1] +"/python2.7/site-packages/"
+        import sys
+        sys.path.insert(1, path)
+        try:
+            global lhapdf
+            import lhapdf
+        except:
+            print("Cannot import LHAPDF, please setup CMSSW!")
+            return False
+        return True
+
+    def GetfromLHAPDF(self, gen):
+        if not self.SetupLHAPDF():
+            return 0, None
+        ## Default PDF used for 2017 and 2018 production
+        if self.pset is None:
+            self.pset = lhapdf.getPDFSet("NNPDF31_nnlo_as_0118") # ErrorType: replicas
+            self.pdfs = self.pset.mkPDFs()
+
+        npar = self.pset.errorType.count("+") # number of parameter variations (alphaS, etc.)
+        if npar > 0:
+            print("Last %d members are parameter variations\n" % (2*npar))
+
+        ## Fill vectors xgAll and xuAll using all PDF members.
+        pdfweights = [0.0 for i in range(self.pset.size)]
+
+        x1_cen = self.pdfs[0].xfxQ(gen.id1, gen.x1, gen.scalePDF)
+        x2_cen = self.pdfs[0].xfxQ(gen.id2, gen.x2, gen.scalePDF)
+        normweight = x1_cen * x2_cen
+        for imem in range(self.pset.size):
+            x1_imem = self.pdfs[imem].xfxQ(gen.id1, gen.x1, gen.scalePDF)
+            x2_imem = self.pdfs[imem].xfxQ(gen.id2, gen.x2, gen.scalePDF)
+            pdfweights[imem] =  x1_imem * x2_imem / normweight
+        return self.pset.size, pdfweights
+    
     def analyze(self, event):
         """process event, return True (go to next module) or False (fail, go to next event)"""
         if self.isData:
@@ -37,9 +83,16 @@ class PDFUncertiantyProducer(Module):
             nPdfW = getattr(event, "nLHEPdfWeight")
             self.isFirstEventOfFile = False
 
-        lPdfWs = [PdfWs[i] for i in range(nPdfW)]
-        maxW = max(lPdfWs)
-        minW = min(lPdfWs)
+        if nPdfW == 0:
+            nPdfW, PdfWs = self.GetfromLHAPDF(Object(event,     "Generator"))
+
+
+        maxW = 0
+        minW = 0
+        if nPdfW != 0:
+            lPdfWs = [PdfWs[i] for i in range(nPdfW)]
+            maxW = max(lPdfWs)
+            minW = min(lPdfWs)
 
         ## Setting the boundary to 50% to avoid large weight from
         ## To be decided, commented out for now
