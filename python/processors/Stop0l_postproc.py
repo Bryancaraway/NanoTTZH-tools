@@ -123,6 +123,12 @@ def main(args):
     mods = []
 
     #~~~~~ Different modules for Data and MC ~~~~~
+    # These modules must be run first in order to update JEC and MET approperiately for future modules 
+    # The MET update module must also be run before the JEC update modules 
+    if args.era == "2017":
+        # EE noise mitigation in PF MET
+        # https://hypernews.cern.ch/HyperNews/CMS/get/JetMET/1865.html
+        mods.append(UpdateMETProducer("METFixEE2017"))
     if not isdata:
         mods += [
             jetmetUncertaintiesProducer(args.era, DataDepInputs["MC"][args.era]["JECMC"], jerTag=DataDepInputs["MC"][args.era]["JERMC"], redoJEC=DataDepInputs["MC"][args.era]["redoJEC"], doSmearing=False),
@@ -132,10 +138,6 @@ def main(args):
             mods.append(jetRecalib(DataDepInputs["Data"][args.era + args.dataEra]["JEC"]))
 
     #~~~~~ Common modules for Data and MC ~~~~~
-    if args.era == "2017":
-        # EE noise mitigation in PF MET
-        # https://hypernews.cern.ch/HyperNews/CMS/get/JetMET/1865.html
-        mods.append(UpdateMETProducer("METFixEE2017"))
     if args.era == "2018":
         mods.append(UpdateJetID(args.era))
     mods += [
@@ -153,6 +155,10 @@ def main(args):
         pufile_mc = "%s/src/PhysicsTools/NanoSUSYTools/data/pileup/%s" % (os.environ['CMSSW_BASE'], DataDepInputs["MC"][args.era]["pileup_MC"])
         mods += [
             jecUncertProducer(DataDepInputs["MC"][args.era]["JECMC"]),
+            TopTaggerProducer(recalculateFromRawInputs=True, suffix="JESUp",   AK4JetInputs=("Jet_pt_jesTotalUp",   "Jet_eta", "Jet_phi", "Jet_mass_jesTotalUp"),   topDiscCut=0.6, cfgWD=os.environ["CMSSW_BASE"] + "/src/PhysicsTools/NanoSUSYTools/python/processors"),
+            TopTaggerProducer(recalculateFromRawInputs=True, suffix="JESDown", AK4JetInputs=("Jet_pt_jesTotalDown", "Jet_eta", "Jet_phi", "Jet_mass_jesTotalDown"), topDiscCut=0.6, cfgWD=os.environ["CMSSW_BASE"] + "/src/PhysicsTools/NanoSUSYTools/python/processors"),
+            DeepTopProducer(args.era, "JESUp"),
+            DeepTopProducer(args.era, "JESDown"),
             Stop0lObjectsProducer(args.era, "JESUp"),
             Stop0lObjectsProducer(args.era, "JESDown"),
             Stop0lObjectsProducer(args.era, "METUnClustUp"),
@@ -169,8 +175,6 @@ def main(args):
             # statusFlag 0x2100 corresponds to "isLastCopy and fromHardProcess"
             # statusFlag 0x2080 corresponds to "IsLastCopy and isHardProcess"
             GenPartFilter(statusFlags = [0x2100, 0x2080, 0x2000], pdgIds = [0, 0, 22], statuses = [0, 0, 1]),
-            TopTaggerProducer(recalculateFromRawInputs=True, suffix="JESUp",   AK4JetInputs=("Jet_pt_jesTotalUp",   "Jet_eta", "Jet_phi", "Jet_mass_jesTotalUp"),   topDiscCut=0.6, cfgWD=os.environ["CMSSW_BASE"] + "/src/PhysicsTools/NanoSUSYTools/python/processors"),
-            TopTaggerProducer(recalculateFromRawInputs=True, suffix="JESDown", AK4JetInputs=("Jet_pt_jesTotalDown", "Jet_eta", "Jet_phi", "Jet_mass_jesTotalDown"), topDiscCut=0.6, cfgWD=os.environ["CMSSW_BASE"] + "/src/PhysicsTools/NanoSUSYTools/python/processors"),
             ]
         # Special PU reweighting for 2017 separately
         if args.era == "2017":
