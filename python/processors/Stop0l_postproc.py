@@ -15,6 +15,7 @@ from PhysicsTools.NanoSUSYTools.modules.updateJetIDProducer import *
 from PhysicsTools.NanoSUSYTools.modules.PDFUncertaintyProducer import *
 from PhysicsTools.NanoSUSYTools.modules.GenPartFilter import GenPartFilter
 from PhysicsTools.NanoSUSYTools.modules.BtagSFWeightProducer import BtagSFWeightProducer
+from PhysicsTools.NanoSUSYTools.modules.UpdateMETProducer import UpdateMETProducer
 from PhysicsTools.NanoAODTools.postprocessing.modules.common.puWeightProducer import *
 from PhysicsTools.NanoAODTools.postprocessing.modules.jme.jecUncertainties import jecUncertProducer
 from PhysicsTools.NanoAODTools.postprocessing.modules.jme.jetmetUncertainties import jetmetUncertaintiesProducer
@@ -29,22 +30,43 @@ from TopTagger.TopTagger.TopTaggerProducer import TopTaggerProducer
 # JER: https://github.com/cms-jet/JRDatabase/tree/master/textFiles
 DataDepInputs = {
     "MC": {
-        "2016" : { "pileup_Data": "Cert271036_284044_23Sep2016ReReco_Collisions16.root",
+        "2016" : {"pileup_Data": "Cert271036_284044_23Sep2016ReReco_Collisions16.root",
                   "pileup_MC": "pileup_profile_2016.root",
                   "JERMC": "Summer16_25nsV1_MC",
                   "JECMC": "Summer16_07Aug2017_V11_MC",
                   "redoJEC": False,
                  },
-        "2017" : { "pileup_Data": "Cert294927_306462_EOY2017ReReco_Collisions17.root",
+        "2017" : {"pileup_Data": "Cert294927_306462_EOY2017ReReco_Collisions17.root",
                   "pileup_MC": "pileup_profile_2017.root",
                   "JERMC": "Fall17_V3_MC",
                   "JECMC": "Fall17_17Nov2017_V32_MC",
                   "redoJEC": False,
                  },
-        "2018" : { "pileup_Data": "ReReco2018ABC_PromptEraD_Collisions18.root",
+        "2018" : {"pileup_Data": "ReReco2018ABC_PromptEraD_Collisions18.root",
                   "pileup_MC": "pileup_profile_2018.root",
                   "JERMC": "Autumn18_V1_MC",
                   "JECMC": "Autumn18_V8_MC",
+                  "redoJEC": True,
+                 }
+    },
+
+    "FASTSIM": {
+        "2016" : {"pileup_Data": "Cert271036_284044_23Sep2016ReReco_Collisions16.root",
+                  "pileup_MC": "pileup_profile_2016.root",
+                  "JERMC": "Summer16_25nsV1_MC",
+                  "JECMC": "Spring16_25nsFastSimV1_MC",
+                  "redoJEC": False,
+                 },
+        "2017" : {"pileup_Data": "Cert294927_306462_EOY2017ReReco_Collisions17.root",
+                  "pileup_MC": "pileup_profile_2017.root",
+                  "JERMC": "Fall17_V3_MC",
+                  "JECMC": "Fall17_FastsimV1_MC",
+                  "redoJEC": True,
+                 },
+        "2018" : {"pileup_Data": "ReReco2018ABC_PromptEraD_Collisions18.root",
+                  "pileup_MC": "pileup_profile_2018.root",
+                  "JERMC": "Autumn18_V1_MC",
+                  "JECMC": "Fall17_FastsimV1_MC",
                   "redoJEC": True,
                  }
     },
@@ -107,31 +129,78 @@ def main(args):
     isdata = len(args.dataEra) > 0
     isfastsim = args.isFastSim
 
+    dataType = "MC"
+
     if isdata and isfastsim:
         print "ERROR: It is impossible to have a dataset that is both data and fastsim"
         exit(0)
 
     if isdata:
-        if not args.era + args.dataEra in DataDepInputs["Data"].keys():
+        dataType="Data"
+        if not args.era + args.dataEra in DataDepInputs[dataType].keys():
+            print "ERROR: Era \"" + args.era + "\" not recognized"
+            exit(0)
+    if isfastsim:
+        dataType="FASTSIM"
+        if not args.era + args.dataEra in DataDepInputs[dataType].keys():
             print "ERROR: Era \"" + args.era + "\" not recognized"
             exit(0)
     else:
-        if not args.era in DataDepInputs["MC"].keys():
+        dataType = "MC"
+        if not args.era in DataDepInputs[dataType].keys():
             print "ERROR: Era \"" + args.era + "\" not recognized"
             exit(0)
 
     mods = []
 
-#============================================================================#
-#-------------------------     Different modules     ------------------------#
-#============================================================================#
-    #~~~~~ For MC ~~~~~
+    #~~~~~ Different modules for Data and MC ~~~~~
+    # These modules must be run first in order to update JEC and MET approperiately for future modules 
+    # The MET update module must also be run before the JEC update modules 
+    if args.era == "2017":
+        # EE noise mitigation in PF MET
+        # https://hypernews.cern.ch/HyperNews/CMS/get/JetMET/1865.html
+        mods.append(UpdateMETProducer("METFixEE2017"))
     if not isdata:
-        pufile_data = "%s/src/PhysicsTools/NanoSUSYTools/data/pileup/%s" % (os.environ['CMSSW_BASE'], DataDepInputs["MC"][args.era]["pileup_Data"])
-        pufile_mc = "%s/src/PhysicsTools/NanoSUSYTools/data/pileup/%s" % (os.environ['CMSSW_BASE'], DataDepInputs["MC"][args.era]["pileup_MC"])
         mods += [
-            jecUncertProducer(DataDepInputs["MC"][args.era]["JECMC"]),
-            jetmetUncertaintiesProducer(args.era, DataDepInputs["MC"][args.era]["JECMC"], jerTag=DataDepInputs["MC"][args.era]["JERMC"], redoJEC=DataDepInputs["MC"][args.era]["redoJEC"], doSmearing=False),
+            jetmetUncertaintiesProducer(args.era, DataDepInputs[dataType][args.era]["JECMC"], jerTag=DataDepInputs[dataType][args.era]["JERMC"], redoJEC=DataDepInputs[dataType][args.era]["redoJEC"], doSmearing=False, doL2L3=not isfastsim),
+            ]
+    else:
+        if DataDepInputs[dataType][args.era + args.dataEra]["redoJEC"]:
+            mods.append(jetRecalib(DataDepInputs[dataType][args.era + args.dataEra]["JEC"]))
+
+    #~~~~~ Common modules for Data and MC ~~~~~
+    if args.era == "2018":
+        mods.append(UpdateJetID(args.era))
+    mods += [
+        eleMiniCutID(),
+        Stop0lObjectsProducer(args.era),
+        TopTaggerProducer(recalculateFromRawInputs=True, topDiscCut=0.6, cfgWD=os.environ["CMSSW_BASE"] + "/src/PhysicsTools/NanoSUSYTools/python/processors"),
+        DeepTopProducer(args.era),
+        Stop0lBaselineProducer(args.era, isData=isdata, isFastSim=isfastsim),
+        UpdateEvtWeight(isdata, args.crossSection, args.nEvents, args.sampleName)
+        ]
+
+    #~~~~~ Modules for MC Only ~~~~~
+    if not isdata:
+        pufile_data = "%s/src/PhysicsTools/NanoSUSYTools/data/pileup/%s" % (os.environ['CMSSW_BASE'], DataDepInputs[dataType][args.era]["pileup_Data"])
+        pufile_mc = "%s/src/PhysicsTools/NanoSUSYTools/data/pileup/%s" % (os.environ['CMSSW_BASE'], DataDepInputs[dataType][args.era]["pileup_MC"])
+        if not isfastsim:
+            mods += [
+                jecUncertProducer(DataDepInputs[dataType][args.era]["JECMC"]),
+                ]
+        mods += [
+            TopTaggerProducer(recalculateFromRawInputs=True, suffix="JESUp",   AK4JetInputs=("Jet_pt_jesTotalUp",   "Jet_eta", "Jet_phi", "Jet_mass_jesTotalUp"),   topDiscCut=0.6, cfgWD=os.environ["CMSSW_BASE"] + "/src/PhysicsTools/NanoSUSYTools/python/processors"),
+            TopTaggerProducer(recalculateFromRawInputs=True, suffix="JESDown", AK4JetInputs=("Jet_pt_jesTotalDown", "Jet_eta", "Jet_phi", "Jet_mass_jesTotalDown"), topDiscCut=0.6, cfgWD=os.environ["CMSSW_BASE"] + "/src/PhysicsTools/NanoSUSYTools/python/processors"),
+            DeepTopProducer(args.era, "JESUp"),
+            DeepTopProducer(args.era, "JESDown"),
+            Stop0lObjectsProducer(args.era, "JESUp"),
+            Stop0lObjectsProducer(args.era, "JESDown"),
+            Stop0lObjectsProducer(args.era, "METUnClustUp"),
+            Stop0lObjectsProducer(args.era, "METUnClustDown"),
+            Stop0lBaselineProducer(args.era, isData=isdata, isFastSim=isfastsim, applyUncert="JESUp"),
+            Stop0lBaselineProducer(args.era, isData=isdata, isFastSim=isfastsim, applyUncert="JESDown"),
+            Stop0lBaselineProducer(args.era, isData=isdata, isFastSim=isfastsim, applyUncert="METUnClustUp"),
+            Stop0lBaselineProducer(args.era, isData=isdata, isFastSim=isfastsim, applyUncert="METUnClustDown"),
             PDFUncertiantyProducer(isdata),
             # lepSFProducer(args.era),
             puWeightProducer(pufile_mc, pufile_data, args.sampleName,"pileup"),
@@ -140,11 +209,8 @@ def main(args):
             # statusFlag 0x2100 corresponds to "isLastCopy and fromHardProcess"
             # statusFlag 0x2080 corresponds to "IsLastCopy and isHardProcess"
             GenPartFilter(statusFlags = [0x2100, 0x2080, 0x2000], pdgIds = [0, 0, 22], statuses = [0, 0, 1]),
-            TopTaggerProducer(recalculateFromRawInputs=True,                   AK4JetInputs=("Jet_pt",              "Jet_eta", "Jet_phi", "Jet_mass"),              topDiscCut=0.6, cfgWD=os.environ["CMSSW_BASE"] + "/src/PhysicsTools/NanoSUSYTools/python/processors"),
-            TopTaggerProducer(recalculateFromRawInputs=True, suffix="JESUp",   AK4JetInputs=("Jet_pt_jesTotalUp",   "Jet_eta", "Jet_phi", "Jet_mass_jesTotalUp"),   topDiscCut=0.6, cfgWD=os.environ["CMSSW_BASE"] + "/src/PhysicsTools/NanoSUSYTools/python/processors"),
-            TopTaggerProducer(recalculateFromRawInputs=True, suffix="JESDown", AK4JetInputs=("Jet_pt_jesTotalDown", "Jet_eta", "Jet_phi", "Jet_mass_jesTotalDown"), topDiscCut=0.6, cfgWD=os.environ["CMSSW_BASE"] + "/src/PhysicsTools/NanoSUSYTools/python/processors"),
-        ]
-        # Sepacially PU reweighting for 2017 separately
+            ]
+        # Special PU reweighting for 2017 separately
         if args.era == "2017":
             pufile_dataBtoE = "%s/src/PhysicsTools/NanoSUSYTools/data/pileup/Collisions17_BtoE.root" % os.environ['CMSSW_BASE']
             pufile_dataF = "%s/src/PhysicsTools/NanoSUSYTools/data/pileup/Collisions17_F.root" % os.environ['CMSSW_BASE']
@@ -153,30 +219,16 @@ def main(args):
                 puWeightProducer(pufile_mc, pufile_dataF, args.sampleName,"pileup", name="17FpuWeight")
             ]
     else:
-        if DataDepInputs["Data"][args.era + args.dataEra]["redoJEC"]:
-            mods.append(jetRecalib(DataDepInputs["Data"][args.era + args.dataEra]["JEC"]))
+        if DataDepInputs[dataType][args.era + args.dataEra]["redoJEC"]:
+            mods.append(jetRecalib(DataDepInputs[dataType][args.era + args.dataEra]["JEC"]))
 
         mods += [
-            TopTaggerProducer(recalculateFromRawInputs=True, AK4JetInputs=("Jet_pt", "Jet_eta", "Jet_phi", "Jet_mass"),  topDiscCut=0.6, cfgWD=os.environ["CMSSW_BASE"] + "/src/PhysicsTools/NanoSUSYTools/python/processors"),
+            TopTaggerProducer(recalculateFromRawInputs=True, topDiscCut=0.6, cfgWD=os.environ["CMSSW_BASE"] + "/src/PhysicsTools/NanoSUSYTools/python/processors"),
         ]
         
-#============================================================================#
-#--------------------------     Common Modules     --------------------------#
-#============================================================================#
-    if args.era == "2018":
-        mods.append(UpdateJetID(args.era))
-    mods += [
-        eleMiniCutID(),
-        Stop0lObjectsProducer(args.era),
-        DeepTopProducer(args.era),
-        Stop0lBaselineProducer(args.era, isData=isdata, isFastSim=isfastsim),
-        UpdateEvtWeight(isdata, args.crossSection, args.nEvents, args.sampleName)
-    ]
-
-    print(mods)
-#============================================================================#
-#-------------------------     Run PostProcessor     ------------------------#
-#============================================================================#
+    #============================================================================#
+    #-------------------------     Run PostProcessor     ------------------------#
+    #============================================================================#
     files = []
     if len(args.inputfile) > 5 and args.inputfile[0:5] == "file:":
         #This is just a single test input file
@@ -186,7 +238,7 @@ def main(args):
         with open(args.inputfile) as f:
             files = [line.strip() for line in f]
 
-    p=PostProcessor(args.outputfile,files,cut=None, branchsel=None, outputbranchsel="keep_and_drop.txt", modules=mods,provenance=False)
+    p=PostProcessor(args.outputfile,files,cut=None, branchsel=None, outputbranchsel="keep_and_drop.txt", modules=mods,provenance=False,maxEvents=args.maxEvents)
     p.run()
 
 
@@ -205,7 +257,7 @@ if __name__ == "__main__":
     parser.add_argument('-f', '--isFastSim', action="store_true",  default = False,
                         help = "Input file is fastsim (Default: false)")
     parser.add_argument('-d', '--dataEra',    action="store",  type=str, default = "",
-                        help = "Input file is data (Default: false)")
+                        help = "Data era (B, C, D, ...).  Using this flag also switches the procesor to data mode. (Default: None, i.e. MC )")
     parser.add_argument('-s', '--sampleName',    action="store",  type=str, default = "",
                         help = "Name of MC sample (from sampleSet file) (Default: )")
     parser.add_argument('-c', '--crossSection',
@@ -216,5 +268,9 @@ if __name__ == "__main__":
                         type=float,
                         default = 1,
                         help = 'Number of events to use for MC x-sec*lumi weight (NOT the number of events to run over) (Default: 1.0)')
+    parser.add_argument('-m', '--maxEvents',
+                        type=int,
+                        default = -1,
+                        help = 'MAximum number of events to process (Default: all events)')
     args = parser.parse_args()
     main(args)

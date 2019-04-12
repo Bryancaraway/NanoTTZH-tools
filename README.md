@@ -17,7 +17,7 @@ cd $CMSSW_BASE/src
 cmsenv
 git clone -b Stop0l git@github.com:susy2015/nanoAOD-tools.git PhysicsTools/NanoAODTools
 git clone git@github.com:susy2015/NanoSUSY-tools.git PhysicsTools/NanoSUSYTools
-git clone -b Stop0l_NanoAOD_production_V2.0 git@github.com:susy2015/TopTagger.git
+git clone -b Stop0l_NanoAOD_production_V2.2 git@github.com:susy2015/TopTagger.git
 scram b
 cd $CMSSW_BASE/src/TopTagger/TopTagger/test
 ./configure
