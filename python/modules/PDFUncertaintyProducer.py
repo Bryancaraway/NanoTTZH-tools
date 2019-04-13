@@ -1,6 +1,7 @@
 import ROOT
 ROOT.PyConfig.IgnoreCommandLineOptions = True
 import math
+import numpy as np
 
 from PhysicsTools.NanoAODTools.postprocessing.framework.datamodel import Collection, Object
 from PhysicsTools.NanoAODTools.postprocessing.framework.eventloop import Module
@@ -22,8 +23,8 @@ class PDFUncertiantyProducer(Module):
         # So we use below boolean to read it twice
         self.isFirstEventOfFile = True
         self.out = wrappedOutputTree
-        self.out.branch("Stop0l_pdfWeightUp",   "F", title="PDF weight uncertainty up, scaled to central value")
-        self.out.branch("Stop0l_pdfWeightDown", "F", title="PDF weight uncertainty down,, scaled to central value")
+        self.out.branch("pdfWeight_Up",   "F", title="PDF weight uncertainty up, scaled to central value")
+        self.out.branch("pdfWeight_Down", "F", title="PDF weight uncertainty down,, scaled to central value")
 
     def endFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
         pass
@@ -72,27 +73,44 @@ class PDFUncertiantyProducer(Module):
             pdfweights[imem] =  x1_imem * x2_imem / normweight
         return self.pset.size, pdfweights
     
+    def getattr_safe(self, event, name):
+        out = None
+        try:
+            out = getattr(event, name)
+        except RuntimeError:
+            pass
+        return out
+            
+
+
     def analyze(self, event):
         """process event, return True (go to next module) or False (fail, go to next event)"""
         if self.isData:
             return True
-        PdfWs = getattr(event, "LHEPdfWeight")
-        nPdfW = getattr(event, "nLHEPdfWeight")
+        PdfWs = self.getattr_safe(event, "LHEPdfWeight")
+        nPdfW = self.getattr_safe(event, "nLHEPdfWeight")
         if self.isFirstEventOfFile:
-            PdfWs = getattr(event, "LHEPdfWeight")
-            nPdfW = getattr(event, "nLHEPdfWeight")
+            PdfWs = self.getattr_safe(event, "LHEPdfWeight")
+            nPdfW = self.getattr_safe(event, "nLHEPdfWeight")
             self.isFirstEventOfFile = False
 
-        if nPdfW == 0:
+        if nPdfW == 0 or nPdfW is None:
             nPdfW, PdfWs = self.GetfromLHAPDF(Object(event,     "Generator"))
 
 
         maxW = 0
         minW = 0
         if nPdfW != 0:
-            lPdfWs = [PdfWs[i] for i in range(nPdfW)]
-            maxW = max(lPdfWs)
-            minW = min(lPdfWs)
+            lPdfWs              = np.fromiter(PdfWs[1:], dtype=float)
+            ## Following the PDF uncertainties for MC sets recommendation from
+            ## Sec 6.2 from PDF4LHC (https://arxiv.org/pdf/1510.03865.pdf)
+            ## Use Mean value and standard deviation method for Gassian 
+            ## Or 16th and 84th elements for non-Gassian distribution
+            newpdf = np.sort(lPdfWs)
+            w84 = newpdf[84]
+            w16 = newpdf[16]
+            mean = (w84+w16)/2
+            err = (w84-w16)/2
 
         ## Setting the boundary to 50% to avoid large weight from
         ## To be decided, commented out for now
@@ -100,6 +118,6 @@ class PDFUncertiantyProducer(Module):
         # minW = minW if minW > 0.5 else 0.5
 
         ### Store output
-        self.out.fillBranch("Stop0l_pdfWeightUp",   maxW)
-        self.out.fillBranch("Stop0l_pdfWeightDown", minW)
+        self.out.fillBranch("pdfWeight_Up",   1+err/mean)
+        self.out.fillBranch("pdfWeight_Down", 1-err/mean)
         return True

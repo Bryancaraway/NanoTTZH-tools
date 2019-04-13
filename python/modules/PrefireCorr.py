@@ -16,10 +16,16 @@ class PrefCorr(Module):
 # UseEMpT: Set to 1 if the jet map is defined for energy deposited in ECAL (pT_EM vs pT). For jet map only, not photon!
 
         cmssw_base = os.getenv('CMSSW_BASE')
-        jetroot       = "L1prefiring_jetpt_%sBtoF.root" % era
-        jetmapname    = "L1prefiring_jetpt_%sBtoF"  % era
-        photonroot    = "L1prefiring_photonpt_%sBtoF.root" % era
-        photonmapname = "L1prefiring_photonpt_%sBtoF" % era
+        if era == "2016":
+            jetroot       = "L1prefiring_jetpt_2016BtoH.root"
+            jetmapname    = "L1prefiring_jetpt_2016BtoH" 
+            photonroot    = "L1prefiring_photonpt_2016BtoH.root"
+            photonmapname = "L1prefiring_photonpt_2016BtoH"
+        if era == "2017":
+            jetroot       = "L1prefiring_jetpt_2017BtoF.root"
+            jetmapname    = "L1prefiring_jetpt_2017BtoF" 
+            photonroot    = "L1prefiring_photonpt_2017BtoF.root"
+            photonmapname = "L1prefiring_photonpt_2017BtoF"
 
         self.photon_file = self.open_root(cmssw_base + "/src/PhysicsTools/NanoSUSYTools/data/prefire_maps/" + photonroot)
         self.photon_map = self.get_root_obj(self.photon_file, photonmapname)

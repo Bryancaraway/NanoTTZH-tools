@@ -15,13 +15,15 @@ from PhysicsTools.NanoSUSYTools.modules.updateJetIDProducer import *
 from PhysicsTools.NanoSUSYTools.modules.PDFUncertaintyProducer import *
 from PhysicsTools.NanoSUSYTools.modules.GenPartFilter import GenPartFilter
 from PhysicsTools.NanoSUSYTools.modules.BtagSFWeightProducer import BtagSFWeightProducer
-from PhysicsTools.NanoSUSYTools.modules.UpdateMETProducer import UpdateMETProducer
+# from PhysicsTools.NanoSUSYTools.modules.UpdateMETProducer import UpdateMETProducer
 from PhysicsTools.NanoAODTools.postprocessing.modules.common.puWeightProducer import *
 from PhysicsTools.NanoAODTools.postprocessing.modules.jme.jecUncertainties import jecUncertProducer
 from PhysicsTools.NanoAODTools.postprocessing.modules.jme.jetmetUncertainties import jetmetUncertaintiesProducer
 from PhysicsTools.NanoAODTools.postprocessing.modules.jme.jetRecalib import jetRecalib
 from PhysicsTools.NanoAODTools.postprocessing.modules.btv.btagSFProducer import btagSFProducer
 from TopTagger.TopTagger.TopTaggerProducer import TopTaggerProducer
+from PhysicsTools.NanoSUSYTools.modules.FastsimVarProducer import FastsimVarProducer
+from PhysicsTools.NanoSUSYTools.modules.PrefireCorr import PrefCorr
 
 # JEC files are those recomended here (as of Mar 1, 2019)
 # https://twiki.cern.ch/twiki/bin/view/CMS/JECDataMC#Recommended_for_MC
@@ -159,7 +161,11 @@ def main(args):
     if args.era == "2017":
         # EE noise mitigation in PF MET
         # https://hypernews.cern.ch/HyperNews/CMS/get/JetMET/1865.html
-        mods.append(UpdateMETProducer("METFixEE2017"))
+        # mods.append(UpdateMETProducer("METFixEE2017"))
+        pass
+    if args.era == "2018":
+        mods.append(UpdateJetID(args.era))
+
     if not isdata:
         mods += [
             jetmetUncertaintiesProducer(args.era, DataDepInputs[dataType][args.era]["JECMC"], jerTag=DataDepInputs[dataType][args.era]["JERMC"], redoJEC=DataDepInputs[dataType][args.era]["redoJEC"], doSmearing=False, doL2L3=not isfastsim),
@@ -169,8 +175,6 @@ def main(args):
             mods.append(jetRecalib(DataDepInputs[dataType][args.era + args.dataEra]["JEC"]))
 
     #~~~~~ Common modules for Data and MC ~~~~~
-    if args.era == "2018":
-        mods.append(UpdateJetID(args.era))
     mods += [
         eleMiniCutID(),
         Stop0lObjectsProducer(args.era),
@@ -202,13 +206,17 @@ def main(args):
             Stop0lBaselineProducer(args.era, isData=isdata, isFastSim=isfastsim, applyUncert="METUnClustUp"),
             Stop0lBaselineProducer(args.era, isData=isdata, isFastSim=isfastsim, applyUncert="METUnClustDown"),
             PDFUncertiantyProducer(isdata),
-            # lepSFProducer(args.era),
+            lepSFProducer(args.era),
+            lepSFProducer(args.era, muonSelectionTag="Medium",
+                          electronSelectionTag="Medium",
+                          photonSelectionTag="Medium"),
             puWeightProducer(pufile_mc, pufile_data, args.sampleName,"pileup"),
             btagSFProducer(era=args.era, algo="deepcsv"),
             BtagSFWeightProducer("allInOne_bTagEff_deepCSVb_med.root", args.sampleName, DeepCSVMediumWP[args.era]),
             # statusFlag 0x2100 corresponds to "isLastCopy and fromHardProcess"
             # statusFlag 0x2080 corresponds to "IsLastCopy and isHardProcess"
             GenPartFilter(statusFlags = [0x2100, 0x2080, 0x2000], pdgIds = [0, 0, 22], statuses = [0, 0, 1]),
+            PrefCorr(args.era)
             ]
         # Special PU reweighting for 2017 separately
         if args.era == "2017":

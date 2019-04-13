@@ -52,8 +52,8 @@ class BtagSFWeightProducer(Module):
     def beginFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
         self.out = wrappedOutputTree
         self.out.branch("BTagWeight",      "F", title="BTag event weight following method 1a")
-        self.out.branch("BTagWeight_up",   "F", title="BTag event weight up uncertainty")
-        self.out.branch("BTagWeight_down", "F", title="BTag event weight down uncertainty")
+        self.out.branch("BTagWeight_Up",   "F", title="BTag event weight up uncertainty")
+        self.out.branch("BTagWeight_Down", "F", title="BTag event weight down uncertainty")
 
     def endFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
         pass
@@ -126,8 +126,8 @@ class BtagSFWeightProducer(Module):
                 BTagWeightD      *= 1 - eff
 
         self.out.fillBranch("BTagWeight",      BTagWeightN / BTagWeightD)
-        self.out.fillBranch("BTagWeight_up",   BTagWeightN_up / BTagWeightD)
-        self.out.fillBranch("BTagWeight_down", BTagWeightN_down / BTagWeightD)
+        self.out.fillBranch("BTagWeight_Up",   BTagWeightN_up / BTagWeightD)
+        self.out.fillBranch("BTagWeight_Down", BTagWeightN_down / BTagWeightD)
         return True
 
 # define modules using the syntax 'name = lambda : constructor' to avoid having them loaded when not needed
