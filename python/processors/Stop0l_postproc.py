@@ -217,7 +217,7 @@ def main(args):
             # statusFlag 0x2100 corresponds to "isLastCopy and fromHardProcess"
             # statusFlag 0x2080 corresponds to "IsLastCopy and isHardProcess"
             GenPartFilter(statusFlags = [0x2100, 0x2080, 0x2000], pdgIds = [0, 0, 22], statuses = [0, 0, 1]),
-            ISRSFWeightProducer("", args.sampleName),
+            ISRSFWeightProducer("allInOne_ISRWeight.root", args.sampleName), 
             PrefCorr(args.era)
             ]
         # Special PU reweighting for 2017 separately
