@@ -14,8 +14,8 @@ from collections import defaultdict
 
 DelExe    = '../Stop0l_postproc.py'
 tempdir = '/uscms_data/d3/%s/condor_temp/' % getpass.getuser()
-ShortProjectName = 'PostProcess'
-VersionNumber = '_v1'
+ShortProjectName = 'ZWTest_PostProcess'
+VersionNumber = '_v2p0'
 argument = "--inputFiles=%s.$(Process).list "
 sendfiles = ["../keep_and_drop.txt"]
 
@@ -115,7 +115,11 @@ def SplitPro(key, file, lineperfile=20):
     except OSError:
         pass
 
-    filename = os.path.abspath(file)
+    if "/store/" in file:
+        subprocess.call("xrdcp root://cmseos.fnal.gov/%s %s/%s_all.list" % (file, filelistdir, key), shell=True)
+        filename = os.path.abspath( "%s/%s_all.list" % (filelistdir, key))
+    else:
+        filename = os.path.abspath(file)
 
     f = open(filename, 'r')
     lines = f.readlines()
