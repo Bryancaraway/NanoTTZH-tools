@@ -24,6 +24,7 @@ from PhysicsTools.NanoAODTools.postprocessing.modules.btv.btagSFProducer import 
 from TopTagger.TopTagger.TopTaggerProducer import TopTaggerProducer
 from PhysicsTools.NanoSUSYTools.modules.FastsimVarProducer import FastsimVarProducer
 from PhysicsTools.NanoSUSYTools.modules.PrefireCorr import PrefCorr
+from PhysicsTools.NanoSUSYTools.modules.ISRWeightProducer import ISRSFWeightProducer
 
 # JEC files are those recomended here (as of Mar 1, 2019)
 # https://twiki.cern.ch/twiki/bin/view/CMS/JECDataMC#Recommended_for_MC
@@ -216,6 +217,7 @@ def main(args):
             # statusFlag 0x2100 corresponds to "isLastCopy and fromHardProcess"
             # statusFlag 0x2080 corresponds to "IsLastCopy and isHardProcess"
             GenPartFilter(statusFlags = [0x2100, 0x2080, 0x2000], pdgIds = [0, 0, 22], statuses = [0, 0, 1]),
+            ISRSFWeightProducer("allInOne_ISRWeight.root", args.sampleName), 
             PrefCorr(args.era)
             ]
         # Special PU reweighting for 2017 separately
