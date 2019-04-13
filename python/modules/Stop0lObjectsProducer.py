@@ -58,10 +58,13 @@ class Stop0lObjectsProducer(Module):
             self.out.branch("Stop0l_nSoftb" + self.suffix,   "I")
         
         if self.applyUncert == None or "JES" in self.applyUncert or "METUnClust" in self.applyUncert:
+            self.out.branch("Electron_MtW"    + self.suffix, "F", lenVar="nElectron")
+            self.out.branch("Muon_MtW"        + self.suffix, "F", lenVar="nMuon")
+            self.out.branch("IsoTrack_MtW"    + self.suffix, "F", lenVar="nIsoTrack")
             self.out.branch("IsoTrack_Stop0l" + self.suffix, "O", lenVar="nIsoTrack")
-            self.out.branch("Jet_dPhiMET" + self.suffix,     "F", lenVar="nJet")
-            self.out.branch("Stop0l_Mtb" + self.suffix,      "F")
-            self.out.branch("Stop0l_METSig" + self.suffix,   "F")
+            self.out.branch("Jet_dPhiMET"     + self.suffix, "F", lenVar="nJet")
+            self.out.branch("Stop0l_Mtb"      + self.suffix, "F")
+            self.out.branch("Stop0l_METSig"   + self.suffix, "F")
 
         if self.applyUncert == None or "JES" in self.applyUncert:
             self.out.branch("Jet_Stop0l" + self.suffix,      "O", lenVar="nJet")
@@ -103,10 +106,13 @@ class Stop0lObjectsProducer(Module):
         if abs(isk.pdgId) == 211:
             if isk.pt < 10 or iso > 0.1:
                 return False
-        mtW = math.sqrt( 2 * met.pt * isk.pt * (1 - math.cos(met.phi-isk.phi)))
+        mtW = self.CalMtW(isk, met)
         if mtW  > 100:
             return False
         return True
+
+    def CalMtW(self, lep, met):
+        return math.sqrt( 2 * met.pt * lep.pt * (1 - math.cos(met.phi-lep.phi)))
 
     def SelBtagJets(self, jet):
         global DeepCSVMediumWP
@@ -190,13 +196,16 @@ class Stop0lObjectsProducer(Module):
             jets      = Collection(event, "Jet")
             met       = Object(event, self.metBranchName)
 
-        isvs      = Collection(event, "SB")
-        photons   = Collection(event, "Photon")
-        flags     = Object(event, "Flag")
-        
+        isvs    = Collection(event, "SB")
+        photons = Collection(event, "Photon")
+        flags   = Object(event,     "Flag")
+       
         ## Selecting objects
         self.Electron_Stop0l = map(self.SelEle, electrons)
         self.Muon_Stop0l     = map(self.SelMuon, muons)
+        self.Electron_MtW    = map(lambda x : self.CalMtW(x, met), electrons)
+        self.Muon_MtW        = map(lambda x : self.CalMtW(x, met), muons)
+        self.IsoTrack_MtW    = map(lambda x : self.CalMtW(x, met), isotracks)
         self.IsoTrack_Stop0l = map(lambda x : self.SelIsotrack(x, met), isotracks)
         self.Jet_Stop0l      = map(self.SelJets, jets)
         local_BJet_Stop0l    = map(self.SelBtagJets, jets)
@@ -224,9 +233,12 @@ class Stop0lObjectsProducer(Module):
 
         if self.applyUncert == None or "JES" in self.applyUncert or "METUnClust" in self.applyUncert:
             self.out.fillBranch("IsoTrack_Stop0l" + self.suffix, self.IsoTrack_Stop0l)
-            self.out.fillBranch("Jet_dPhiMET" + self.suffix,     Jet_dPhi)
-            self.out.fillBranch("Stop0l_Mtb" + self.suffix,      Mtb)
-            self.out.fillBranch("Stop0l_METSig" + self.suffix,   met.pt / math.sqrt(HT) if HT > 0 else 0)
+            self.out.fillBranch("Electron_MtW" + self.suffix   , self.Electron_MtW)
+            self.out.fillBranch("Muon_MtW" + self.suffix       , self.Muon_MtW)
+            self.out.fillBranch("IsoTrack_MtW" + self.suffix   , self.IsoTrack_MtW)
+            self.out.fillBranch("Jet_dPhiMET" + self.suffix    , Jet_dPhi)
+            self.out.fillBranch("Stop0l_Mtb" + self.suffix     , Mtb)
+            self.out.fillBranch("Stop0l_METSig" + self.suffix  , met.pt / math.sqrt(HT) if HT > 0 else 0)
 
         if self.applyUncert == None or "JES" in self.applyUncert:
             self.out.fillBranch("Jet_btagStop0l" + self.suffix,  self.BJet_Stop0l)

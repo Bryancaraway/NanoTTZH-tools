@@ -1,6 +1,7 @@
 import ROOT
 ROOT.PyConfig.IgnoreCommandLineOptions = True
 import math
+import numpy as np
 
 from PhysicsTools.NanoAODTools.postprocessing.framework.datamodel import Collection, Object
 from PhysicsTools.NanoAODTools.postprocessing.framework.eventloop import Module
@@ -35,21 +36,27 @@ class Stop0lBaselineProducer(Module):
 
     def beginFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
         self.out = wrappedOutputTree
-        self.out.branch("Pass_JetID" + self.suffix,         "O")
-        self.out.branch("Pass_EventFilter" + self.suffix,   "O")
-        self.out.branch("Pass_ElecVeto" + self.suffix,      "O")
-        self.out.branch("Pass_MuonVeto" + self.suffix,      "O")
-        self.out.branch("Pass_IsoTrkVeto" + self.suffix,    "O")
-        self.out.branch("Pass_LeptonVeto" + self.suffix,    "O")
-        self.out.branch("Pass_NJets20" + self.suffix,       "O")
-        self.out.branch("Pass_MET" + self.suffix,           "O")
-        self.out.branch("Pass_HT" + self.suffix,            "O")
-        self.out.branch("Pass_dPhiMET" + self.suffix,       "O")
-        self.out.branch("Pass_dPhiMETLowDM" + self.suffix,  "O")
+        self.out.branch("Pass_JetID"         + self.suffix, "O")
+        self.out.branch("Pass_EventFilter"   + self.suffix, "O")
+        self.out.branch("Pass_ElecVeto"      + self.suffix, "O")
+        self.out.branch("Pass_MuonVeto"      + self.suffix, "O")
+        self.out.branch("Pass_IsoTrkVeto"    + self.suffix, "O")
+        self.out.branch("Pass_LeptonVeto"    + self.suffix, "O")
+        self.out.branch("Pass_NJets20"       + self.suffix, "O")
+        self.out.branch("Pass_MET"           + self.suffix, "O")
+        self.out.branch("Pass_HT"            + self.suffix, "O")
+        self.out.branch("Pass_dPhiMET"       + self.suffix, "O")
+        self.out.branch("Pass_dPhiMETLowDM"  + self.suffix, "O")
         self.out.branch("Pass_dPhiMETHighDM" + self.suffix, "O")
-        self.out.branch("Pass_Baseline" + self.suffix,      "O")
-        self.out.branch("Pass_highDM" + self.suffix,        "O")
-        self.out.branch("Pass_lowDM" + self.suffix,         "O")
+        self.out.branch("Pass_Baseline"      + self.suffix, "O")
+        self.out.branch("Pass_highDM"        + self.suffix, "O")
+        self.out.branch("Pass_lowDM"         + self.suffix, "O")
+        self.out.branch("Pass_QCDCR"         + self.suffix, "O")
+        self.out.branch("Pass_QCDCR_highDM"  + self.suffix, "O")
+        self.out.branch("Pass_QCDCR_lowDM"   + self.suffix, "O")
+        self.out.branch("Pass_LLCR"          + self.suffix, "O")
+        self.out.branch("Pass_LLCR_highDM"   + self.suffix, "O")
+        self.out.branch("Pass_LLCR_lowDM"    + self.suffix, "O")
 
         # Construct Stop0l map
         lob = wrappedOutputTree._branches.keys()
@@ -119,17 +126,22 @@ class Stop0lBaselineProducer(Module):
         countJets = sum([j.Stop0l for j in jets])
         return countJets >= 2
 
-    def PassdPhi(self, jets, dPhiCuts):
-        passdPhi = True
-        jetcount = 0
-        for i, j in enumerate(jets):
+    def GetJetSortedIdx(self, jets):
+        ptlist = []
+        dphiMET = []
+        for j in jets:
             if math.fabs(j.eta) > 4.7 or j.pt < 20:
-                continue
-            if jetcount >= len(dPhiCuts):
-                return passdPhi
-            passdPhi = passdPhi and j.dPhiMET > dPhiCuts[jetcount]
-            jetcount +=  1
-        return passdPhi
+                pass
+            else:
+                ptlist.append(j.pt)
+                dphiMET.append(j.dPhiMET)
+        return [dphiMET[j] for j in np.argsort(ptlist)[::-1]]
+
+    def PassdPhi(self, sortedPhi, dPhiCuts, invertdPhi =False):
+        if invertdPhi:
+            return any( a < b for a, b in zip(sortedPhi, dPhiCuts))
+        else:
+            return all( a > b for a, b in zip(sortedPhi, dPhiCuts))
 
     def analyze(self, event):
         """process event, return True (go to next module) or False (fail, go to next event)"""
@@ -162,6 +174,7 @@ class Stop0lBaselineProducer(Module):
         flags     = Object(event,     "Flag")
         electrons = Collection(event, "Electron")
         muons     = Collection(event, "Muon")
+        isotracks = Collection(event, "IsoTrack")
 
         ## Baseline Selection
         PassJetID       = self.PassJetID(jets)
@@ -173,33 +186,55 @@ class Stop0lBaselineProducer(Module):
         PassIsoTrkVeto  = countIsk == 0
         PassLeptonVeto  = PassElecVeto and PassMuonVeto and PassIsoTrkVeto
 
+        totlep = countEle + countMu + countIsk
+        PassLLLep = (totlep == 1) and sum([ e.MtW for e in electrons if e.Stop0l ] + 
+                                          [ m.MtW for m in muons if m.Stop0l ] + 
+                                          [ i.MtW for i in isotracks if i.Stop0l ]) < 100
+
         PassNjets       = self.PassNjets(jets)
         PassMET         = met.pt >= 250
         PassHT          = stop0l.HT >= 300
-        PassdPhiLowDM   = self.PassdPhi(jets, [0.5, 0.15, 0.15])
-        PassdPhiHighDM  = self.PassdPhi(jets, [0.5, 0.5, 0.5, 0.5])
+        ## In case JEC changed jet pt order, resort jets
+        sortedPhi = self.GetJetSortedIdx(jets)
+        PassdPhiLowDM   = self.PassdPhi(sortedPhi, [0.5, 0.15, 0.15])
+        PassdPhiHighDM  = self.PassdPhi(sortedPhi, [0.5, 0.5, 0.5, 0.5])
+        PassdPhiQCD     = self.PassdPhi(sortedPhi, [0.1, 0.1, 0.1], invertdPhi =True)
+
         PassBaseline    = PassEventFilter and PassLeptonVeto and PassNjets and PassMET and PassHT and PassdPhiLowDM
         PasshighDM      = PassBaseline and stop0l.nJets >= 5 and PassdPhiHighDM and stop0l.nbtags >= 1
         PasslowDM       = PassBaseline and stop0l.nTop == 0 and stop0l.nW == 0 and stop0l.nResolved == 0 and \
                 stop0l.Mtb < 175 and stop0l.ISRJetPt > 200 and stop0l.METSig > 10
+        PassQCDCR       = PassEventFilter and PassLeptonVeto and PassNjets and PassMET and PassHT and PassdPhiQCD
+        PassQCD_highDM  = PassQCDCR and stop0l.nJets >= 5 and stop0l.nbtags >= 1
+        PassQCD_lowDM   = PassQCDCR and stop0l.nTop == 0 and stop0l.nW == 0 and stop0l.nResolved == 0 and \
+                stop0l.Mtb < 175 and stop0l.ISRJetPt > 200 and stop0l.METSig > 10
 
+        PassLLCR       = PassEventFilter and PassLLLep and PassNjets and PassMET and PassHT and PassdPhiQCD
+        PassLL_highDM  = PassLLCR and stop0l.nJets >= 5 and stop0l.nbtags >= 1
+        PassLL_lowDM   = PassLLCR and stop0l.nTop == 0 and stop0l.nW == 0 and stop0l.nResolved == 0 and \
+                stop0l.Mtb < 175 and stop0l.ISRJetPt > 200 and stop0l.METSig > 10
         ### Store output
-        self.out.fillBranch("Pass_JetID" + self.suffix,         PassJetID)
-        self.out.fillBranch("Pass_EventFilter" + self.suffix,   PassEventFilter)
-        self.out.fillBranch("Pass_ElecVeto" + self.suffix,      PassElecVeto)
-        self.out.fillBranch("Pass_MuonVeto" + self.suffix,      PassMuonVeto)
-        self.out.fillBranch("Pass_IsoTrkVeto" + self.suffix,    PassIsoTrkVeto)
-        self.out.fillBranch("Pass_LeptonVeto" + self.suffix,    PassLeptonVeto)
-        self.out.fillBranch("Pass_NJets20" + self.suffix,       PassNjets)
-        self.out.fillBranch("Pass_MET" + self.suffix,           PassMET)
-        self.out.fillBranch("Pass_HT" + self.suffix,            PassHT)
-        self.out.fillBranch("Pass_dPhiMET" + self.suffix,       PassdPhiLowDM)
-        self.out.fillBranch("Pass_dPhiMETLowDM" + self.suffix,  PassdPhiLowDM)
+        self.out.fillBranch("Pass_JetID"         + self.suffix, PassJetID)
+        self.out.fillBranch("Pass_EventFilter"   + self.suffix, PassEventFilter)
+        self.out.fillBranch("Pass_ElecVeto"      + self.suffix, PassElecVeto)
+        self.out.fillBranch("Pass_MuonVeto"      + self.suffix, PassMuonVeto)
+        self.out.fillBranch("Pass_IsoTrkVeto"    + self.suffix, PassIsoTrkVeto)
+        self.out.fillBranch("Pass_LeptonVeto"    + self.suffix, PassLeptonVeto)
+        self.out.fillBranch("Pass_NJets20"       + self.suffix, PassNjets)
+        self.out.fillBranch("Pass_MET"           + self.suffix, PassMET)
+        self.out.fillBranch("Pass_HT"            + self.suffix, PassHT)
+        self.out.fillBranch("Pass_dPhiMET"       + self.suffix, PassdPhiLowDM)
+        self.out.fillBranch("Pass_dPhiMETLowDM"  + self.suffix, PassdPhiLowDM)
         self.out.fillBranch("Pass_dPhiMETHighDM" + self.suffix, PassdPhiHighDM)
-        self.out.fillBranch("Pass_Baseline" + self.suffix,      PassBaseline)
-        self.out.fillBranch("Pass_highDM" + self.suffix,        PasshighDM)
-        self.out.fillBranch("Pass_lowDM" + self.suffix,         PasslowDM)
-
+        self.out.fillBranch("Pass_Baseline"      + self.suffix, PassBaseline)
+        self.out.fillBranch("Pass_highDM"        + self.suffix, PasshighDM)
+        self.out.fillBranch("Pass_lowDM"         + self.suffix, PasslowDM)
+        self.out.fillBranch("Pass_QCDCR"         + self.suffix, PassQCDCR)
+        self.out.fillBranch("Pass_QCDCR_highDM"  + self.suffix, PassQCD_highDM)
+        self.out.fillBranch("Pass_QCDCR_lowDM"   + self.suffix, PassQCD_lowDM)
+        self.out.fillBranch("Pass_LLCR"          + self.suffix, PassLLCR)
+        self.out.fillBranch("Pass_LLCR_highDM"   + self.suffix, PassLL_highDM)
+        self.out.fillBranch("Pass_LLCR_lowDM"    + self.suffix, PassLL_lowDM)
         return True
 
 
