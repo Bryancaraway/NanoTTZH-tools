@@ -27,9 +27,9 @@ class ISRSFWeightProducer(Module):
         #NJetsISR_eff          = fin.Get(("NJetsISR_" + self.sampleName));
 
         if not self.h_eff:
-            print "ISRJet efficiency histograms for sample \"%s\" are not found in file \"%s\".  Using TTBar_2016 inclusive numbers as default setting!!!!"%( self.sampleName, self.iseEffFile)
+            print "ISRJet efficiency histograms for sample \"%s\" are not found in file \"%s\".  Using TTBar_2016 inclusive numbers as default setting!!!!"%( self.sampleName, self.isrEffFile)
 
-            self.sampleName = "TTbar_HT_600to800_2016"
+            self.sampleName = "TTbarInc_2016"
 
             self.h_eff         = fin.Get(("NJetsISR_" + self.sampleName));
         
@@ -43,42 +43,52 @@ class ISRSFWeightProducer(Module):
         self.out.branch("ISRWeight",      "F", title="ISRWeight calculated from a Jet and gen daughter matching")
         #self.out.branch("BTagWeight_Up",   "F", title="BTag event weight up uncertainty")
         #self.out.branch("BTagWeight_Down", "F", title="BTag event weight down uncertainty")
-        self.out.branch("nISRJets",      "F", title="The number of events that contain a none matched jet to a gen particle")
+        self.out.branch("nISRJets",      "F", title="The number of jets that contain a unmatched jet to a gen particle")
     def endFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
         pass
 
     def analyze(self, event):
         """process event, return True (go to next module) or False (fail, go to next event)"""
         jets = Collection(event, "Jet")
-        genPart = Collection(event, "GenPart")
-
-        ISRWeightN = 1.0
+        genParts = Collection(event, "GenPart")
+        ISRWeight = 1.0
         ISRWeightD = 1.0
-
+        mother =-1
+        daughter = [[] for x in range(0,len(genParts))]
+        for iGenPart, genPart in enumerate(genParts):
+            mother = genPart.genPartIdxMother
+            if mother == -1: continue
+            daughter[mother].append(iGenPart)
+ 
+        nisr = 0
         for jet in jets:
-           pt = jet.pt
-           eta = abs(jet.eta)
-           for genPart in genParts:
-              mother = genParts.genPartIdxMother
-              if mother == -1: continue
-              #if (genPart.statusFlags != 23 || abs(genParts.pdgId) > 5) continue
-              for mother in mothers:
-                 mother_pdgId = genParts.pdgId
+            matched = False 
+            for iGenPart, genPart in enumerate(genParts):
+                if matched: break
+                if genPart.statusFlags != 23 or abs(genPart.pdgId) > 5: continue
+                momid = abs(genParts[genPart.genPartIdxMother].pdgId)
+                if not (momid == 6 or momid == 23 or momid == 24 or momid == 25 or momid >1e6): continue
+                for dau in daughter[iGenPart]:
+                    dR = deltaR(jet,genParts[dau])
+                    if dR<0.3:
+                        matched = True
+                        break
+            if not matched:
+                nisr+=1
 
-              if not (mother_pdgId == 6 or mother_pdgId == 23 or mother_pdgId == 24 or mother_pdgId == 25 or mother_pdgId >1e6): continue
-              daughter = mother.genParts
-              print daughter
-              daughter.at(mother).push_back(genParts)
-              for daughter in daughters:
-                 dR = jet.deltaR(genPart)
-                 if dR<0.3:
-                   matched = True
-                   break
-           if not matched:
-             nisr+=1
+        ISRWeight = self.h_eff.GetXaxis().FindBin(nisr);
 
-        for nisr in nisrs:
-            ISRWeight = self.h_eff.GetXaxis().FindBin(nisr);
+        #if debug =True does this exist??
+        #print "ISRWeight =",ISRWeight
+        #print "nISRJets =",nisr
+        #print "Index:"
+        #print range(0,len(genParts))
+        #print "genParts.pdgId:"
+        #print [genPart.pdgId for genPart in genParts]
+        #print "mother Idx:"
+        #print [genPart.genPartIdxMother for genPart in genParts]
+        #print "duaghter Idx:"
+        #print daughter
 
         self.out.fillBranch("ISRWeight", ISRWeight)
         self.out.fillBranch("nISRJets", nisr)           

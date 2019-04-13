@@ -25,6 +25,7 @@ from TopTagger.TopTagger.TopTaggerProducer import TopTaggerProducer
 from PhysicsTools.NanoSUSYTools.modules.FastsimVarProducer import FastsimVarProducer
 from PhysicsTools.NanoSUSYTools.modules.PrefireCorr import PrefCorr
 
+from PhysicsTools.NanoSUSYTools.modules.ISRWeightProducer import ISRSFWeightProducer
 # JEC files are those recomended here (as of Mar 1, 2019)
 # https://twiki.cern.ch/twiki/bin/view/CMS/JECDataMC#Recommended_for_MC
 # Actual text files are found here
@@ -188,35 +189,36 @@ def main(args):
     if not isdata:
         pufile_data = "%s/src/PhysicsTools/NanoSUSYTools/data/pileup/%s" % (os.environ['CMSSW_BASE'], DataDepInputs[dataType][args.era]["pileup_Data"])
         pufile_mc = "%s/src/PhysicsTools/NanoSUSYTools/data/pileup/%s" % (os.environ['CMSSW_BASE'], DataDepInputs[dataType][args.era]["pileup_MC"])
-        if not isfastsim:
-            mods += [
-                jecUncertProducer(DataDepInputs[dataType][args.era]["JECMC"]),
-                ]
+        #if not isfastsim:
+            #mods += [
+               # jecUncertProducer(DataDepInputs[dataType][args.era]["JECMC"]),
+                #]
         mods += [
-            TopTaggerProducer(recalculateFromRawInputs=True, suffix="JESUp",   AK4JetInputs=("Jet_pt_jesTotalUp",   "Jet_eta", "Jet_phi", "Jet_mass_jesTotalUp"),   topDiscCut=0.6, cfgWD=os.environ["CMSSW_BASE"] + "/src/PhysicsTools/NanoSUSYTools/python/processors"),
-            TopTaggerProducer(recalculateFromRawInputs=True, suffix="JESDown", AK4JetInputs=("Jet_pt_jesTotalDown", "Jet_eta", "Jet_phi", "Jet_mass_jesTotalDown"), topDiscCut=0.6, cfgWD=os.environ["CMSSW_BASE"] + "/src/PhysicsTools/NanoSUSYTools/python/processors"),
-            DeepTopProducer(args.era, "JESUp"),
-            DeepTopProducer(args.era, "JESDown"),
-            Stop0lObjectsProducer(args.era, "JESUp"),
-            Stop0lObjectsProducer(args.era, "JESDown"),
-            Stop0lObjectsProducer(args.era, "METUnClustUp"),
-            Stop0lObjectsProducer(args.era, "METUnClustDown"),
-            Stop0lBaselineProducer(args.era, isData=isdata, isFastSim=isfastsim, applyUncert="JESUp"),
-            Stop0lBaselineProducer(args.era, isData=isdata, isFastSim=isfastsim, applyUncert="JESDown"),
-            Stop0lBaselineProducer(args.era, isData=isdata, isFastSim=isfastsim, applyUncert="METUnClustUp"),
-            Stop0lBaselineProducer(args.era, isData=isdata, isFastSim=isfastsim, applyUncert="METUnClustDown"),
-            PDFUncertiantyProducer(isdata),
-            lepSFProducer(args.era),
-            lepSFProducer(args.era, muonSelectionTag="Medium",
-                          electronSelectionTag="Medium",
-                          photonSelectionTag="Medium"),
-            puWeightProducer(pufile_mc, pufile_data, args.sampleName,"pileup"),
-            btagSFProducer(era=args.era, algo="deepcsv"),
-            BtagSFWeightProducer("allInOne_bTagEff_deepCSVb_med.root", args.sampleName, DeepCSVMediumWP[args.era]),
+            #TopTaggerProducer(recalculateFromRawInputs=True, suffix="JESUp",   AK4JetInputs=("Jet_pt_jesTotalUp",   "Jet_eta", "Jet_phi", "Jet_mass_jesTotalUp"),   topDiscCut=0.6, cfgWD=os.environ["CMSSW_BASE"] + "/src/PhysicsTools/NanoSUSYTools/python/processors"),
+            #TopTaggerProducer(recalculateFromRawInputs=True, suffix="JESDown", AK4JetInputs=("Jet_pt_jesTotalDown", "Jet_eta", "Jet_phi", "Jet_mass_jesTotalDown"), topDiscCut=0.6, cfgWD=os.environ["CMSSW_BASE"] + "/src/PhysicsTools/NanoSUSYTools/python/processors"),
+            #DeepTopProducer(args.era, "JESUp"),
+            #DeepTopProducer(args.era, "JESDown"),
+            #Stop0lObjectsProducer(args.era, "JESUp"),
+            #Stop0lObjectsProducer(args.era, "JESDown"),
+            #Stop0lObjectsProducer(args.era, "METUnClustUp"),
+            #Stop0lObjectsProducer(args.era, "METUnClustDown"),
+            #Stop0lBaselineProducer(args.era, isData=isdata, isFastSim=isfastsim, applyUncert="JESUp"),
+            #Stop0lBaselineProducer(args.era, isData=isdata, isFastSim=isfastsim, applyUncert="JESDown"),
+            #Stop0lBaselineProducer(args.era, isData=isdata, isFastSim=isfastsim, applyUncert="METUnClustUp"),
+            #Stop0lBaselineProducer(args.era, isData=isdata, isFastSim=isfastsim, applyUncert="METUnClustDown"),
+            #PDFUncertiantyProducer(isdata),
+            #lepSFProducer(args.era),
+            #lepSFProducer(args.era, muonSelectionTag="Medium",
+            #              electronSelectionTag="Medium",
+            #              photonSelectionTag="Medium"),
+            #puWeightProducer(pufile_mc, pufile_data, args.sampleName,"pileup"),
+            #btagSFProducer(era=args.era, algo="deepcsv"),
+            #BtagSFWeightProducer("allInOne_bTagEff_deepCSVb_med.root", args.sampleName, DeepCSVMediumWP[args.era]),
+            ISRSFWeightProducer("allInOne_ISRWeight.root", args.sampleName), 
             # statusFlag 0x2100 corresponds to "isLastCopy and fromHardProcess"
             # statusFlag 0x2080 corresponds to "IsLastCopy and isHardProcess"
-            GenPartFilter(statusFlags = [0x2100, 0x2080, 0x2000], pdgIds = [0, 0, 22], statuses = [0, 0, 1]),
-            PrefCorr(args.era)
+            #GenPartFilter(statusFlags = [0x2100, 0x2080, 0x2000], pdgIds = [0, 0, 22], statuses = [0, 0, 1]),
+            #PrefCorr(args.era)
             ]
         # Special PU reweighting for 2017 separately
         if args.era == "2017":
