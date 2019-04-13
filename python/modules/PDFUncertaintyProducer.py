@@ -101,12 +101,15 @@ class PDFUncertiantyProducer(Module):
         maxW = 0
         minW = 0
         if nPdfW != 0:
-            lPdfWs              = np.fromiter(PdfWs[1:], dtype=float)
+            if isinstance(PdfWs, np.ndarray):
+                lPdfWs = PdfWs
+            else:
+                lPdfWs = np.asarray([ PdfWs[i] for i in range(nPdfW)])
             ## Following the PDF uncertainties for MC sets recommendation from
             ## Sec 6.2 from PDF4LHC (https://arxiv.org/pdf/1510.03865.pdf)
             ## Use Mean value and standard deviation method for Gassian 
             ## Or 16th and 84th elements for non-Gassian distribution
-            newpdf = np.sort(lPdfWs)
+            newpdf = np.sort(lPdfWs[1:])
             w84 = newpdf[84]
             w16 = newpdf[16]
             mean = (w84+w16)/2
