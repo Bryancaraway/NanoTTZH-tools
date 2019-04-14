@@ -23,7 +23,7 @@ from PhysicsTools.NanoSUSYTools.modules.updateJetIDProducer import UpdateJetID
 from PhysicsTools.NanoSUSYTools.modules.PDFUncertaintyProducer import PDFUncertiantyProducer
 from PhysicsTools.NanoSUSYTools.modules.GenPartFilter import GenPartFilter
 from PhysicsTools.NanoSUSYTools.modules.BtagSFWeightProducer import BtagSFWeightProducer
-# from PhysicsTools.NanoSUSYTools.modules.UpdateMETProducer import UpdateMETProducer
+from PhysicsTools.NanoSUSYTools.modules.UpdateMETProducer import UpdateMETProducer
 from PhysicsTools.NanoSUSYTools.modules.FastsimVarProducer import FastsimVarProducer
 from PhysicsTools.NanoSUSYTools.modules.PrefireCorr import PrefCorr
 from PhysicsTools.NanoSUSYTools.modules.ISRWeightProducer import ISRSFWeightProducer
@@ -164,15 +164,13 @@ def main(args):
     if args.era == "2017":
         # EE noise mitigation in PF MET
         # https://hypernews.cern.ch/HyperNews/CMS/get/JetMET/1865.html
-        # TODO: Missing this module from Joe
-        # mods.append(UpdateMETProducer("METFixEE2017"))
-        pass
+        mods.append(UpdateMETProducer("METFixEE2017"))
     if args.era == "2018":
         # The 2018 JetID came after our production
         mods.append(UpdateJetID(args.era))
 
     if isdata:
-        # Apply resediual JEC ?
+        # Apply resediual JEC on Data
         if DataDepInputs[dataType][args.era + args.dataEra]["redoJEC"]:
             mods.append(jetRecalib(DataDepInputs[dataType][args.era + args.dataEra]["JEC"]))
     else:
@@ -194,14 +192,7 @@ def main(args):
             ]
 
     #~~~~~ Modules for MC Only ~~~~~
-    if isdata:
-        ## TODO: Isn't here redo again in Line 175?
-        if DataDepInputs[dataType][args.era + args.dataEra]["redoJEC"]:
-            mods += [ jetRecalib(DataDepInputs[dataType][args.era + args.dataEra]["JEC"]),
-                     TopTaggerProducer(recalculateFromRawInputs=True, topDiscCut=DeepResovledDiscCut, 
-                                       cfgWD=os.environ["CMSSW_BASE"] + "/src/PhysicsTools/NanoSUSYTools/python/processors"),
-                    ]
-    else: ##MC
+    if not isdata:
         pufile_data = "%s/src/PhysicsTools/NanoSUSYTools/data/pileup/%s" % (os.environ['CMSSW_BASE'], DataDepInputs[dataType][args.era]["pileup_Data"])
         pufile_mc = "%s/src/PhysicsTools/NanoSUSYTools/data/pileup/%s" % (os.environ['CMSSW_BASE'], DataDepInputs[dataType][args.era]["pileup_MC"])
         ## TODO: ZW don't understand this part, So this is for fullsim? 
@@ -237,9 +228,10 @@ def main(args):
             # statusFlag 0x2100 corresponds to "isLastCopy and fromHardProcess"
             # statusFlag 0x2080 corresponds to "IsLastCopy and isHardProcess"
             GenPartFilter(statusFlags = [0x2100, 0x2080, 0x2000], pdgIds = [0, 0, 22], statuses = [0, 0, 1]),
-            # TODO: Currently producing very large weight. 
+            # TODO: first implemtation, need double check
             ISRSFWeightProducer(args.era, "allInOne_ISRWeight.root", args.sampleName), 
-            # PrefCorr(args.era)
+            # 2016 and 2017 L1 ECal prefiring reweighting
+            PrefCorr(args.era)
             ]
         # Special PU reweighting for 2017 separately
         if args.era == "2017":
