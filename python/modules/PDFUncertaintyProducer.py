@@ -9,6 +9,7 @@ from PhysicsTools.NanoAODTools.postprocessing.framework.eventloop import Module
 class PDFUncertiantyProducer(Module):
     def __init__(self, isData):
         self.isData = isData
+        self.isSUSY = None
         self.pset = None
         self.pdfs = None
 
@@ -48,6 +49,12 @@ class PDFUncertiantyProducer(Module):
             print("Cannot import LHAPDF, please setup CMSSW!")
             return False
         return True
+
+    def IsSUSYSignal(self, LHE):
+        for lhe in LHE:
+            if lhe.pdgId > 1000000:
+                return True
+        return False
 
     def GetfromLHAPDF(self, gen):
         if not self.SetupLHAPDF():
@@ -89,17 +96,17 @@ class PDFUncertiantyProducer(Module):
             return True
         PdfWs = self.getattr_safe(event, "LHEPdfWeight")
         nPdfW = self.getattr_safe(event, "nLHEPdfWeight")
+
         if self.isFirstEventOfFile:
+            if self.isSUSY is None:
+                self.isSUSY = self.IsSUSYSignal(Collection(event, "LHEPart"))
             PdfWs = self.getattr_safe(event, "LHEPdfWeight")
             nPdfW = self.getattr_safe(event, "nLHEPdfWeight")
             self.isFirstEventOfFile = False
 
-        if nPdfW == 0 or nPdfW is None:
+        if not self.isSUSY and (nPdfW == 0 or nPdfW is None):
             nPdfW, PdfWs = self.GetfromLHAPDF(Object(event,     "Generator"))
 
-
-        maxW = 0
-        minW = 0
         if nPdfW != 0:
             if isinstance(PdfWs, np.ndarray):
                 lPdfWs = PdfWs
@@ -115,10 +122,11 @@ class PDFUncertiantyProducer(Module):
             mean = (w84+w16)/2
             err = (w84-w16)/2
 
-        ## Setting the boundary to 50% to avoid large weight from
-        ## To be decided, commented out for now
-        # maxW = maxW if maxW < 1.5 else 1.5
-        # minW = minW if minW > 0.5 else 0.5
+        if self.isSUSY:
+            ## The PDF uncertainty is recommended to ignore 
+            ## https://twiki.cern.ch/twiki/bin/view/CMS/SUSYSignalSystematicsRun2#Post_Jamboree_recommendation_abo
+            mean = 1
+            err = 0
 
         ### Store output
         self.out.fillBranch("pdfWeight_Up",   1+err/mean)
