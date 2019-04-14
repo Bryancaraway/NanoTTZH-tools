@@ -7,7 +7,7 @@ from PhysicsTools.NanoAODTools.postprocessing.framework.eventloop import Module
 
 class UpdateMETProducer(Module):
     def __init__(self, metBranchName):
-        self.metBranchName = "MET"
+        self.metBranchName = metBranchName
 
     def beginJob(self):
         pass
