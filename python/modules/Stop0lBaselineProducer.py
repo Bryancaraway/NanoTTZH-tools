@@ -209,8 +209,8 @@ class Stop0lBaselineProducer(Module):
         PassQCD_lowDM   = PassQCDCR and stop0l.nTop == 0 and stop0l.nW == 0 and stop0l.nResolved == 0 and \
                 stop0l.Mtb < 175 and stop0l.ISRJetPt > 200 and stop0l.METSig > 10
 
-        PassLLCR       = PassEventFilter and PassLLLep and PassNjets and PassMET and PassHT and PassdPhiQCD
-        PassLL_highDM  = PassLLCR and stop0l.nJets >= 5 and stop0l.nbtags >= 1
+        PassLLCR       = PassEventFilter and PassLLLep and PassNjets and PassMET and PassHT and PassdPhiLowDM
+        PassLL_highDM  = PassLLCR and stop0l.nJets >= 5 and PassdPhiHighDM and stop0l.nbtags >= 1
         PassLL_lowDM   = PassLLCR and stop0l.nTop == 0 and stop0l.nW == 0 and stop0l.nResolved == 0 and \
                 stop0l.Mtb < 175 and stop0l.ISRJetPt > 200 and stop0l.METSig > 10
         ### Store output
