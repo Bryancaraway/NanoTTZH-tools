@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
+from __future__ import division
 import os
 import re
 import time
@@ -9,12 +10,13 @@ import glob
 import tarfile
 import shutil
 import getpass
+import math
 import argparse
 from collections import defaultdict
 
 DelExe    = '../Stop0l_postproc.py'
 tempdir = '/uscms_data/d3/%s/condor_temp/' % getpass.getuser()
-ShortProjectName = 'ZWTest_PostProcess'
+ShortProjectName = 'PostProcess'
 VersionNumber = '_v2p0'
 argument = "--inputFiles=%s.$(Process).list "
 sendfiles = ["../keep_and_drop.txt"]
@@ -91,6 +93,7 @@ def ConfigList(config):
                 "crossSection":  float(stripped_entry[4]) * float(stripped_entry[7]),
                 "nEvents":  int(stripped_entry[5]) - int(stripped_entry[6]), # using all event weight
                 "sampleName": stripped_entry[0], #process
+                "totEvents__":  int(stripped_entry[5]) + int(stripped_entry[6]), # using all event weight
             })
         if process[stripped_entry[0]]["isfastsim__"]:
             process[stripped_entry[0]].update( {
@@ -107,7 +110,9 @@ def Condor_Sub(condor_file):
     os.chdir(curdir)
 
 
-def SplitPro(key, file, lineperfile=20):
+def SplitPro(key, file, lineperfile=20, eventsplit=2**20, totalEvent=None):
+    # Default to 20 file per job, or 2**20 ~ 1M event per job
+    # At 26Hz processing time in postv2, 1M event runs ~11 hours
     splitedfiles = []
     filelistdir = tempdir + '/' + "FileList"
     try:
@@ -124,12 +129,16 @@ def SplitPro(key, file, lineperfile=20):
     f = open(filename, 'r')
     lines = f.readlines()
 
+    if totalEvent is not None:
+        njobs = math.ceil(totalEvent / eventsplit)
+        lineperfile = int(len(lines) / njobs)
+
     if len(lines) <= lineperfile:
         shutil.copy2(os.path.abspath(filename), "%s/%s.0.list" % (filelistdir, key))
         splitedfiles.append(os.path.abspath("%s/%s.0.list" % (filelistdir, key)))
         return splitedfiles
 
-    fraction = len(lines) / lineperfile
+    fraction = int(len(lines) / lineperfile)
     if len(lines) % lineperfile > 0:
         fraction += 1
 
@@ -181,7 +190,10 @@ def my_process(args):
     #Process = ConfigList(os.path.abspath(args.config), args.era)
     for key, sample in Process.items():
         print("Getting process: " + key + " " + sample['Filepath__'])
-        npro = SplitPro(key, sample['Filepath__'])
+        if "totEvents__" in sample:
+            npro = SplitPro(key, sample['Filepath__'], totalEvent= sample["totEvents__"])
+        else:
+            npro = SplitPro(key, sample['Filepath__'])
         Tarfiles+=npro
         NewNpro[key] = len(npro)
 
