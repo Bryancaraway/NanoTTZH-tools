@@ -37,6 +37,7 @@ class Stop0lBaselineProducer(Module):
     def beginFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
         self.out = wrappedOutputTree
         self.out.branch("Pass_JetID"         + self.suffix, "O")
+        self.out.branch("Pass_CaloMETRatio"  + self.suffix, "O", title="ICHEP16 Filter: pfMET/CaloMET < 5")
         self.out.branch("Pass_EventFilter"   + self.suffix, "O")
         self.out.branch("Pass_ElecVeto"      + self.suffix, "O")
         self.out.branch("Pass_MuonVeto"      + self.suffix, "O")
@@ -57,6 +58,10 @@ class Stop0lBaselineProducer(Module):
         self.out.branch("Pass_LLCR"          + self.suffix, "O")
         self.out.branch("Pass_LLCR_highDM"   + self.suffix, "O")
         self.out.branch("Pass_LLCR_lowDM"    + self.suffix, "O")
+        self.out.branch("Pass_HEMVeto20"     + self.suffix, "O", title="HEM Veto 2018: eta[-3, -1.4], phi[-1.57, -0.87], pt > 20")
+        self.out.branch("Pass_HEMVeto30"     + self.suffix, "O", title="HEM Veto 2018: eta[-3, -1.4], phi[-1.57, -0.87], pt > 30")
+        self.out.branch("Pass_exHEMVeto20"   + self.suffix, "O", title="HEM Veto 2018: eta[-3.2, -1.2], phi[-1.77, -0.67], pt > 20")
+        self.out.branch("Pass_exHEMVeto30"   + self.suffix, "O", title="HEM Veto 2018: eta[-3.2, -1.2], phi[-1.77, -0.67], pt > 30")
 
         # Construct Stop0l map
         lob = wrappedOutputTree._branches.keys()
@@ -143,6 +148,16 @@ class Stop0lBaselineProducer(Module):
         else:
             return all( a > b for a, b in zip(sortedPhi, dPhiCuts))
 
+    def PassHEMVeto(self, jets, etalow, etahigh, philow, phihigh, ptcut):
+        # Calculating HEM veto for 2017 and 2018.
+        # Including 2017 in case we need to use 2017 MC for 2018 Data
+        if self.era == "2016":
+            return True
+        for j in jets:
+            if (j.eta >= etalow and j.eta <= etahigh) and (j.phi >= philow and j.phi <= phihigh) and j.pt > ptcut:
+                return False
+        return True
+
     def analyze(self, event):
         """process event, return True (go to next module) or False (fail, go to next event)"""
         if self.applyUncert == "JESUp":
@@ -171,6 +186,7 @@ class Stop0lBaselineProducer(Module):
             met       = Object(event,     "MET")
             stop0l    = Object(event,     "Stop0l")
 
+        caloMET   = Object(event, "CaloMET")
         flags     = Object(event,     "Flag")
         electrons = Collection(event, "Electron")
         muons     = Collection(event, "Muon")
@@ -178,6 +194,9 @@ class Stop0lBaselineProducer(Module):
 
         ## Baseline Selection
         PassJetID       = self.PassJetID(jets)
+        ## This was an old recommendation in ICHEP16, store this optional bit in case we need it
+        ## https://twiki.cern.ch/twiki/bin/viewauth/CMS/SUSRecommendationsICHEP16 
+        PassCaloMETRatio= (met.pt / caloMET.pt ) < 5
         PassEventFilter = self.PassEventFilter(flags) and PassJetID
 
         countEle, countMu, countIsk = self.calculateNLeptons(electrons, muons, isotracks)
@@ -213,8 +232,14 @@ class Stop0lBaselineProducer(Module):
         PassLL_highDM  = PassLLCR and stop0l.nJets >= 5 and PassdPhiHighDM and stop0l.nbtags >= 1
         PassLL_lowDM   = PassLLCR and stop0l.nTop == 0 and stop0l.nW == 0 and stop0l.nResolved == 0 and \
                 stop0l.Mtb < 175 and stop0l.ISRJetPt > 200 and stop0l.METSig > 10
+
+        PassHEMVeto20   = self.PassHEMVeto(-3, -1.4, -1.57, -0.87, 20)
+        PassHEMVeto30   = self.PassHEMVeto(-3, -1.4, -1.57, -0.87, 30)
+        PassexHEMVeto20 = self.PassHEMVeto(-3.2, -1.2, -1.77, -0.67, 20)
+        PassexHEMVeto30 = self.PassHEMVeto(-3.2, -1.2, -1.77, -0.67, 30)
         ### Store output
         self.out.fillBranch("Pass_JetID"         + self.suffix, PassJetID)
+        self.out.fillBranch("Pass_CaloMETRatio"  + self.suffix, PassCaloMETRatio)
         self.out.fillBranch("Pass_EventFilter"   + self.suffix, PassEventFilter)
         self.out.fillBranch("Pass_ElecVeto"      + self.suffix, PassElecVeto)
         self.out.fillBranch("Pass_MuonVeto"      + self.suffix, PassMuonVeto)
@@ -235,6 +260,10 @@ class Stop0lBaselineProducer(Module):
         self.out.fillBranch("Pass_LLCR"          + self.suffix, PassLLCR)
         self.out.fillBranch("Pass_LLCR_highDM"   + self.suffix, PassLL_highDM)
         self.out.fillBranch("Pass_LLCR_lowDM"    + self.suffix, PassLL_lowDM)
+        self.out.fillBranch("Pass_HEMVeto20"     + self.suffix, PassHEMVeto20)
+        self.out.fillBranch("Pass_HEMVeto30"     + self.suffix, PassHEMVeto30)
+        self.out.fillBranch("Pass_exHEMVeto20"   + self.suffix, PassexHEMVeto20)
+        self.out.fillBranch("Pass_exHEMVeto30"   + self.suffix, PassexHEMVeto30)
         return True
 
 
