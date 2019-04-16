@@ -135,6 +135,7 @@ DeepResovledDiscCut = 0.6
 def main(args):
     isdata = len(args.dataEra) > 0
     isfastsim = args.isFastSim
+    isSUSY = args.sampleName.startswith("SMS_")
 
     if isdata and isfastsim:
         print "ERROR: It is impossible to have a dataset that is both data and fastsim"
@@ -217,7 +218,7 @@ def main(args):
             Stop0lBaselineProducer(args.era, isData=isdata, isFastSim=isfastsim, applyUncert="JESDown"),
             Stop0lBaselineProducer(args.era, isData=isdata, isFastSim=isfastsim, applyUncert="METUnClustUp"),
             Stop0lBaselineProducer(args.era, isData=isdata, isFastSim=isfastsim, applyUncert="METUnClustDown"),
-            PDFUncertiantyProducer(isdata),
+            PDFUncertiantyProducer(isdata, isSUSY),
             lepSFProducer(args.era),
             lepSFProducer(args.era, muonSelectionTag="Medium",
                           electronSelectionTag="Medium",
@@ -229,7 +230,7 @@ def main(args):
             # statusFlag 0x2080 corresponds to "IsLastCopy and isHardProcess"
             GenPartFilter(statusFlags = [0x2100, 0x2080, 0x2000], pdgIds = [0, 0, 22], statuses = [0, 0, 1]),
             # TODO: first implemtation, need double check
-            ISRSFWeightProducer(args.era, "allInOne_ISRWeight.root", args.sampleName), 
+            ISRSFWeightProducer(args.era, isSUSY, "allInOne_ISRWeight.root", args.sampleName), 
             # 2016 and 2017 L1 ECal prefiring reweighting
             PrefCorr(args.era)
             ]

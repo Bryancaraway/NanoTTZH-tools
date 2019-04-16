@@ -7,9 +7,9 @@ from PhysicsTools.NanoAODTools.postprocessing.framework.datamodel import Collect
 from PhysicsTools.NanoAODTools.postprocessing.framework.eventloop import Module
 
 class PDFUncertiantyProducer(Module):
-    def __init__(self, isData):
+    def __init__(self, isData, isSUSY):
         self.isData = isData
-        self.isSUSY = None
+        self.isSUSY = isSUSY
         self.pset = None
         self.pdfs = None
 
@@ -49,12 +49,6 @@ class PDFUncertiantyProducer(Module):
             print("Cannot import LHAPDF, please setup CMSSW!")
             return False
         return True
-
-    def IsSUSYSignal(self, LHE):
-        for lhe in LHE:
-            if lhe.pdgId > 1000000:
-                return True
-        return False
 
     def GetfromLHAPDF(self, gen):
         if not self.SetupLHAPDF():
@@ -98,8 +92,6 @@ class PDFUncertiantyProducer(Module):
         nPdfW = self.getattr_safe(event, "nLHEPdfWeight")
 
         if self.isFirstEventOfFile:
-            if self.isSUSY is None:
-                self.isSUSY = self.IsSUSYSignal(Collection(event, "LHEPart"))
             PdfWs = self.getattr_safe(event, "LHEPdfWeight")
             nPdfW = self.getattr_safe(event, "nLHEPdfWeight")
             self.isFirstEventOfFile = False

@@ -10,8 +10,9 @@ from PhysicsTools.NanoAODTools.postprocessing.tools import deltaPhi, deltaR, clo
 
 class ISRSFWeightProducer(Module):
 
-    def __init__(self, era, isrEffFile, sampleName, fileDirectory = os.environ['CMSSW_BASE'] + "/src/PhysicsTools/NanoSUSYTools/data/isrSF/"):
+    def __init__(self, era, isSUSY, isrEffFile, sampleName, fileDirectory = os.environ['CMSSW_BASE'] + "/src/PhysicsTools/NanoSUSYTools/data/isrSF/"):
         self.era = era
+        self.isSUSY = isSUSY
         self.isrEffFile = isrEffFile
         self.sampleName = sampleName
         self.fileDirectory = fileDirectory
@@ -37,9 +38,13 @@ class ISRSFWeightProducer(Module):
             print "ISRJet efficiency histograms for sample \"%s\" are not found in file \"%s\".  Using TTBar_2016 inclusive numbers as default setting!!!!"%( self.sampleName, self.isrEffFile)
             self.sampleName = "TTbarInc_2016"
             self.h_eff         = fin.Get(("NJetsISR_" + self.sampleName));
+        if  ("TTbar" in self.sampleName and self.era == "2016") or self.isSUSY:
+            self.PropISRWeightUnc()
 
     def PropISRWeightUnc(self):
         err        = (1 - self.Corr2016)/2
+        errup      = self.Corr2016 + err
+        errdown    = self.Corr2016 - err
         heff_Nbins = self.h_eff.GetNbinsX()
         orgtotal   = self.h_eff.Integral(0, heff_Nbins+1)
         orghist    = np.zeros(self.Corr2016.shape)
@@ -48,16 +53,23 @@ class ISRSFWeightProducer(Module):
             nbin = bisect.bisect(self.nISRbins, self.h_eff.GetBinCenter(i))
             orghist[nbin-1] += self.h_eff.GetBinContent(i)
 
-        scale           = orgtotal/ sum(orghist * self.Corr2016)
-        self.ISRcentral = self.Corr2016 * scale
-        self.ISRUp      = (self.Corr2016 + err) * scale
-        self.ISRDown    = (self.Corr2016 - err) * scale
+        # Recommendation: choose D such that sample normalization is
+        # preserved, both for central value and 1sigma
+        # if you get D greater than 1.2-1.3, ikely over-counting ISR jets, maybe a sign that jets are not clean
+        Dcentral = orgtotal/ sum(orghist * self.Corr2016)
+        Dup      = orgtotal/ sum(orghist * errup)
+        Ddown    = orgtotal/ sum(orghist * errdown)
+
+        if Dcentral > 1.2 or Dup > 1.2 or Ddown > 1.2:
+            print("In ISRReweighting, D is greater than 1.2. Likely over-counting ISR jet :", Dcentral, Dup, Ddown)
+        self.ISRcentral = self.Corr2016 * Dcentral
+        self.ISRUp      = errup         * Dup
+        self.ISRDown    = errdown       * Ddown
         
     def endJob(self):
         pass
 
     def beginFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
-        self.isFirstEventOfFile = True
         self.out = wrappedOutputTree
         self.out.branch("ISRWeight",      "F", title="ISRWeight calculated from a Jet and gen daughter matching")
         self.out.branch("ISRWeight_Up",   "F", title="ISR event weight up uncertainty")
@@ -67,23 +79,19 @@ class ISRSFWeightProducer(Module):
     def endFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
         pass
 
-    def IsSUSYSignal(self, LHE):
-        for lhe in LHE:
-            if lhe.pdgId > 1000000:
-                return True
-        return False
+
+    def RecursiveMother(self, genpar, daughter):
+        mother = daughter.genPartIdxMother
+        motherID = abs(mother.pdgId)
+        if motherID == -1:
+            return False
+        if mother_pdgId == 6 or mother_pdgId == 23 or mother_pdgId == 24 or \
+           mother_pdgId == 25 or mother_pdgId >1e6:
+            return True
+        return self.RecursiveMother(genpar, genpar[mother])
 
     def analyze(self, event):
         """process event, return True (go to next module) or False (fail, go to next event)"""
-        if self.isFirstEventOfFile:
-            if self.isSUSY is None:
-                self.isSUSY = self.IsSUSYSignal(Collection(event, "LHEPart"))
-            self.isFirstEventOfFile = False
-
-        # only apply to 2016 TTbar and SUSY signal
-        if ("TTBar" in self.sampleName and self.era == "2016") or self.isSUSY:
-            self.PropISRWeightUnc()
-
         #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Code for ISR jet cal from Scarlet ~~~~~
         # Looks like room for speed up
         jets = Collection(event, "Jet")
