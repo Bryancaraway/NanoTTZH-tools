@@ -16,7 +16,6 @@ class ISRSFWeightProducer(Module):
         self.isrEffFile = isrEffFile
         self.sampleName = sampleName
         self.fileDirectory = fileDirectory
-        self.isSUSY = None
         # ISR Recommendation: https://hypernews.cern.ch/HyperNews/CMS/get/susy/2524.html
         # Use 2016 (Moriond17 value) for Run 2 from 
         # https://indico.cern.ch/event/592621/contributions/2398559/attachments/1383909/2105089/16-12-05_ana_manuelf_isr.pdf
@@ -80,6 +79,46 @@ class ISRSFWeightProducer(Module):
         pass
 
 
+    def GetBabySigMuonList(self, muons):
+        ''' original code use lepton cleaning. 
+        http://github.com/manuelfs/babymaker/blob/0136340602ee28caab14e3f6b064d1db81544a0a/bmaker/plugins/bmaker_full.cc#L395
+        The signal Muon was used: https://github.com/manuelfs/babymaker/blob/0136340602ee28caab14e3f6b064d1db81544a0a/bmaker/src/lepton_tools.cc#L34-L43
+        Muon cuts are defined here : https://github.com/manuelfs/babymaker/blob/0136340602ee28caab14e3f6b064d1db81544a0a/bmaker/interface/lepton_tools.hh#L25-L30
+        ''' 
+        muonidx = []
+        for m in muons:
+            if m.mediumId and m.pt > 20 and fabs(m.eta) <= 2.4 and mu.miniPFRelIso_all <= 0.2:
+                muonidx.append(m.jetIdx)
+        return np.asarray(muonidx)
+    
+    def GetBabySigEleList(self, electrons):
+        ''' original code use lepton cleaning. 
+        http://github.com/manuelfs/babymaker/blob/0136340602ee28caab14e3f6b064d1db81544a0a/bmaker/plugins/bmaker_full.cc#L395
+        The signal Electron was used: https://github.com/manuelfs/babymaker/blob/0136340602ee28caab14e3f6b064d1db81544a0a/bmaker/src/lepton_tools.cc#L34-L43
+        Electron cuts are defined here : https://github.com/manuelfs/babymaker/blob/0136340602ee28caab14e3f6b064d1db81544a0a/bmaker/src/lepton_tools.cc#L105-L115
+        ''' 
+        eleidx = []
+        for e in enumerate(electrons):
+            # Medium ID
+            if e.cutBasedNoIso == 3 and e.pt > 20 and fabs(e.eta) <= 2.5 and e.miniPFRelIso_all <= 0.1:
+                eleidx.append(e.jetIdx)
+        return np.asarray(eleidx)
+
+    def GetBabyJetList(self, jets, muons, electrons):
+        muonidx = self.GetBabySigMuonList(muons)
+        eleidx  = self.GetBabySigEleList(electrons)
+
+        # Jets cuts
+        # https://github.com/manuelfs/babymaker/blob/0136340602ee28caab14e3f6b064d1db81544a0a/bmaker/plugins/bmaker_full.cc#L395
+        jetidx = []
+        for i, j in enumerate(jets):
+            # https://github.com/manuelfs/babymaker/blob/0136340602ee28caab14e3f6b064d1db81544a0a/bmaker/interface/jet_met_tools.hh#L34-L36
+            if j.pt > 30 and fabs(j.eta) <= 2.4 :
+                jetidx.append(i)
+        lepcleaned = np.setdiff1d(np.asarray(jetidx), eleidx, assume_unique=True)
+        lepcleaned = np.setdiff1d(lepcleaned, muonidx, assume_unique=True)
+        return lepcleaned
+
     def RecursiveMother(self, genpar, daughter):
         mother = daughter.genPartIdxMother
         motherID = abs(mother.pdgId)
@@ -96,24 +135,21 @@ class ISRSFWeightProducer(Module):
         # Looks like room for speed up
         jets = Collection(event, "Jet")
         genParts = Collection(event, "GenPart")
+        electrons = Collection(event, "Electron")
+        muon = Collection(event, "Muon")
 
-        mother =-1
-        daughter = [[] for x in range(0,len(genParts))]
-        for iGenPart, genPart in enumerate(genParts):
-            mother = genPart.genPartIdxMother
-            if mother == -1: continue
-            daughter[mother].append(iGenPart)
- 
+        # Follow babymaker code to produce nisr in the event, following the ICHEP recommendation
+        # https://github.com/manuelfs/babymaker/blob/0136340602ee28caab14e3f6b064d1db81544a0a/bmaker/plugins/bmaker_full.cc#L1268-L1295
+        jetidx = self.GetBabyJetList(jets, muons, electrons)
         nisr = 0
-        for jet in jets:
+        for j in jetidx:
+            jet = jets[j]
             matched = False 
-            for iGenPart, genPart in enumerate(genParts):
-                if matched: break
-                if genPart.statusFlags != 23 or abs(genPart.pdgId) > 5: continue
-                momid = abs(genParts[genPart.genPartIdxMother].pdgId)
-                if not (momid == 6 or momid == 23 or momid == 24 or momid == 25 or momid >1e6): continue
-                for dau in daughter[iGenPart]:
-                    dR = deltaR(jet,genParts[dau])
+            for genPart in genParts:
+                if genPart.statusFlags != 23 or abs(genPart.pdgId) > 5: 
+                    continue
+                if self.RecursiveMother(genPart):
+                    dR = deltaR(jet,genPart)
                     if dR<0.3:
                         matched = True
                         break
