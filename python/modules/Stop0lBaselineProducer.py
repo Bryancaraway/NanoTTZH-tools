@@ -233,10 +233,10 @@ class Stop0lBaselineProducer(Module):
         PassLL_lowDM   = PassLLCR and stop0l.nTop == 0 and stop0l.nW == 0 and stop0l.nResolved == 0 and \
                 stop0l.Mtb < 175 and stop0l.ISRJetPt > 200 and stop0l.METSig > 10
 
-        PassHEMVeto20   = self.PassHEMVeto(-3, -1.4, -1.57, -0.87, 20)
-        PassHEMVeto30   = self.PassHEMVeto(-3, -1.4, -1.57, -0.87, 30)
-        PassexHEMVeto20 = self.PassHEMVeto(-3.2, -1.2, -1.77, -0.67, 20)
-        PassexHEMVeto30 = self.PassHEMVeto(-3.2, -1.2, -1.77, -0.67, 30)
+        PassHEMVeto20   = self.PassHEMVeto(jets, -3, -1.4, -1.57, -0.87, 20)
+        PassHEMVeto30   = self.PassHEMVeto(jets, -3, -1.4, -1.57, -0.87, 30)
+        PassexHEMVeto20 = self.PassHEMVeto(jets, -3.2, -1.2, -1.77, -0.67, 20)
+        PassexHEMVeto30 = self.PassHEMVeto(jets, -3.2, -1.2, -1.77, -0.67, 30)
         ### Store output
         self.out.fillBranch("Pass_JetID"         + self.suffix, PassJetID)
         self.out.fillBranch("Pass_CaloMETRatio"  + self.suffix, PassCaloMETRatio)

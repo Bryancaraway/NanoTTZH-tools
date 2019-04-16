@@ -87,7 +87,7 @@ class ISRSFWeightProducer(Module):
         ''' 
         muonidx = []
         for m in muons:
-            if m.mediumId and m.pt > 20 and fabs(m.eta) <= 2.4 and mu.miniPFRelIso_all <= 0.2:
+            if m.mediumId and m.pt > 20 and abs(m.eta) <= 2.4 and m.miniPFRelIso_all <= 0.2:
                 muonidx.append(m.jetIdx)
         return np.asarray(muonidx)
     
@@ -98,9 +98,9 @@ class ISRSFWeightProducer(Module):
         Electron cuts are defined here : https://github.com/manuelfs/babymaker/blob/0136340602ee28caab14e3f6b064d1db81544a0a/bmaker/src/lepton_tools.cc#L105-L115
         ''' 
         eleidx = []
-        for e in enumerate(electrons):
+        for e in electrons:
             # Medium ID
-            if e.cutBasedNoIso == 3 and e.pt > 20 and fabs(e.eta) <= 2.5 and e.miniPFRelIso_all <= 0.1:
+            if e.cutBasedNoIso == 3 and e.pt > 20 and abs(e.eta) <= 2.5 and e.miniPFRelIso_all <= 0.1:
                 eleidx.append(e.jetIdx)
         return np.asarray(eleidx)
 
@@ -113,7 +113,7 @@ class ISRSFWeightProducer(Module):
         jetidx = []
         for i, j in enumerate(jets):
             # https://github.com/manuelfs/babymaker/blob/0136340602ee28caab14e3f6b064d1db81544a0a/bmaker/interface/jet_met_tools.hh#L34-L36
-            if j.pt > 30 and fabs(j.eta) <= 2.4 :
+            if j.pt > 30 and abs(j.eta) <= 2.4 :
                 jetidx.append(i)
         lepcleaned = np.setdiff1d(np.asarray(jetidx), eleidx, assume_unique=True)
         lepcleaned = np.setdiff1d(lepcleaned, muonidx, assume_unique=True)
@@ -133,10 +133,10 @@ class ISRSFWeightProducer(Module):
         """process event, return True (go to next module) or False (fail, go to next event)"""
         #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Code for ISR jet cal from Scarlet ~~~~~
         # Looks like room for speed up
-        jets = Collection(event, "Jet")
-        genParts = Collection(event, "GenPart")
+        jets      = Collection(event, "Jet")
+        genParts  = Collection(event, "GenPart")
         electrons = Collection(event, "Electron")
-        muon = Collection(event, "Muon")
+        muons     = Collection(event, "Muon")
 
         # Follow babymaker code to produce nisr in the event, following the ICHEP recommendation
         # https://github.com/manuelfs/babymaker/blob/0136340602ee28caab14e3f6b064d1db81544a0a/bmaker/plugins/bmaker_full.cc#L1268-L1295
