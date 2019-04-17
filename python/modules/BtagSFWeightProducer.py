@@ -77,7 +77,7 @@ class BtagSFWeightProducer(Module):
             if flavor == 5:
                 pt_bin = self.h_eff_b.GetXaxis().FindBin(pt); 
                 if pt_bin > self.h_eff_b.GetXaxis().GetNbins():
-                    pt_bin = h_eff_b.GetXaxis().GetNbins(); 
+                    pt_bin = self.h_eff_b.GetXaxis().GetNbins(); 
                 eta_bin = self.h_eff_b.GetYaxis().FindBin(eta); 
                 if eta_bin > self.h_eff_b.GetYaxis().GetNbins():
                     eta_bin = self.h_eff_b.GetYaxis().GetNbins();
@@ -87,7 +87,7 @@ class BtagSFWeightProducer(Module):
             elif flavor == 4:
                 pt_bin = self.h_eff_c.GetXaxis().FindBin(pt); 
                 if pt_bin > self.h_eff_c.GetXaxis().GetNbins():
-                    pt_bin = h_eff_c.GetXaxis().GetNbins(); 
+                    pt_bin = self.h_eff_c.GetXaxis().GetNbins(); 
                 eta_bin = self.h_eff_c.GetYaxis().FindBin(eta); 
                 if eta_bin > self.h_eff_c.GetYaxis().GetNbins():
                     eta_bin = self.h_eff_c.GetYaxis().GetNbins();
@@ -97,7 +97,7 @@ class BtagSFWeightProducer(Module):
             else:
                 pt_bin = self.h_eff_udsg.GetXaxis().FindBin(pt); 
                 if pt_bin > self.h_eff_udsg.GetXaxis().GetNbins():
-                    pt_bin = h_eff_udsg.GetXaxis().GetNbins(); 
+                    pt_bin = self.h_eff_udsg.GetXaxis().GetNbins(); 
                 eta_bin = self.h_eff_udsg.GetYaxis().FindBin(eta); 
                 if eta_bin > self.h_eff_udsg.GetYaxis().GetNbins():
                     eta_bin = self.h_eff_udsg.GetYaxis().GetNbins();

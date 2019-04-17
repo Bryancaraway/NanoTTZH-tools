@@ -35,7 +35,10 @@ class PDFUncertiantyProducer(Module):
             return True
         # Get LHAPDF from CMSSW
         import os
+        cwd = os.getcwd()
+        os.chdir(os.environ['CMSSW_BASE'] )
         c= os.popen("scram tool info LHAPDF" ).read()
+        os.chdir(cwd)
         path = None
         for l in c.split("\n"):
             if "LIBDIR" in l:
@@ -90,6 +93,8 @@ class PDFUncertiantyProducer(Module):
             return True
         PdfWs = self.getattr_safe(event, "LHEPdfWeight")
         nPdfW = self.getattr_safe(event, "nLHEPdfWeight")
+        mean  = 1
+        err   = 0
 
         if self.isFirstEventOfFile:
             PdfWs = self.getattr_safe(event, "LHEPdfWeight")
@@ -104,15 +109,19 @@ class PDFUncertiantyProducer(Module):
                 lPdfWs = PdfWs
             else:
                 lPdfWs = np.asarray([ PdfWs[i] for i in range(nPdfW)])
-            ## Following the PDF uncertainties for MC sets recommendation from
-            ## Sec 6.2 from PDF4LHC (https://arxiv.org/pdf/1510.03865.pdf)
-            ## Use Mean value and standard deviation method for Gassian 
-            ## Or 16th and 84th elements for non-Gassian distribution
-            newpdf = np.sort(lPdfWs[1:])
-            w84 = newpdf[84]
-            w16 = newpdf[16]
-            mean = (w84+w16)/2
-            err = (w84-w16)/2
+            if nPdfW == 101: #NNPDF
+                ## Following the PDF uncertainties for MC sets recommendation from
+                ## Sec 6.2 from PDF4LHC (https://arxiv.org/pdf/1510.03865.pdf)
+                ## Use Mean value and standard deviation method for Gassian 
+                ## Or 16th and 84th elements for non-Gassian distribution
+                newpdf = np.sort(lPdfWs[1:])
+                w84 = newpdf[84]
+                w16 = newpdf[16]
+                mean = (w84+w16)/2
+                err = (w84-w16)/2
+            else:
+                mean = np.mean(lPdfWs[1:])
+                err  = np.std(lPdfWs[1:])
 
         if self.isSUSY:
             ## The PDF uncertainty is recommended to ignore 
