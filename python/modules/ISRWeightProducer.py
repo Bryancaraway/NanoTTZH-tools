@@ -100,7 +100,7 @@ class ISRSFWeightProducer(Module):
         eleidx = []
         for e in electrons:
             # Medium ID
-            if e.cutBasedNoIso == 3 and e.pt > 20 and abs(e.eta) <= 2.5 and e.miniPFRelIso_all <= 0.1:
+            if e.cutBasedNoIso >= 3 and e.pt > 20 and abs(e.eta) <= 2.5 and e.miniPFRelIso_all <= 0.1:
                 eleidx.append(e.jetIdx)
         return np.asarray(eleidx)
 
