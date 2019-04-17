@@ -27,6 +27,7 @@ from PhysicsTools.NanoSUSYTools.modules.UpdateMETProducer import UpdateMETProduc
 from PhysicsTools.NanoSUSYTools.modules.FastsimVarProducer import FastsimVarProducer
 from PhysicsTools.NanoSUSYTools.modules.PrefireCorr import PrefCorr
 from PhysicsTools.NanoSUSYTools.modules.ISRWeightProducer import ISRSFWeightProducer
+from PhysicsTools.NanoSUSYTools.modules.Stop0l_trigger import Stop0l_trigger
 
 # JEC files are those recomended here (as of Mar 1, 2019)
 # https://twiki.cern.ch/twiki/bin/view/CMS/JECDataMC#Recommended_for_MC
@@ -189,6 +190,7 @@ def main(args):
                                cfgWD=os.environ["CMSSW_BASE"] + "/src/PhysicsTools/NanoSUSYTools/python/processors"),
              DeepTopProducer(args.era),
              Stop0lBaselineProducer(args.era, isData=isdata, isFastSim=isfastsim),
+             Stop0l_trigger(args.era),
              UpdateEvtWeight(isdata, args.crossSection, args.nEvents, args.sampleName)
             ]
 

@@ -9,18 +9,19 @@ from PhysicsTools.NanoAODTools.postprocessing.framework.eventloop import Module
 
 class Stop0l_trigger(Module):
     def __init__(self, era):
-	self.maxEvents = -1
-	self.nEvents = 0
+        self.maxEvents = -1
+        self.nEvents = 0
         self.era = era
         eff_file = "%s/src/PhysicsTools/NanoSUSYTools/data/trigger_eff/" % os.environ['CMSSW_BASE']
         eff_file = eff_file + self.era + "_trigger_eff.root"
-	print "the efficiency file you are using is ", eff_file
         self.tf = ROOT.TFile.Open(eff_file)
 
         ## Keep the TGraph in memory
-	histo_name_list = ["MET_loose_baseline", "MET_high_dm", "MET_low_dm", "MET_high_dm_QCD", "MET_low_dm_QCD", "Electron_pt", "Electron_eta", "Muon_pt", "Muon_eta", "Photon_pt", "Photon_eta", "Zmumu_pt", "Zee_pt"]
+        histo_name_list = ["MET_loose_baseline", "MET_high_dm", "MET_low_dm", "MET_high_dm_QCD", 
+                           "MET_low_dm_QCD", "Electron_pt", "Electron_eta", "Muon_pt", "Muon_eta", 
+                           "Photon_pt", "Photon_eta", "Zmumu_pt", "Zee_pt"]
         self.effs = { }
-	for histo_name in histo_name_list:
+        for histo_name in histo_name_list:
             self.effs[histo_name] = self.tf.Get(histo_name)
 
     def beginJob(self):
@@ -90,7 +91,7 @@ class Stop0l_trigger(Module):
     def get_efficiency(self, trigger_name, kinematic):
         if trigger_name not in self.effs:
             #self.effs[trigger_name] = self.tf.Get(trigger_name)
-	    print trigger_name, " not found. Talk to Hui"
+            print trigger_name, " not found. Talk to Hui"
             return 0, 0, 0
 
         eff = self.effs[trigger_name]  
@@ -117,14 +118,14 @@ class Stop0l_trigger(Module):
     def analyze(self, event):
         """process event, return True (go to next module) or False (fail, go to next event)"""
     	self.nEvents += 1
-	if (self.maxEvents != -1 and self.nEvents > self.maxEvents):
-	    return False
+        if (self.maxEvents != -1 and self.nEvents > self.maxEvents):
+            return False
 
         hlt       = Object(event, "HLT")
         met       = Object(event, "MET")
-	electrons = Collection(event, "Electron")
-	muons	  = Collection(event, "Muon")
-	photons   = Collection(event, "Photon")
+        electrons = Collection(event, "Electron")
+        muons	  = Collection(event, "Muon")
+        photons   = Collection(event, "Photon")
 
         Pass_trigger_MET = (
             self.mygetattr(hlt, 'PFMET100_PFMHT100_IDTight', False)
@@ -239,11 +240,6 @@ class Stop0l_trigger(Module):
 		if (self.SelPhotons(photon)):
 			photon_loose.append(photon)
 	n_photon = len(photon_loose)
-
-	if(self.nEvents==1):
-		print "MET 6 eff = ", self.get_efficiency("MET_loose_baseline", 6)
-		print "MET 600 eff = ", self.get_efficiency("MET_loose_baseline", 600)
-		print "MET 60000 eff = ", self.get_efficiency("MET_loose_baseline", 6000)
 
 	MET_trigger_eff_loose_baseline = MET_trigger_eff_loose_baseline_down = MET_trigger_eff_loose_baseline_up = 0
 	MET_trigger_eff_high_dm = MET_trigger_eff_high_dm_down = MET_trigger_eff_high_dm_up = 0

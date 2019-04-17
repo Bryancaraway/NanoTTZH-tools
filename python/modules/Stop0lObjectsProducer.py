@@ -58,11 +58,11 @@ class Stop0lObjectsProducer(Module):
             self.out.branch("Stop0l_nSoftb" + self.suffix,   "I")
         
         if self.applyUncert == None or "JES" in self.applyUncert or "METUnClust" in self.applyUncert:
-            self.out.branch("Electron_MtW"    + self.suffix, "F", lenVar="nElectron")
-            self.out.branch("Muon_MtW"        + self.suffix, "F", lenVar="nMuon")
-            self.out.branch("IsoTrack_MtW"    + self.suffix, "F", lenVar="nIsoTrack")
+            self.out.branch("Electron_MtW"    + self.suffix, "F", lenVar="nElectron", limitedPrecision=12)
+            self.out.branch("Muon_MtW"        + self.suffix, "F", lenVar="nMuon",     limitedPrecision=12)
+            self.out.branch("IsoTrack_MtW"    + self.suffix, "F", lenVar="nIsoTrack", limitedPrecision=12)
+            self.out.branch("Jet_dPhiMET"     + self.suffix, "F", lenVar="nJet"     , limitedPrecision=12)
             self.out.branch("IsoTrack_Stop0l" + self.suffix, "O", lenVar="nIsoTrack")
-            self.out.branch("Jet_dPhiMET"     + self.suffix, "F", lenVar="nJet")
             self.out.branch("Stop0l_Mtb"      + self.suffix, "F")
             self.out.branch("Stop0l_METSig"   + self.suffix, "F")
 
