@@ -196,7 +196,7 @@ class Stop0lBaselineProducer(Module):
         PassJetID       = self.PassJetID(jets)
         ## This was an old recommendation in ICHEP16, store this optional bit in case we need it
         ## https://twiki.cern.ch/twiki/bin/viewauth/CMS/SUSRecommendationsICHEP16 
-        PassCaloMETRatio= (met.pt / caloMET.pt ) < 5
+        PassCaloMETRatio= (met.pt / caloMET.pt ) < 5 if caloMET.pt > 0 else True
         PassEventFilter = self.PassEventFilter(flags) and PassJetID
 
         countEle, countMu, countIsk = self.calculateNLeptons(electrons, muons, isotracks)

@@ -79,7 +79,7 @@ def ConfigList(config):
             #"Outpath__" : "%s" % (stripped_entry[1]) + "/" + ShortProjectName + VersionNumber + "/" + stripped_entry[0]+"/", #old
             "Outpath__" : "%s" % (replaced_outdir) + VersionNumber + "/" + stripped_entry[0] + "/", #new
             "isData__" : "Data" in stripped_entry[0],
-            "isfastsim__" : "fastsim" in stripped_entry[0], #isFastSim is a toggle in Stop0l_postproc.py, so it should be sent with no value.
+            "isFastSim" : "fastsim" in stripped_entry[0], #isFastSim is a toggle in Stop0l_postproc.py, so it should be sent with no value.
             "era" : temp_era,
         }
         if process[stripped_entry[0]]["isData__"]:
@@ -94,10 +94,6 @@ def ConfigList(config):
                 "nEvents":  int(stripped_entry[5]) - int(stripped_entry[6]), # using all event weight
                 "sampleName": stripped_entry[0], #process
                 "totEvents__":  int(stripped_entry[5]) + int(stripped_entry[6]), # using all event weight
-            })
-        if process[stripped_entry[0]]["isfastsim__"]:
-            process[stripped_entry[0]].update( {
-                "isFastSim": "",
             })
 
     return process
@@ -226,8 +222,11 @@ def my_process(args):
         #First argument is output file name. Rest are to be passed to Stop0l_postproc.py.
         arg = "\nArguments = {common_name}_$(Process).root --inputfile={common_name}.$(Process).list ".format(common_name=name)
         for k, v in sample.items():
-            if "__" not in k and v is not False:
-                arg+=" --%s=%s" % (k, v)
+            if "__" not in k:
+                if v is True:
+                    arg+=" --%s" % k
+                else:
+                    arg+=" --%s=%s" % (k, v)
         arg += "\nQueue {number} \n".format(number = NewNpro[name])
 
         ## Prepare the condor file

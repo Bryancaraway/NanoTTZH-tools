@@ -104,7 +104,7 @@ class PDFUncertiantyProducer(Module):
         if not self.isSUSY and (nPdfW == 0 or nPdfW is None):
             nPdfW, PdfWs = self.GetfromLHAPDF(Object(event,     "Generator"))
 
-        if nPdfW != 0:
+        if nPdfW is not None and nPdfW != 0:
             if isinstance(PdfWs, np.ndarray):
                 lPdfWs = PdfWs
             else:
