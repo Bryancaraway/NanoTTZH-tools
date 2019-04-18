@@ -233,8 +233,6 @@ def main(args):
             GenPartFilter(statusFlags = [0x2100, 0x2080, 0x2000], pdgIds = [0, 0, 22], statuses = [0, 0, 1]),
             # TODO: first implemtation, need double check
             ISRSFWeightProducer(args.era, isSUSY, "allInOne_ISRWeight.root", args.sampleName), 
-            # 2016 and 2017 L1 ECal prefiring reweighting
-            PrefCorr(args.era)
             ]
         # Special PU reweighting for 2017 separately
         if args.era == "2017":
@@ -244,7 +242,10 @@ def main(args):
                 puWeightProducer(pufile_mc, pufile_dataBtoE, args.sampleName,"pileup", name="17BtoEpuWeight"),
                 puWeightProducer(pufile_mc, pufile_dataF, args.sampleName,"pileup", name="17FpuWeight")
             ]
-        
+        # 2016 and 2017 L1 ECal prefiring reweighting
+        if args.era == "2016" or args.era == "2017":
+            mods.append(PrefCorr(args.era))
+
     #============================================================================#
     #-------------------------     Run PostProcessor     ------------------------#
     #============================================================================#
