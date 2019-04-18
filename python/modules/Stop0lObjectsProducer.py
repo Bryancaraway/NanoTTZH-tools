@@ -116,9 +116,9 @@ class Stop0lObjectsProducer(Module):
 
     def SelBtagJets(self, jet):
         global DeepCSVMediumWP
-        if jet.btagDeepB < DeepCSVMediumWP[self.era]:
-            return False
-        return True
+        if jet.btagDeepB >= DeepCSVMediumWP[self.era]:
+            return True
+        return False
 
     def SelSoftb(self, isv):
         ## Select soft bs
