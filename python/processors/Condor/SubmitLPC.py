@@ -222,11 +222,13 @@ def my_process(args):
         #First argument is output file name. Rest are to be passed to Stop0l_postproc.py.
         arg = "\nArguments = {common_name}_$(Process).root --inputfile={common_name}.$(Process).list ".format(common_name=name)
         for k, v in sample.items():
-            if "__" not in k:
+            if "__" in k:
+                continue
+            if k == "isFastSim":
                 if v is True:
                     arg+=" --%s" % k
-                else:
-                    arg+=" --%s=%s" % (k, v)
+            else:
+                arg+=" --%s=%s" % (k, v)
         arg += "\nQueue {number} \n".format(number = NewNpro[name])
 
         ## Prepare the condor file
