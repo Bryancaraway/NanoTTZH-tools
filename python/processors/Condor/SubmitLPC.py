@@ -17,7 +17,7 @@ from collections import defaultdict
 DelExe    = '../Stop0l_postproc.py'
 tempdir = '/uscms_data/d3/%s/condor_temp/' % getpass.getuser()
 ShortProjectName = 'PostProcess'
-VersionNumber = '_v2p7'
+VersionNumber = '_v2p6'
 argument = "--inputFiles=%s.$(Process).list "
 sendfiles = ["../keep_and_drop.txt"]
 
@@ -243,7 +243,7 @@ def my_process(args):
                 line = line.replace("ARGUMENTS", arg)
                 outfile.write(line)
 
-        # Condor_Sub(condorfile)
+        Condor_Sub(condorfile)
 
 def GetProcess(key, value):
     if len(value) == 1:
