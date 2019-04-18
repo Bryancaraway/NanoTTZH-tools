@@ -12,14 +12,16 @@ import shutil
 import getpass
 import math
 import argparse
+import uproot
 from collections import defaultdict
 
 DelExe    = '../Stop0l_postproc.py'
 tempdir = '/uscms_data/d3/%s/condor_temp/' % getpass.getuser()
 ShortProjectName = 'PostProcess'
-VersionNumber = '_v2p6'
+VersionNumber = '_v2p8'
 argument = "--inputFiles=%s.$(Process).list "
 sendfiles = ["../keep_and_drop.txt"]
+TTreeName = "Events"
 
 def tar_cmssw():
     print("Tarring up CMSSW, ignoring file larger than 100MB")
@@ -106,7 +108,7 @@ def Condor_Sub(condor_file):
     os.chdir(curdir)
 
 
-def SplitPro(key, file, lineperfile=20, eventsplit=2**20, totalEvent=None):
+def SplitPro(key, file, lineperfile=20, eventsplit=2**20, TreeName=None):
     # Default to 20 file per job, or 2**20 ~ 1M event per job
     # At 26Hz processing time in postv2, 1M event runs ~11 hours
     splitedfiles = []
@@ -122,32 +124,27 @@ def SplitPro(key, file, lineperfile=20, eventsplit=2**20, totalEvent=None):
     else:
         filename = os.path.abspath(file)
 
-    f = open(filename, 'r')
-    lines = f.readlines()
-
-    if totalEvent is not None:
-        njobs = math.ceil(totalEvent / eventsplit)
-        lineperfile = int(len(lines) / njobs)
-
-    if len(lines) <= lineperfile:
-        shutil.copy2(os.path.abspath(filename), "%s/%s.0.list" % (filelistdir, key))
-        splitedfiles.append(os.path.abspath("%s/%s.0.list" % (filelistdir, key)))
+    filecnt = 0
+    eventcnt  = 0
+    filemap = defaultdict(list)
+    if TreeName is None:
+        print("Need Tree name to get number of entries")
         return splitedfiles
 
-    fraction = int(len(lines) / lineperfile)
-    if len(lines) % lineperfile > 0:
-        fraction += 1
+    f = open(filename, 'r')
+    for l_ in f.readlines():
+        l = l_.strip()
+        n = uproot.numentries(l, TreeName)
+        eventcnt += n
+        if eventcnt > eventsplit:
+            filecnt += 1
+            eventcnt = n
+        filemap[filecnt].append(l)
 
-    for i in range(0, fraction):
-        wlines = []
-        if i == fraction - 1 :
-            wlines = lines[lineperfile*i :]
-        else:
-            wlines = lines[lineperfile*i : lineperfile*(i+1)]
-        if len(wlines) > 0:
-            outf = open("%s/%s.%d.list" % (filelistdir, key, i), 'w')
-            outf.writelines(wlines)
-            splitedfiles.append(os.path.abspath("%s/%s.%d.list" % (filelistdir, key, i)))
+    for k,v in filemap.items():
+        outf = open("%s/%s.%d.list" % (filelistdir, key, k), 'w')
+        outf.write("\n".join(v))
+        splitedfiles.append(os.path.abspath("%s/%s.%d.list" % (filelistdir, key, k)))
         outf.close()
 
     return splitedfiles
@@ -186,11 +183,8 @@ def my_process(args):
     #Process = ConfigList(os.path.abspath(args.config), args.era)
     for key, sample in Process.items():
         print("Getting process: " + key + " " + sample['Filepath__'])
-        if "totEvents__" in sample:
-            npro = SplitPro(key, sample['Filepath__'], totalEvent= sample["totEvents__"])
-        else:
-            npro = SplitPro(key, sample['Filepath__'])
-        Tarfiles+=npro
+        npro = SplitPro(key, sample['Filepath__'], TreeName=TTreeName)
+        Tarfiles+= npro
         NewNpro[key] = len(npro)
 
     Tarfiles.append(os.path.abspath(DelExe))
@@ -244,12 +238,6 @@ def my_process(args):
                 outfile.write(line)
 
         Condor_Sub(condorfile)
-
-def GetProcess(key, value):
-    if len(value) == 1:
-        return SplitPro(key, value[0], 1)
-    else :
-        return SplitPro(key, value[0], value[1])
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='NanoAOD postprocessing.')
