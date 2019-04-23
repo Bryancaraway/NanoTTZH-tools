@@ -151,8 +151,12 @@ class DeepTopProducer(Module):
            leadingjet.btagDeepB > DeepCSVMediumWP[self.era]:
             return -1
 
-        if subjets[leadingjet.subJetIdx1].btagDeepB  > DeepCSVMediumWP[self.era] or \
-           subjets[leadingjet.subJetIdx2].btagDeepB > DeepCSVMediumWP[self.era]:
+        if leadingjet.subJetIdx1 >= 0 and leadingjet.subJetIdx1 < len(subjets) and \
+           subjets[leadingjet.subJetIdx1].btagDeepB >= DeepCSVMediumWP[self.era]:
+            return -1
+
+        if leadingjet.subJetIdx2 >= 0 and leadingjet.subJetIdx2 < len(subjets) and \
+           subjets[leadingjet.subJetIdx2].btagDeepB >= DeepCSVMediumWP[self.era]:
             return -1
 
         if math.fabs(ROOT.TVector2.Phi_mpi_pi( leadingjet.phi - met_phi )) < 2:
