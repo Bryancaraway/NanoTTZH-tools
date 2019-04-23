@@ -14,14 +14,16 @@ import math
 import argparse
 import uproot
 from collections import defaultdict
+from multiprocessing import Pool
 
 DelExe    = '../Stop0l_postproc.py'
-tempdir = '/uscms_data/d3/%s/condor_temp/' % getpass.getuser()
+tempdir = '/uscms_data/d3/%s/condor_temp2/' % getpass.getuser()
 ShortProjectName = 'PostProcess'
 VersionNumber = '_v2p7'
 argument = "--inputFiles=%s.$(Process).list "
 sendfiles = ["../keep_and_drop.txt"]
 TTreeName = "Events"
+NProcess = 10
 
 def tar_cmssw():
     print("Tarring up CMSSW, ignoring file larger than 100MB")
@@ -107,8 +109,11 @@ def Condor_Sub(condor_file):
     os.system("condor_submit " + condor_file)
     os.chdir(curdir)
 
+def GetNEvent(file):
+    return (file, uproot.numentries(file, TTreeName))
 
 def SplitPro(key, file, lineperfile=20, eventsplit=2**20, TreeName=None):
+    pool = Pool(processes=NProcess) 
     # Default to 20 file per job, or 2**20 ~ 1M event per job
     # At 26Hz processing time in postv2, 1M event runs ~11 hours
     splitedfiles = []
@@ -132,9 +137,11 @@ def SplitPro(key, file, lineperfile=20, eventsplit=2**20, TreeName=None):
         return splitedfiles
 
     f = open(filename, 'r')
-    for l_ in f.readlines():
-        l = l_.strip()
-        n = uproot.numentries(l, TreeName)
+    filelist = [l.strip() for l in f.readlines()]
+    r = pool.map(GetNEvent, filelist)
+    filedict = dict(r)
+    for l in filelist:
+        n = filedict[l]
         eventcnt += n
         if eventcnt > eventsplit:
             filecnt += 1
@@ -162,17 +169,6 @@ def my_process(args):
         os.makedirs(tempdir)
     except OSError:
         pass
-
-    ## Create the output directory
-    #outdir = OutDir +  "/" + ProjectName + "/"
-    #try:
-    #    os.makedirs("/eos/uscms/%s" % outdir)
-    #except OSError:
-    #    pass
-
-    #To have each job copy to a directory based on the input file, looks like I'd need to have a copy of RunExe.csh for name, sample in Process.items() as well.
-    #Needs to be inside the same name, sample for loop for the condor file so the condor file gets the correct EXECUTABLE name.
-
 
     ### Create Tarball
     Tarfiles = []
