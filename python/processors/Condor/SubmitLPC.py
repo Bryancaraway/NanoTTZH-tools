@@ -17,7 +17,7 @@ from collections import defaultdict
 from multiprocessing import Pool
 
 DelExe    = '../Stop0l_postproc.py'
-tempdir = '/uscms_data/d3/%s/condor_temp2/' % getpass.getuser()
+tempdir = '/uscms_data/d3/%s/condor_temp/' % getpass.getuser()
 ShortProjectName = 'PostProcess'
 VersionNumber = '_v2p7'
 argument = "--inputFiles=%s.$(Process).list "
@@ -113,7 +113,6 @@ def GetNEvent(file):
     return (file, uproot.numentries(file, TTreeName))
 
 def SplitPro(key, file, lineperfile=20, eventsplit=2**20, TreeName=None):
-    pool = Pool(processes=NProcess) 
     # Default to 20 file per job, or 2**20 ~ 1M event per job
     # At 26Hz processing time in postv2, 1M event runs ~11 hours
     splitedfiles = []
@@ -138,7 +137,10 @@ def SplitPro(key, file, lineperfile=20, eventsplit=2**20, TreeName=None):
 
     f = open(filename, 'r')
     filelist = [l.strip() for l in f.readlines()]
+    r = None
+    pool = Pool(processes=NProcess)
     r = pool.map(GetNEvent, filelist)
+    pool.close()
     filedict = dict(r)
     for l in filelist:
         n = filedict[l]
