@@ -10,9 +10,10 @@ from PhysicsTools.NanoAODTools.postprocessing.framework.datamodel import Collect
 from PhysicsTools.NanoAODTools.postprocessing.framework.eventloop import Module
 from PhysicsTools.NanoSUSYTools.modules.Stop0lObjectsProducer import DeepCSVMediumWP, CSVv2MediumWP
 
+from PhysicsTools.NanoSUSYTools.modules.datamodelRemap import ObjectRemapped, CollectionRemapped
 
 class DeepTopProducer(Module):
-    def __init__(self, era):
+    def __init__(self, era, applyUncert=None):
         ## WP from Hui's study https://indico.cern.ch/event/780000/contributions/3248659/attachments/1768782/2873013/Search_bin_study_with_combine_tools_v13.pdf
         self.DeepAK8TopWP  = 0.9377
         self.DeepAK8TopPt  = 400.0
@@ -23,10 +24,19 @@ class DeepTopProducer(Module):
         self.DeepResolveWP = 0.92
         self.etaMax        = 2.0
         self.bJetEtaMax    = 2.4
-        self.resAK4bTagWP  = CSVv2MediumWP[era]
+        self.resAK4bTagWP  = DeepCSVMediumWP[era]
         self.dR2AK4Subjet  = 0.4*0.4
         self.era = era
         self.metBranchName = "MET"
+
+        self.applyUncert = applyUncert
+
+        self.suffix = ""
+
+        if self.applyUncert == "JESUp":
+            self.suffix = "_JESUp"
+        elif self.applyUncert == "JESDown":
+            self.suffix = "_JESDown"
 
     def beginJob(self):
         self.count = 1
@@ -35,20 +45,19 @@ class DeepTopProducer(Module):
 
     def beginFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
         self.out = wrappedOutputTree
-        self.out.branch("FatJet_Stop0l", "I", lenVar="nFatJet")
-        self.out.branch("ResolvedTop_Stop0l", "O", lenVar="nResolvedTopCandidate")
-        self.out.branch("Stop0l_nTop", "I")
-        self.out.branch("Stop0l_nW", "I")
-        self.out.branch("Stop0l_nResolved", "I")
-        self.out.branch("Stop0l_ISRJetIdx", "I")
-        self.out.branch("Stop0l_ISRJetPt", "F")
-        self.out.branch("Stop0l_nHOT", "I")
-        self.out.branch("Stop0l_HOTpt",   "F", lenVar = "Stop0l_nHOT")
-        self.out.branch("Stop0l_HOTeta",  "F", lenVar = "Stop0l_nHOT")
-        self.out.branch("Stop0l_HOTphi",  "F", lenVar = "Stop0l_nHOT")
-        self.out.branch("Stop0l_HOTmass", "F", lenVar = "Stop0l_nHOT")
-        self.out.branch("Stop0l_HOTtype", "I", lenVar = "Stop0l_nHOT")
-        
+        self.out.branch("FatJet_Stop0l" + self.suffix, "I", lenVar="nFatJet")
+        self.out.branch("ResolvedTop_Stop0l" + self.suffix, "O", lenVar="nResolvedTopCandidate")
+        self.out.branch("Stop0l_nTop" + self.suffix, "I")
+        self.out.branch("Stop0l_nW" + self.suffix, "I")
+        self.out.branch("Stop0l_nResolved" + self.suffix, "I")
+        self.out.branch("Stop0l_ISRJetIdx" + self.suffix, "I")
+        self.out.branch("Stop0l_ISRJetPt" + self.suffix, "F")
+        self.out.branch("HOT_pt" + self.suffix,   "F", lenVar = "nHOT")
+        self.out.branch("HOT_eta" + self.suffix,  "F", lenVar = "nHOT")
+        self.out.branch("HOT_phi" + self.suffix,  "F", lenVar = "nHOT")
+        self.out.branch("HOT_mass" + self.suffix, "F", lenVar = "nHOT")
+        self.out.branch("HOT_type" + self.suffix, "I", lenVar = "nHOT")
+
     def endFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
         pass
 
@@ -65,7 +74,8 @@ class DeepTopProducer(Module):
             return False
         if res.discriminator <= self.DeepResolveWP:
             return False
-        if ((abs(jets[res.j1Idx].eta) < self.bJetEtaMax and jets[res.j1Idx].btagCSVV2 > self.resAK4bTagWP) + (abs(jets[res.j2Idx].eta) < self.bJetEtaMax and jets[res.j2Idx].btagCSVV2 > self.resAK4bTagWP) + (abs(jets[res.j3Idx].eta) < self.bJetEtaMax and jets[res.j3Idx].btagCSVV2 > self.resAK4bTagWP)) >= 2 :
+
+        if ((abs(jets[res.j1Idx].eta) < self.bJetEtaMax and jets[res.j1Idx].btagDeepB > self.resAK4bTagWP) + (abs(jets[res.j2Idx].eta) < self.bJetEtaMax and jets[res.j2Idx].btagDeepB > self.resAK4bTagWP) + (abs(jets[res.j3Idx].eta) < self.bJetEtaMax and jets[res.j3Idx].btagDeepB > self.resAK4bTagWP)) >= 2 :
             return False
         return True
 
@@ -111,7 +121,7 @@ class DeepTopProducer(Module):
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Clean up double counting in DeepResolved ~~~~~
         usedJets = set()
         remainingtops = [iTop for iTop in xrange(len(self.ResolvedTop_Stop0l)) if self.ResolvedTop_Stop0l[iTop]]
-        #Sort remaining tops by discriminator value 
+        #Sort remaining tops by discriminator value
         remainingtops.sort(key=lambda x: -res[x].discriminator)
         if len(remainingtops) > 1:
             for iTop in remainingtops:
@@ -141,11 +151,15 @@ class DeepTopProducer(Module):
            leadingjet.btagDeepB > DeepCSVMediumWP[self.era]:
             return -1
 
-        if subjets[leadingjet.subJetIdx1]  > DeepCSVMediumWP[self.era] or \
-           subjets[leadingjet.subJetIdx2]  > DeepCSVMediumWP[self.era]:
+        if leadingjet.subJetIdx1 >= 0 and leadingjet.subJetIdx1 < len(subjets) and \
+           subjets[leadingjet.subJetIdx1].btagDeepB >= DeepCSVMediumWP[self.era]:
             return -1
 
-        if math.fabs(ROOT.TVector2.Phi_mpi_pi( leadingjet.phi - met_phi )) < -2:
+        if leadingjet.subJetIdx2 >= 0 and leadingjet.subJetIdx2 < len(subjets) and \
+           subjets[leadingjet.subJetIdx2].btagDeepB >= DeepCSVMediumWP[self.era]:
+            return -1
+
+        if math.fabs(ROOT.TVector2.Phi_mpi_pi( leadingjet.phi - met_phi )) < 2:
             return -1
 
         return 0
@@ -186,11 +200,21 @@ class DeepTopProducer(Module):
     def analyze(self, event):
         """process event, return True (go to next module) or False (fail, go to next event)"""
         ## Getting objects
-        jets     = Collection(event, "Jet")
+        if self.applyUncert == "JESUp":
+            resolves  = Collection(event, "ResolvedTopCandidate_JESUp")
+            jets      = CollectionRemapped(event, "Jet", replaceMap={"pt":"pt_jesTotalUp", "mass":"mass_jesTotalUp"})
+            met       = ObjectRemapped(event,     "MET", replaceMap={"pt":"pt_jesTotalUp", "phi":"phi_jesTotalUp"})
+        elif self.applyUncert == "JESDown":
+            resolves  = Collection(event, "ResolvedTopCandidate_JESDown")
+            jets      = CollectionRemapped(event, "Jet", replaceMap={"pt":"pt_jesTotalDown", "mass":"mass_jesTotalDown"})
+            met       = ObjectRemapped(event,     "MET", replaceMap={"pt":"pt_jesTotalDown", "phi":"phi_jesTotalDown"})
+        else:
+            resolves  = Collection(event, "ResolvedTopCandidate")
+            jets      = Collection(event, "Jet")
+            met       = Object(event,     "MET")
+
         fatjets  = Collection(event, "FatJet")
         subjets  = Collection(event, "SubJet")
-        resolves = Collection(event, "ResolvedTopCandidate")
-        met       = Object(event, self.metBranchName)
         self.Clear()
 
         ## Selecting objects
@@ -205,19 +229,18 @@ class DeepTopProducer(Module):
         (HOTpt, HOTeta, HOTphi, HOTmass, HOTtype) =  self.CreateHOTs(fatjets, resolves)
 
         ### Store output
-        self.out.fillBranch("FatJet_Stop0l", self.FatJet_Stop0l)
-        self.out.fillBranch("ResolvedTop_Stop0l", self.ResolvedTop_Stop0l)
-        self.out.fillBranch("Stop0l_nTop", self.nTop)
-        self.out.fillBranch("Stop0l_nW", self.nW)
-        self.out.fillBranch("Stop0l_nResolved", self.nResolved)
-        self.out.fillBranch("Stop0l_ISRJetIdx", self.ISRJetidx)
-        self.out.fillBranch("Stop0l_ISRJetPt", ISRJetPt)
-        self.out.fillBranch("Stop0l_nHOT", len(HOTpt))
-        self.out.fillBranch("Stop0l_HOTpt", HOTpt)
-        self.out.fillBranch("Stop0l_HOTeta", HOTeta)
-        self.out.fillBranch("Stop0l_HOTphi", HOTphi)
-        self.out.fillBranch("Stop0l_HOTmass", HOTmass)
-        self.out.fillBranch("Stop0l_HOTtype", HOTtype)
+        self.out.fillBranch("FatJet_Stop0l" + self.suffix, self.FatJet_Stop0l)
+        self.out.fillBranch("ResolvedTop_Stop0l" + self.suffix, self.ResolvedTop_Stop0l)
+        self.out.fillBranch("Stop0l_nTop" + self.suffix, self.nTop)
+        self.out.fillBranch("Stop0l_nW" + self.suffix, self.nW)
+        self.out.fillBranch("Stop0l_nResolved" + self.suffix, self.nResolved)
+        self.out.fillBranch("Stop0l_ISRJetIdx" + self.suffix, self.ISRJetidx)
+        self.out.fillBranch("Stop0l_ISRJetPt" + self.suffix, ISRJetPt)
+        self.out.fillBranch("HOT_pt" + self.suffix, HOTpt)
+        self.out.fillBranch("HOT_eta" + self.suffix, HOTeta)
+        self.out.fillBranch("HOT_phi" + self.suffix, HOTphi)
+        self.out.fillBranch("HOT_mass" + self.suffix, HOTmass)
+        self.out.fillBranch("HOT_type" + self.suffix, HOTtype)
         return True
 
 # define modules using the syntax 'name = lambda : constructor' to avoid having them loaded when not needed

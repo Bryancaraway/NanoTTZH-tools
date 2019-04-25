@@ -18,10 +18,14 @@ drop OtherPV_*
 ## Input for Track TauMVA
 drop PFcand_*
 ## Input for DeepResolved
-drop Jet_deepFlavour*
-drop Jet_deepCSV*
-drop Jet_qg*
-drop Jet_Cvs*
-drop Jet_btagDeepFlavB
-drop Jet_*Mult 
-drop Jet_*EF
+#drop Jet_deepFlavour*
+#drop Jet_deepCSV*
+#drop Jet_qg*
+#drop Jet_Cvs*
+#drop Jet_btagDeepFlavB
+#drop Jet_*Mult 
+#drop Jet_*EF
+## With PDFUncertiantyProducer, we will only store the systematic
+drop LHEPdfWeight
+drop nLHEPdfWeight
+drop Jet_btagSF*

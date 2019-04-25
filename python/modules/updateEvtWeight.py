@@ -5,11 +5,12 @@ import math
 from PhysicsTools.NanoAODTools.postprocessing.framework.datamodel import Collection, Object
 from PhysicsTools.NanoAODTools.postprocessing.framework.eventloop import Module
 
-class UpdateGenWeight(Module):
-    def __init__(self, isData, CrossSection, nEvent):
+class UpdateEvtWeight(Module):
+    def __init__(self, isData, CrossSection, nEvent, Process):
         self.isData = isData
         self.xs = CrossSection
         self.nEvent = nEvent
+        self.process = Process
 
     def beginJob(self):
         pass
@@ -18,7 +19,11 @@ class UpdateGenWeight(Module):
 
     def beginFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
         self.out = wrappedOutputTree
-        self.out.branch("Stop0l_evtWeight",         "F", title="Storing cross section/nEvent for MC, lumi for Data")
+        if self.isData:
+            infostr = "Storing lumi for %s (Lumi=%f)" % (self.process, self.xs)
+        else:
+            infostr = "Storing cross section/nEvent for %s (CrossSection=%f, nEvent=%f)" % (self.process, self.xs, self.nEvent)
+        self.out.branch("Stop0l_evtWeight",         "F", title=infostr)
 
     def endFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
         pass
