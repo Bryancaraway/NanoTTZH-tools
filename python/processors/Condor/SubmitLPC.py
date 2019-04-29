@@ -77,6 +77,16 @@ def ConfigList(config):
         stripped_entry = [ i.strip() for i in entry]
         #print(stripped_entry)
         replaced_outdir = stripped_entry[1].replace("Pre","Post")
+
+        #cut off anything after the processing date folder 
+        replaced_outdir = replaced_outdir.split("/")
+        nCut = 0
+        for i, s in enumerate(replaced_outdir):
+            if"PostProcessed" in s:
+                nCut = i
+                break
+        replaced_outdir = "/".join(replaced_outdir[:nCut + 1])
+            
         process[stripped_entry[0]] = {
             #Note that anything appended with __ will not be passed along. These are for bookkeeping. Furthermore, Outpath is not used if an output directory argument is given.
             "Filepath__" : "%s/%s" % (stripped_entry[1], stripped_entry[2]),
