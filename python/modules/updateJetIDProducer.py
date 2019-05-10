@@ -21,7 +21,6 @@ class UpdateJetID(Module):
 
     def beginFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
         self.out = wrappedOutputTree
-        self.out.branch("Stop0l_evtWeight",         "F", title="Storing cross section/nEvent for MC, lumi for Data")
         self.out.branch("Jet_jetId",      "I", lenVar="nJet", title="Updated tight Jet ID for 2018")
 
     def endFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
@@ -41,11 +40,15 @@ class UpdateJetID(Module):
         NumNeutralParticle = NumConst - CHM                      # pfjet->neutralMultiplicity();
 
         tightJetID = False
-        # For |eta|<=2.6 Apply
-        tightJetID |= (abs(eta)<=2.6 and CEMF<0.8 and CHM>0 and CHF>0 and NumConst>1 and NEMF<0.9 and MUF <0.8 and NHF < 0.9 )
+        # For |eta|<=2.6 Apply TightID
+        tightJetID |= (abs(eta)<=2.6 and CHM>0 and CHF>0 and NumConst>1 and NEMF<0.9 and NHF < 0.9 )
+        # TightJetIDLepVeto : Not good for Zinv Bg
+        # tightJetID |= (abs(eta)<=2.6 and CEMF<0.8 and CHM>0 and CHF>0 and NumConst>1 and NEMF<0.9 and MUF <0.8 and NHF < 0.9 )
 
-        #For 2.6<|eta|<=2.7 Apply
-        tightJetID |= ( abs(eta)>2.6 and abs(eta)<=2.7 and CEMF<0.8 and CHM>0 and NEMF<0.99 and MUF <0.8 and NHF < 0.9 )
+        #For 2.6<|eta|<=2.7 Apply TightID
+        tightJetID |= ( abs(eta)>2.6 and abs(eta)<=2.7 and CHM>0 and NEMF<0.99 and NHF < 0.9 )
+        # TightJetIDLepVeto : Not good for Zinv Bg
+        # tightJetID |= ( abs(eta)>2.6 and abs(eta)<=2.7 and CEMF<0.8 and CHM>0 and NEMF<0.99 and MUF <0.8 and NHF < 0.9 )
 
         #For 2.7<|eta|<= 3.0 Apply
         tightJetID |= ( NEMF>0.02 and NEMF<0.99 and NumNeutralParticle>2 and abs(eta)>2.7 and abs(eta)<=3.0)
