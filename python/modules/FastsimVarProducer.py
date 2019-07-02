@@ -34,16 +34,16 @@ class FastsimVarProducer(Module):
 
         met    = Object(event, "MET")
         genmet = Object(event, "GenMET")
-        genpar = Object(event, "GenPart")
+        genpar = Collection(event, "GenPart")
 
         fastmet = (met.pt + genmet.pt)/2.0
         fastmet_err = math.fabs(fastmet - met.pt)
 
-        # print(type(genpar.status))
-        # status = genpar.status == 62
-        # print(type(status))
-        mothermass = np.unique(genpar.mass[(genpar.status == 62) & (np.absolute(genpar.pdgId) >  1000000    ) ] )
-        LSPmass    = np.unique(genpar.mass[(genpar.status == 1)  & (genpar.pdgId              == 1000022)])
+        mass = np.asarray([g.mass for g in genpar])
+        pdgId = np.asarray([g.pdgId for g in genpar])
+        status = np.asarray([g.status for g in genpar])
+        mothermass = np.unique(mass[(status == 62) & (np.absolute(pdgId) >  1000000    ) ] )
+        LSPmass    = np.unique(mass[(status == 1)  & (pdgId              == 1000022)])
         if mothermass.shape != (1,) or LSPmass.shape != (1,):
             print("Not pair SUSY? Danger!")
 
@@ -52,3 +52,4 @@ class FastsimVarProducer(Module):
         self.out.fillBranch("MET_pt_fasterr", fastmet_err)
         self.out.fillBranch("Stop0l_MotherMass", mothermass[0])
         self.out.fillBranch("Stop0l_LSPMass", LSPmass[0])
+        return True
