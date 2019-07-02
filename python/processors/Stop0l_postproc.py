@@ -233,6 +233,7 @@ def main(args):
             GenPartFilter(statusFlags = [0x2100, 0x2080, 0x2000], pdgIds = [0, 0, 22], statuses = [0, 0, 1]),
             # TODO: first implemtation, need double check
             ISRSFWeightProducer(args.era, isSUSY, "allInOne_ISRWeight.root", args.sampleName), 
+            FastsimVarProducer(isfastsim)
             ]
         # Special PU reweighting for 2017 separately
         if args.era == "2017":
