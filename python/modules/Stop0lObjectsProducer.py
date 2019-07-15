@@ -52,6 +52,7 @@ class Stop0lObjectsProducer(Module):
         if self.applyUncert == None:
             self.out.branch("Electron_Stop0l" + self.suffix, "O", lenVar="nElectron", title="cutBased Veto ID with miniISO < 0.1, pT > 5")
             self.out.branch("Muon_Stop0l" + self.suffix,     "O", lenVar="nMuon")
+	    self.out.branch("Tau_Stop0l" + self.suffix,      "O", lenVar="nTau")
             self.out.branch("Photon_Stop0l" + self.suffix,   "O", lenVar="nPhoton")
             self.out.branch("SB_Stop0l" + self.suffix,       "O", lenVar="nSB")
             self.out.branch("Photon_Stop0l" + self.suffix,   "O", lenVar="nPhoton")
@@ -61,7 +62,8 @@ class Stop0lObjectsProducer(Module):
             self.out.branch("Electron_MtW"    + self.suffix, "F", lenVar="nElectron", limitedPrecision=12)
             self.out.branch("Muon_MtW"        + self.suffix, "F", lenVar="nMuon",     limitedPrecision=12)
             self.out.branch("IsoTrack_MtW"    + self.suffix, "F", lenVar="nIsoTrack", limitedPrecision=12)
-            self.out.branch("Jet_dPhiMET"     + self.suffix, "F", lenVar="nJet"     , limitedPrecision=12)
+            self.out.branch("Tau_MtW"	      + self.suffix, "F", lenVar="nTau",      limitedPrecision=12)
+	    self.out.branch("Jet_dPhiMET"     + self.suffix, "F", lenVar="nJet"     , limitedPrecision=12)
             self.out.branch("IsoTrack_Stop0l" + self.suffix, "O", lenVar="nIsoTrack")
             self.out.branch("Stop0l_Mtb"      + self.suffix, "F")
             self.out.branch("Stop0l_METSig"   + self.suffix, "F")
@@ -109,6 +111,11 @@ class Stop0lObjectsProducer(Module):
         mtW = self.CalMtW(isk, met)
         if mtW  > 100:
             return False
+        return True
+
+    def SelTauPOG(self, tau):
+        if tau.pt < 20 or abs(tau.eta) > 2.4 or not tau.idDecayMode or not (tau.idMVAoldDM2017v2 & 8):
+                return False
         return True
 
     def CalMtW(self, lep, met):
@@ -179,6 +186,7 @@ class Stop0lObjectsProducer(Module):
         electrons = Collection(event, "Electron")
         muons     = Collection(event, "Muon")
         isotracks = Collection(event, "IsoTrack")
+	taus	  = Collection(event, "Tau")
 
         if self.applyUncert == "JESUp":
             jets      = CollectionRemapped(event, "Jet", replaceMap={"pt":"pt_jesTotalUp", "mass":"mass_jesTotalUp"})
@@ -203,10 +211,12 @@ class Stop0lObjectsProducer(Module):
         ## Selecting objects
         self.Electron_Stop0l = map(self.SelEle, electrons)
         self.Muon_Stop0l     = map(self.SelMuon, muons)
+	self.Tau_Stop0l      = map(self.SelTauPOG, taus)
         self.Electron_MtW    = map(lambda x : self.CalMtW(x, met), electrons)
         self.Muon_MtW        = map(lambda x : self.CalMtW(x, met), muons)
         self.IsoTrack_MtW    = map(lambda x : self.CalMtW(x, met), isotracks)
         self.IsoTrack_Stop0l = map(lambda x : self.SelIsotrack(x, met), isotracks)
+	self.Tau_MtW	     = map(lambda x : self.CalMtW(x, met), taus)
         self.Jet_Stop0l      = map(self.SelJets, jets)
         local_BJet_Stop0l    = map(self.SelBtagJets, jets)
         self.BJet_Stop0l     = [a and b for a, b in zip(self.Jet_Stop0l, local_BJet_Stop0l )]
@@ -228,6 +238,7 @@ class Stop0lObjectsProducer(Module):
             self.out.fillBranch("Stop0l_nSoftb" + self.suffix,   sum(self.SB_Stop0l))
             self.out.fillBranch("Electron_Stop0l" + self.suffix, self.Electron_Stop0l)
             self.out.fillBranch("Muon_Stop0l" + self.suffix,     self.Muon_Stop0l)
+	    self.out.fillBranch("Tau_Stop0l" + self.suffix,	 self.Tau_Stop0l)
             self.out.fillBranch("SB_Stop0l" + self.suffix,       self.SB_Stop0l)
             self.out.fillBranch("Photon_Stop0l" + self.suffix,   self.Photon_Stop0l)
 
@@ -236,6 +247,7 @@ class Stop0lObjectsProducer(Module):
             self.out.fillBranch("Electron_MtW" + self.suffix   , self.Electron_MtW)
             self.out.fillBranch("Muon_MtW" + self.suffix       , self.Muon_MtW)
             self.out.fillBranch("IsoTrack_MtW" + self.suffix   , self.IsoTrack_MtW)
+	    self.out.fillBranch("Tau_MtW" + self.suffix	       , self.Tau_MtW)
             self.out.fillBranch("Jet_dPhiMET" + self.suffix    , Jet_dPhi)
             self.out.fillBranch("Stop0l_Mtb" + self.suffix     , Mtb)
             self.out.fillBranch("Stop0l_METSig" + self.suffix  , met.pt / math.sqrt(HT) if HT > 0 else 0)
