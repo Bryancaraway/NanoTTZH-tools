@@ -149,15 +149,15 @@ class BtagSFWeightProducer(Module):
                 BTagWeightN_down *= 1 - jet.btagSF_down * eff
 
 		if abs(flavor) == 5:
-                	BTagWeightNHeavy      *= jet.btagSF * eff
-                	BTagWeightNHeavy_up   *= jet.btagSF_up * eff
-                	BTagWeightNHeavy_down *= jet.btagSF_down * eff
-			BTagWeightDHeavy      *= eff
+                	BTagWeightNHeavy      *= 1 - jet.btagSF * eff
+                	BTagWeightNHeavy_up   *= 1 - jet.btagSF_up * eff
+                	BTagWeightNHeavy_down *= 1 - jet.btagSF_down * eff
+			BTagWeightDHeavy      *= 1 - eff
 		else:
-                	BTagWeightNLight      *= jet.btagSF * eff
-                	BTagWeightNLight_up   *= jet.btagSF_up * eff
-                	BTagWeightNLight_down *= jet.btagSF_down * eff
-			BTagWeightDLight      *= eff
+                	BTagWeightNLight      *= 1 - jet.btagSF * eff
+                	BTagWeightNLight_up   *= 1 - jet.btagSF_up * eff
+                	BTagWeightNLight_down *= 1 - jet.btagSF_down * eff
+			BTagWeightDLight      *= 1 - eff
 
                 BTagWeightD      *= 1 - eff
 
