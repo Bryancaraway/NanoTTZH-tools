@@ -51,9 +51,15 @@ class BtagSFWeightProducer(Module):
 
     def beginFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
         self.out = wrappedOutputTree
-        self.out.branch("BTagWeight",      "F", title="BTag event weight following method 1a")
-        self.out.branch("BTagWeight_Up",   "F", title="BTag event weight up uncertainty")
-        self.out.branch("BTagWeight_Down", "F", title="BTag event weight down uncertainty")
+        self.out.branch("BTagWeight",      	"F", title="BTag event weight following method 1a")
+        self.out.branch("BTagWeight_Up",   	"F", title="BTag event weight up uncertainty")
+        self.out.branch("BTagWeight_Down", 	"F", title="BTag event weight down uncertainty")
+        self.out.branch("BTagWeightHeavy",      "F", title="BTag event heavy weight following method 1a")
+        self.out.branch("BTagWeightHeavy_Up",   "F", title="BTag event heavy weight up uncertainty")
+        self.out.branch("BTagWeightHeavy_Down", "F", title="BTag event heavy weight down uncertainty")
+        self.out.branch("BTagWeightLight",      "F", title="BTag event light weight following method 1a")
+        self.out.branch("BTagWeightLight_Up",   "F", title="BTag event light weight up uncertainty")
+        self.out.branch("BTagWeightLight_Down", "F", title="BTag event light weight down uncertainty")
 
     def endFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
         pass
@@ -66,6 +72,14 @@ class BtagSFWeightProducer(Module):
         BTagWeightN_up = 1.0
         BTagWeightN_down = 1.0
         BTagWeightD = 1.0
+        BTagWeightNHeavy = 1.0
+        BTagWeightNHeavy_up = 1.0
+        BTagWeightNHeavy_down = 1.0
+        BTagWeightDHeavy = 1.0
+        BTagWeightNLight = 1.0
+        BTagWeightNLight_up = 1.0
+        BTagWeightNLight_down = 1.0
+        BTagWeightDLight = 1.0
 
         for jet in jets:
             pt = jet.pt
@@ -113,6 +127,17 @@ class BtagSFWeightProducer(Module):
                 BTagWeightN_up   *= jet.btagSF_up * eff
                 BTagWeightN_down *= jet.btagSF_down * eff
 
+		if abs(flavor) == 5:
+                	BTagWeightNHeavy      *= jet.btagSF * eff
+                	BTagWeightNHeavy_up   *= jet.btagSF_up * eff
+                	BTagWeightNHeavy_down *= jet.btagSF_down * eff
+			BTagWeightDHeavy      *= eff
+		else:
+                	BTagWeightNLight      *= jet.btagSF * eff
+                	BTagWeightNLight_up   *= jet.btagSF_up * eff
+                	BTagWeightNLight_down *= jet.btagSF_down * eff
+			BTagWeightDLight      *= eff
+
                 BTagWeightD      *= eff
             else:
                 #check if eff is 1.0
@@ -123,11 +148,28 @@ class BtagSFWeightProducer(Module):
                 BTagWeightN_up   *= 1 - jet.btagSF_up * eff
                 BTagWeightN_down *= 1 - jet.btagSF_down * eff
 
+		if abs(flavor) == 5:
+                	BTagWeightNHeavy      *= jet.btagSF * eff
+                	BTagWeightNHeavy_up   *= jet.btagSF_up * eff
+                	BTagWeightNHeavy_down *= jet.btagSF_down * eff
+			BTagWeightDHeavy      *= eff
+		else:
+                	BTagWeightNLight      *= jet.btagSF * eff
+                	BTagWeightNLight_up   *= jet.btagSF_up * eff
+                	BTagWeightNLight_down *= jet.btagSF_down * eff
+			BTagWeightDLight      *= eff
+
                 BTagWeightD      *= 1 - eff
 
         self.out.fillBranch("BTagWeight",      BTagWeightN / BTagWeightD)
         self.out.fillBranch("BTagWeight_Up",   BTagWeightN_up / BTagWeightD)
         self.out.fillBranch("BTagWeight_Down", BTagWeightN_down / BTagWeightD)
+        self.out.fillBranch("BTagWeightHeavy",      BTagWeightNHeavy / BTagWeightDHeavy)
+        self.out.fillBranch("BTagWeightHeavy_Up",   BTagWeightNHeavy_up / BTagWeightDHeavy)
+        self.out.fillBranch("BTagWeightHeavy_Down", BTagWeightNHeavy_down / BTagWeightDHeavy)
+        self.out.fillBranch("BTagWeightLight",      BTagWeightNLight / BTagWeightDLight)
+        self.out.fillBranch("BTagWeightLight_Up",   BTagWeightNLight_up / BTagWeightDLight)
+        self.out.fillBranch("BTagWeightLight_Down", BTagWeightNLight_down / BTagWeightDLight)
         return True
 
 # define modules using the syntax 'name = lambda : constructor' to avoid having them loaded when not needed
