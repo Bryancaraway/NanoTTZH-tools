@@ -1,7 +1,6 @@
 # this is a comment
 drop SV_*
 drop TrigObj_*
-drop Tau_*
 drop TkMET_*
 drop RawMET_*
 #drop CaloMET_*
