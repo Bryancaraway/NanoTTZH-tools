@@ -42,12 +42,14 @@ class Stop0lBaselineProducer(Module):
         self.out.branch("Pass_ElecVeto"      + self.suffix, "O")
         self.out.branch("Pass_MuonVeto"      + self.suffix, "O")
         self.out.branch("Pass_IsoTrkVeto"    + self.suffix, "O")
+        self.out.branch("Pass_TauVeto"       + self.suffix, "O")
         self.out.branch("Pass_LeptonVeto"    + self.suffix, "O")
         self.out.branch("Pass_NJets20"       + self.suffix, "O")
         self.out.branch("Pass_MET"           + self.suffix, "O")
         self.out.branch("Pass_HT"            + self.suffix, "O")
         self.out.branch("Pass_dPhiMET"       + self.suffix, "O")
         self.out.branch("Pass_dPhiMETLowDM"  + self.suffix, "O")
+        self.out.branch("Pass_dPhiMETMedDM"  + self.suffix, "O")
         self.out.branch("Pass_dPhiMETHighDM" + self.suffix, "O")
         self.out.branch("Pass_Baseline"      + self.suffix, "O")
         self.out.branch("Pass_highDM"        + self.suffix, "O")
@@ -73,11 +75,12 @@ class Stop0lBaselineProducer(Module):
     def endFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
         pass
 
-    def calculateNLeptons(self, eles, muons, isks):
+    def calculateNLeptons(self, eles, muons, isks, taus):
         countEle = sum([e.Stop0l for e in eles])
         countMu  = sum([m.Stop0l for m in muons])
         countIsk = sum([i.Stop0l for i in isks])
-        return countEle, countMu, countIsk
+	countTau = sum([t.Stop0l for t in taus])
+        return countEle, countMu, countIsk, countTau
 
     def PassEventFilter(self, flags):
         # https://twiki.cern.ch/twiki/bin/viewauth/CMS/MissingETOptionalFiltersRun2#2016_data
@@ -191,6 +194,7 @@ class Stop0lBaselineProducer(Module):
         electrons = Collection(event, "Electron")
         muons     = Collection(event, "Muon")
         isotracks = Collection(event, "IsoTrack")
+	taus      = Collection(event, "Tau")
 
         ## Baseline Selection
         PassJetID       = self.PassJetID(jets)
@@ -199,16 +203,16 @@ class Stop0lBaselineProducer(Module):
         PassCaloMETRatio= (met.pt / caloMET.pt ) < 5 if caloMET.pt > 0 else True
         PassEventFilter = self.PassEventFilter(flags) and PassJetID
 
-        countEle, countMu, countIsk = self.calculateNLeptons(electrons, muons, isotracks)
+        countEle, countMu, countIsk, countTauPOG = self.calculateNLeptons(electrons, muons, isotracks, taus)
         PassElecVeto    = countEle == 0
         PassMuonVeto    = countMu == 0
         PassIsoTrkVeto  = countIsk == 0
-        PassLeptonVeto  = PassElecVeto and PassMuonVeto and PassIsoTrkVeto
+	PassTauVeto	= countTauPOG == 0
+        PassLeptonVeto  = PassElecVeto and PassMuonVeto and PassIsoTrkVeto and PassTauVeto
 
-        totlep = countEle + countMu + countIsk
+        totlep = countEle + countMu
         PassLLLep = (totlep == 1) and sum([ e.MtW for e in electrons if e.Stop0l ] + 
-                                          [ m.MtW for m in muons if m.Stop0l ] + 
-                                          [ i.MtW for i in isotracks if i.Stop0l ]) < 100
+                                          [ m.MtW for m in muons if m.Stop0l ]) < 100
 
         PassNjets       = self.PassNjets(jets)
         PassMET         = met.pt >= 250
@@ -216,6 +220,7 @@ class Stop0lBaselineProducer(Module):
         ## In case JEC changed jet pt order, resort jets
         sortedPhi = self.GetJetSortedIdx(jets)
         PassdPhiLowDM   = self.PassdPhi(sortedPhi, [0.5, 0.15, 0.15])
+	PassdPhiMedDM   = self.PassdPhi(sortedPhi, [0.15, 0.15, 0.15], invertdPhi=True) #Variable for LowDM Validation bins
         PassdPhiHighDM  = self.PassdPhi(sortedPhi, [0.5, 0.5, 0.5, 0.5])
         PassdPhiQCD     = self.PassdPhi(sortedPhi, [0.1, 0.1, 0.1], invertdPhi =True)
 
@@ -244,12 +249,14 @@ class Stop0lBaselineProducer(Module):
         self.out.fillBranch("Pass_ElecVeto"      + self.suffix, PassElecVeto)
         self.out.fillBranch("Pass_MuonVeto"      + self.suffix, PassMuonVeto)
         self.out.fillBranch("Pass_IsoTrkVeto"    + self.suffix, PassIsoTrkVeto)
+	self.out.fillBranch("Pass_TauVeto"       + self.suffix, PassTauVeto)
         self.out.fillBranch("Pass_LeptonVeto"    + self.suffix, PassLeptonVeto)
         self.out.fillBranch("Pass_NJets20"       + self.suffix, PassNjets)
         self.out.fillBranch("Pass_MET"           + self.suffix, PassMET)
         self.out.fillBranch("Pass_HT"            + self.suffix, PassHT)
         self.out.fillBranch("Pass_dPhiMET"       + self.suffix, PassdPhiLowDM)
         self.out.fillBranch("Pass_dPhiMETLowDM"  + self.suffix, PassdPhiLowDM)
+	self.out.fillBranch("Pass_dPhiMETMedDM"  + self.suffix, PassdPhiMedDM)
         self.out.fillBranch("Pass_dPhiMETHighDM" + self.suffix, PassdPhiHighDM)
         self.out.fillBranch("Pass_Baseline"      + self.suffix, PassBaseline)
         self.out.fillBranch("Pass_highDM"        + self.suffix, PasshighDM)
