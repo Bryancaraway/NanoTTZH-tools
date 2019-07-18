@@ -250,14 +250,15 @@ def main(args):
     #============================================================================#
     #-------------------------     Run PostProcessor     ------------------------#
     #============================================================================#
-    files = []
-    if len(args.inputfile) > 5 and args.inputfile[0:5] == "file:":
-        #This is just a single test input file
-        files.append(args.inputfile[5:])
-    else:
-        #this is a file list
-        with open(args.inputfile) as f:
-            files = [line.strip() for line in f]
+    files = ["root://cmseos.fnal.gov//eos/uscms/store/user/lpcsusyhad/Stop_production/Fall17_94X_v2_NanAOD_MC/PreProcessed_15Jan2019/TTJets_DiLept_TuneCP5_13TeV-madgraphMLM-pythia8/2017_MC_RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_v14-v1/190111_191903/0000/prod2017MC_NANO_141.root"]
+    #files = []
+    #if len(args.inputfile) > 5 and args.inputfile[0:5] == "file:":
+    #    #This is just a single test input file
+    #    files.append(args.inputfile[5:])
+    #else:
+    #    #this is a file list
+    #    with open(args.inputfile) as f:
+    #        files = [line.strip() for line in f]
 
     p=PostProcessor(args.outputfile,files,cut=None, branchsel=None, outputbranchsel="keep_and_drop.txt", modules=mods,provenance=False,maxEvents=args.maxEvents)
     p.run()

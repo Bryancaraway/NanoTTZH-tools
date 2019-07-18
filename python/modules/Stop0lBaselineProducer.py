@@ -134,22 +134,38 @@ class Stop0lBaselineProducer(Module):
         countJets = sum([j.Stop0l for j in jets])
         return countJets >= 2
 
-    def GetJetSortedIdx(self, jets):
+    def GetJetSortedIdx(self, jets, isValidate = False):
         ptlist = []
+	etalist = []
         dphiMET = []
         for j in jets:
             if math.fabs(j.eta) > 4.7 or j.pt < 20:
                 pass
             else:
                 ptlist.append(j.pt)
+		etalist.append(math.fabs(j.eta))
                 dphiMET.append(j.dPhiMET)
-        return [dphiMET[j] for j in np.argsort(ptlist)[::-1]]
+	if not isValidate:
+		return [dphiMET[j] for j in np.argsort(ptlist)[::-1]]
+	else:	
+		output = []
+		for j, e in zip(np.argsort(ptlist)[::-1], np.argsort(etalist)):
+			if j != len(ptlist) - 1:
+				if ptlist[j] == ptlist[j + 1]:
+					output.append(dphiMET[e])
+			else:
+				output.append(dphiMET[j])
+		
+	        return output
 
     def PassdPhi(self, sortedPhi, dPhiCuts, invertdPhi =False):
         if invertdPhi:
             return any( a < b for a, b in zip(sortedPhi, dPhiCuts))
         else:
             return all( a > b for a, b in zip(sortedPhi, dPhiCuts))
+
+    def PassdPhiVal(self, sortedPhi, dPhiCutsLow, dPhiCutsHigh):
+            return all( (a < b and b < c) for a, b, c in zip(dPhiCutsLow, sortedPhi, dPhiCutsHigh))
 
     def PassHEMVeto(self, jets, etalow, etahigh, philow, phihigh, ptcut):
         # Calculating HEM veto for 2017 and 2018.
@@ -220,7 +236,8 @@ class Stop0lBaselineProducer(Module):
         ## In case JEC changed jet pt order, resort jets
         sortedPhi = self.GetJetSortedIdx(jets)
         PassdPhiLowDM   = self.PassdPhi(sortedPhi, [0.5, 0.15, 0.15])
-	PassdPhiMedDM   = self.PassdPhi(sortedPhi, [0.15, 0.15, 0.15], invertdPhi=True) #Variable for LowDM Validation bins
+        sortedPhiVal    = self.GetJetSortedIdx(jets, isValidate = True)
+	PassdPhiMedDM   = self.PassdPhiVal(sortedPhi, [0.15, 0.15, 0.15], [0.5, 4., 4.]) #Variable for LowDM Validation bins
         PassdPhiHighDM  = self.PassdPhi(sortedPhi, [0.5, 0.5, 0.5, 0.5])
         PassdPhiQCD     = self.PassdPhi(sortedPhi, [0.1, 0.1, 0.1], invertdPhi =True)
 
