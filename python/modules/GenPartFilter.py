@@ -90,8 +90,8 @@ class GenPartFilter(Module):
         #calculate filter array 
         flagStatIDReq = (self.statusFlags, self.statuses, self.parentPdgIds)
         filterArrays = [ np.logical_and.reduce( ( (GenPartCut_statusFlags & statusFlag) == statusFlag if statusFlag else np.ones(len(GenPartCut_eta), dtype=bool),
-                                                   GenPartCut_status                     == status     if status     else np.ones(len(GenPartCut_eta), dtype=bool),
-                                                   abs(GenPartCut_pdgId)                 == pdgId      if pdgId      else np.ones(len(GenPartCut_eta), dtype=bool) ) )
+                                                   GenPartCut_status                    == status     if status     else np.ones(len(GenPartCut_eta), dtype=bool),
+                                                   abs(GenPartCut_pdgId)                == pdgId      if pdgId      else np.ones(len(GenPartCut_eta), dtype=bool) ) )
                          for statusFlag, status, pdgId in zip(*flagStatIDReq) ]
 
         #if a gen particle passed any of the filters we to keep it 
