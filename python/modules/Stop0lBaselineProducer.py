@@ -197,7 +197,7 @@ class Stop0lBaselineProducer(Module):
         ## This was an old recommendation in ICHEP16, store this optional bit in case we need it
         ## https://twiki.cern.ch/twiki/bin/viewauth/CMS/SUSRecommendationsICHEP16 
         PassCaloMETRatio= (met.pt / caloMET.pt ) < 5 if caloMET.pt > 0 else True
-        PassEventFilter = self.PassEventFilter(flags) and PassJetID
+        PassEventFilter = self.PassEventFilter(flags)
 
         countEle, countMu, countIsk = self.calculateNLeptons(electrons, muons, isotracks)
         PassElecVeto    = countEle == 0
@@ -219,16 +219,16 @@ class Stop0lBaselineProducer(Module):
         PassdPhiHighDM  = self.PassdPhi(sortedPhi, [0.5, 0.5, 0.5, 0.5])
         PassdPhiQCD     = self.PassdPhi(sortedPhi, [0.1, 0.1, 0.1], invertdPhi =True)
 
-        PassBaseline    = PassEventFilter and PassLeptonVeto and PassNjets and PassMET and PassHT and PassdPhiLowDM
+        PassBaseline    = PassEventFilter and PassJetID and PassLeptonVeto and PassNjets and PassMET and PassHT and PassdPhiLowDM
         PasshighDM      = PassBaseline and stop0l.nJets >= 5 and PassdPhiHighDM and stop0l.nbtags >= 1
         PasslowDM       = PassBaseline and stop0l.nTop == 0 and stop0l.nW == 0 and stop0l.nResolved == 0 and \
                 stop0l.Mtb < 175 and stop0l.ISRJetPt > 200 and stop0l.METSig > 10
-        PassQCDCR       = PassEventFilter and PassLeptonVeto and PassNjets and PassMET and PassHT and PassdPhiQCD
+        PassQCDCR       = PassEventFilter and PassJetID and PassLeptonVeto and PassNjets and PassMET and PassHT and PassdPhiQCD
         PassQCD_highDM  = PassQCDCR and stop0l.nJets >= 5 and stop0l.nbtags >= 1
         PassQCD_lowDM   = PassQCDCR and stop0l.nTop == 0 and stop0l.nW == 0 and stop0l.nResolved == 0 and \
                 stop0l.Mtb < 175 and stop0l.ISRJetPt > 200 and stop0l.METSig > 10
 
-        PassLLCR       = PassEventFilter and PassLLLep and PassNjets and PassMET and PassHT and PassdPhiLowDM
+        PassLLCR       = PassEventFilter and PassJetID and PassLLLep and PassNjets and PassMET and PassHT and PassdPhiLowDM
         PassLL_highDM  = PassLLCR and stop0l.nJets >= 5 and PassdPhiHighDM and stop0l.nbtags >= 1
         PassLL_lowDM   = PassLLCR and stop0l.nTop == 0 and stop0l.nW == 0 and stop0l.nResolved == 0 and \
                 stop0l.Mtb < 175 and stop0l.ISRJetPt > 200 and stop0l.METSig > 10
