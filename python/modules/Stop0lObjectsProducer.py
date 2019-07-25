@@ -133,21 +133,23 @@ class Stop0lObjectsProducer(Module):
 
 
     def SelJets(self, jet):
-        if jet.pt < 20 or math.fabs(jet.eta) > 2.4 :
+        if jet.pt < 20 or math.fabs(jet.eta) > 2.4:
             return False
         return True
 
     def SelPhotons(self, photon):
-        if photon.pt < 200:
+        if photon.pt < 220:
             return False
         abeta = math.fabs(photon.eta)
-        if (abeta > 1.442 and abeta < 1.566) or (abeta > 2.5):
+        if (abeta > 1.4442 and abeta < 1.566) or (abeta > 2.5):
             return False
-        ## cut-base ID, 2^0 loose ID
-        cutbase =  photon.cutBasedBitmap  if self.era != "2016" else photon.cutBased
-        if not cutbase & 0b1:
-            return False
-        return True
+        # --- Photon ID: cut-based medium ID --- #
+        # 2016:      Use Photon_cutBased       : Int_t cut-based Spring16-V2p2 ID (0:fail, 1: :loose, 2:medium, 3:tight)
+        # 2017,2018: Use Photon_cutBasedBitmap : Int_t cut-based ID bitmap, 2^(0:loose, 1: medium, 2:tight); should be 2017 V2
+        if self.era == "2016":
+            return bool(photon.cutBased > 1) 
+        else:
+            return bool(photon.cutBasedBitmap & 2) 
 
     def CalHT(self, jets):
         HT = sum([j.pt for i, j in enumerate(jets) if self.Jet_Stop0l[i]])
