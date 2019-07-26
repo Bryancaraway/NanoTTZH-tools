@@ -138,8 +138,6 @@ class Stop0lObjectsProducer(Module):
         return True
 
     def SelPhotons(self, photon):
-        if photon.pt < 220:
-            return False
         abeta = math.fabs(photon.eta)
         if (abeta > 1.4442 and abeta < 1.566) or (abeta > 2.5):
             return False
