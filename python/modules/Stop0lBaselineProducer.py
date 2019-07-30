@@ -134,7 +134,7 @@ class Stop0lBaselineProducer(Module):
         countJets = sum([j.Stop0l for j in jets])
         return countJets >= 2
 
-    def GetJetSortedIdx(self, jets, isValidate = False):
+    def GetJetSortedIdxVal(self, jets):
         ptlist = []
 	etalist = []
         dphiMET = []
@@ -145,18 +145,7 @@ class Stop0lBaselineProducer(Module):
                 ptlist.append(j.pt)
 		etalist.append(math.fabs(j.eta))
                 dphiMET.append(j.dPhiMET)
-	if not isValidate:
-		return [dphiMET[j] for j in np.argsort(ptlist)[::-1]]
-	else:	
-		output = []
-		for j, e in zip(np.argsort(ptlist)[::-1], np.argsort(etalist)):
-			if j != len(ptlist) - 1:
-				if ptlist[j] == ptlist[j + 1]:
-					output.append(dphiMET[e])
-			else:
-				output.append(dphiMET[j])
-		
-	        return output
+	return [dphiMET[j] for j in np.lexsort((etalist, ptlist[::-1]))]
 
     def PassdPhi(self, sortedPhi, dPhiCuts, invertdPhi =False):
         if invertdPhi:
@@ -236,7 +225,6 @@ class Stop0lBaselineProducer(Module):
         ## In case JEC changed jet pt order, resort jets
         sortedPhi = self.GetJetSortedIdx(jets)
         PassdPhiLowDM   = self.PassdPhi(sortedPhi, [0.5, 0.15, 0.15])
-        sortedPhiVal    = self.GetJetSortedIdx(jets, isValidate = True)
 	PassdPhiMedDM   = self.PassdPhiVal(sortedPhi, [0.15, 0.15, 0.15], [0.5, 4., 4.]) #Variable for LowDM Validation bins
         PassdPhiHighDM  = self.PassdPhi(sortedPhi, [0.5, 0.5, 0.5, 0.5])
         PassdPhiQCD     = self.PassdPhi(sortedPhi, [0.1, 0.1, 0.1], invertdPhi =True)
