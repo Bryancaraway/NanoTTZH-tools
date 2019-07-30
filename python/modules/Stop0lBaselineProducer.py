@@ -134,7 +134,7 @@ class Stop0lBaselineProducer(Module):
         countJets = sum([j.Stop0l for j in jets])
         return countJets >= 2
 
-    def GetJetSortedIdxVal(self, jets):
+    def GetJetSortedIdx(self, jets):
         ptlist = []
 	etalist = []
         dphiMET = []
