@@ -64,6 +64,8 @@ class Stop0lBaselineProducer(Module):
         self.out.branch("Pass_HEMVeto30"     + self.suffix, "O", title="HEM Veto 2018: eta[-3, -1.4], phi[-1.57, -0.87], pt > 30")
         self.out.branch("Pass_exHEMVeto20"   + self.suffix, "O", title="HEM Veto 2018: eta[-3.2, -1.2], phi[-1.77, -0.67], pt > 20")
         self.out.branch("Pass_exHEMVeto30"   + self.suffix, "O", title="HEM Veto 2018: eta[-3.2, -1.2], phi[-1.77, -0.67], pt > 30")
+	self.out.branch("Stop0l_nJetIdx"     + self.suffix, "I")
+	self.out.branch("Stop0l_JetIdx"      + self.suffix, "I", lenVar="Stop0l_nJetIdx")
 
         # Construct Stop0l map
         lob = wrappedOutputTree._branches.keys()
@@ -145,7 +147,10 @@ class Stop0lBaselineProducer(Module):
                 ptlist.append(j.pt)
 		etalist.append(math.fabs(j.eta))
                 dphiMET.append(j.dPhiMET)
-	return [dphiMET[j] for j in np.lexsort((etalist, ptlist[::-1]))]
+
+	sortIdx = np.lexsort((etalist, ptlist[::-1]))
+
+	return sortIdx, [dphiMET[j] for j in sortIdx]
 
     def PassdPhi(self, sortedPhi, dPhiCuts, invertdPhi =False):
         if invertdPhi:
@@ -223,7 +228,7 @@ class Stop0lBaselineProducer(Module):
         PassMET         = met.pt >= 250
         PassHT          = stop0l.HT >= 300
         ## In case JEC changed jet pt order, resort jets
-        sortedPhi = self.GetJetSortedIdx(jets)
+        sortedIdx, sortedPhi = self.GetJetSortedIdx(jets)
         PassdPhiLowDM   = self.PassdPhi(sortedPhi, [0.5, 0.15, 0.15])
 	PassdPhiMedDM   = self.PassdPhiVal(sortedPhi, [0.15, 0.15, 0.15], [0.5, 4., 4.]) #Variable for LowDM Validation bins
         PassdPhiHighDM  = self.PassdPhi(sortedPhi, [0.5, 0.5, 0.5, 0.5])
@@ -276,6 +281,8 @@ class Stop0lBaselineProducer(Module):
         self.out.fillBranch("Pass_HEMVeto30"     + self.suffix, PassHEMVeto30)
         self.out.fillBranch("Pass_exHEMVeto20"   + self.suffix, PassexHEMVeto20)
         self.out.fillBranch("Pass_exHEMVeto30"   + self.suffix, PassexHEMVeto30)
+	self.out.fillBranch("Stop0l_nJetIdx"     + self.suffix, len(sortedIdx))
+	self.out.fillBranch("Stop0l_JetIdx"      + self.suffix, sortedIdx)
         return True
 
 
