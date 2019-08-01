@@ -138,12 +138,15 @@ class Stop0lObjectsProducer(Module):
         return True
 
     def SelPhotons(self, photon):
+        # CMSSW Reference for eta cuts: https://github.com/cms-sw/cmssw/blob/02d4198c0b6615287fd88e9a8ff650aea994412e/DQM/Physics/python/singleTopDQM_miniAOD_cfi.py#L47
         abeta = math.fabs(photon.eta)
-        if (abeta > 1.4442 and abeta < 1.566) or (abeta > 2.5):
+        if (abeta > 1.4442 and abeta < 1.5660) or (abeta > 2.5):
             return False
-        # --- Photon ID: cut-based medium ID --- #
+        # Photon ID MC 102X (for 2017/2018) Reference: https://cms-nanoaod-integration.web.cern.ch/integration/master-102X/mc102X_doc.html#Photon
+        # --- Photon ID: cut-based medium ID from NanoAOD --- #
         # 2016:      Use Photon_cutBased       : Int_t cut-based Spring16-V2p2 ID (0:fail, 1: :loose, 2:medium, 3:tight)
         # 2017,2018: Use Photon_cutBasedBitmap : Int_t cut-based ID bitmap, 2^(0:loose, 1: medium, 2:tight); should be 2017 V2
+        # Using medium photon ID
         if self.era == "2016":
             return bool(photon.cutBased > 1) 
         else:
