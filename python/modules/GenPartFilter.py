@@ -54,7 +54,7 @@ class GenPartFilter(Module):
         pass
 
     def recursiveMotherSearch(self, startIdx, GenPartCut_genPartIdxMother, filterArray):
-        if startIdx < 0: 
+        if startIdx < 0 or filterArray[startIdx]: 
             return startIdx
 
         mom = GenPartCut_genPartIdxMother[startIdx]
