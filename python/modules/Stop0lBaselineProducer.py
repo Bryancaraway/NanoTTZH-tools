@@ -144,11 +144,11 @@ class Stop0lBaselineProducer(Module):
             if math.fabs(j.eta) > 4.7 or j.pt < 20:
                 pass
             else:
-                ptlist.append(j.pt)
+		ptlist.append(j.pt)
 		etalist.append(math.fabs(j.eta))
                 dphiMET.append(j.dPhiMET)
 
-	sortIdx = np.lexsort((etalist, ptlist[::-1]))
+	sortIdx = np.lexsort((etalist, -ptlist))
 
 	return sortIdx, [dphiMET[j] for j in sortIdx]
 
