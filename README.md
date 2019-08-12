@@ -24,7 +24,9 @@ cd $CMSSW_BASE/src/TopTagger/TopTagger/test
 make
 cmsenv
 cd $CMSSW_BASE/src/PhysicsTools/NanoSUSYTools/python/processors
-getTaggerCfg.sh -t DeepResolved_DeepCSV_GR_nanoAOD_V1.0.0
+getTaggerCfg.sh -n -t DeepResolved_DeepCSV_GR_nanoAOD_2016_v1.0.2
+getTaggerCfg.sh -n -t DeepResolved_DeepCSV_GR_nanoAOD_2017_v1.0.2
+getTaggerCfg.sh -n -t DeepResolved_DeepCSV_GR_nanoAOD_2018_v1.0.2
 ```
 
 ### Run local MC test
