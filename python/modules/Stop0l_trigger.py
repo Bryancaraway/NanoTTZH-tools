@@ -237,11 +237,17 @@ class Stop0l_trigger(Module):
         photon_mid = []
         for photon in photons:
                 if (abs(photon.eta) < 1.442 or (1.566 < abs(photon.eta) and abs(photon.eta) < 2.5)):
-                        cutbase =  photon.cutBasedBitmap if self.era != "2016" else photon.cutBased
-                        if(cutbase >=1):
-                                photon_loose.append(photon)
-                        if(cutbase >=2):
-                                photon_mid.append(photon)
+                        #cutbase =  photon.cutBasedBitmap if self.era != "2016" else photon.cutBased
+                        #if(cutbase >=1):
+                        #        photon_loose.append(photon)
+                        #if(cutbase >=2):
+                        #        photon_mid.append(photon)
+			if self.era == "2016":
+				if photon.cutBased >=1: photon_loose.append(photon)
+				if photon.cutBased >=2: photon_mid.append(photon)
+			else:
+				if bool(photon.cutBasedBitmap & 1): photon_loose.append(photon)
+				if bool(photon.cutBasedBitmap & 2): photon_mid.append(photon)
         n_photon = len(photon_loose)
         n_photon_mid = len(photon_mid)
 
