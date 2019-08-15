@@ -17,14 +17,16 @@ cd $CMSSW_BASE/src
 cmsenv
 git clone -b Stop0l git@github.com:susy2015/nanoAOD-tools.git PhysicsTools/NanoAODTools
 git clone -b postpro_v2.7 git@github.com:susy2015/NanoSUSY-tools.git PhysicsTools/NanoSUSYTools
-git clone -b Stop0l_NanoAOD_production_V2.3 git@github.com:susy2015/TopTagger.git
+git clone -b Stop0l_NanoAOD_production_V3.0 git@github.com:susy2015/TopTagger.git
 scram b
 cd $CMSSW_BASE/src/TopTagger/TopTagger/test
 ./configure
 make
 cmsenv
 cd $CMSSW_BASE/src/PhysicsTools/NanoSUSYTools/python/processors
-getTaggerCfg.sh -t DeepResolved_DeepCSV_GR_nanoAOD_V1.0.0
+getTaggerCfg.sh -n -t DeepResolved_DeepCSV_GR_nanoAOD_2016_v1.0.2
+getTaggerCfg.sh -n -t DeepResolved_DeepCSV_GR_nanoAOD_2017_v1.0.2
+getTaggerCfg.sh -n -t DeepResolved_DeepCSV_GR_nanoAOD_2018_v1.0.2
 ```
 
 ### Run local MC test
