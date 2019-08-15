@@ -33,11 +33,11 @@ class ISRSFWeightProducer(Module):
         fin = ROOT.TFile.Open(self.fileDirectory + "/" + self.isrEffFile)
         self.h_eff          = fin.Get(("NJetsISR_" + self.sampleName));
 
-        if not self.h_eff:
-            print "ISRJet efficiency histograms for sample \"%s\" are not found in file \"%s\".  Using TTBar_2016 inclusive numbers as default setting!!!!"%( self.sampleName, self.isrEffFile)
-            self.sampleName = "TTbarInc_2016"
-            self.h_eff         = fin.Get(("NJetsISR_" + self.sampleName));
         if  ("TTbar" in self.sampleName and self.era == "2016") or self.isSUSY:
+            if not self.h_eff:
+                print "ISRJet efficiency histograms for sample \"%s\" are not found in file \"%s\".  Using TTBar_2016 inclusive numbers as default setting!!!!"%( self.sampleName, self.isrEffFile)
+                self.sampleName = "TTbarInc_2016"
+                self.h_eff         = fin.Get(("NJetsISR_" + self.sampleName));
             self.PropISRWeightUnc()
 
     def PropISRWeightUnc(self):
