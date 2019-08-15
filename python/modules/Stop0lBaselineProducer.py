@@ -64,8 +64,8 @@ class Stop0lBaselineProducer(Module):
         self.out.branch("Pass_HEMVeto30"     + self.suffix, "O", title="HEM Veto 2018: eta[-3, -1.4], phi[-1.57, -0.87], pt > 30")
         self.out.branch("Pass_exHEMVeto20"   + self.suffix, "O", title="HEM Veto 2018: eta[-3.2, -1.2], phi[-1.77, -0.67], pt > 20")
         self.out.branch("Pass_exHEMVeto30"   + self.suffix, "O", title="HEM Veto 2018: eta[-3.2, -1.2], phi[-1.77, -0.67], pt > 30")
-	self.out.branch("Stop0l_nJetIdx"     + self.suffix, "I")
-	self.out.branch("Stop0l_JetIdx"      + self.suffix, "I", lenVar="Stop0l_nJetIdx")
+	self.out.branch("Jet_nsortedIdx"     + self.suffix, "I")
+	self.out.branch("Jet_sortedIdx"      + self.suffix, "I", lenVar="Jet_nsortedIdx")
 
         # Construct Stop0l map
         lob = wrappedOutputTree._branches.keys()
@@ -281,8 +281,8 @@ class Stop0lBaselineProducer(Module):
         self.out.fillBranch("Pass_HEMVeto30"     + self.suffix, PassHEMVeto30)
         self.out.fillBranch("Pass_exHEMVeto20"   + self.suffix, PassexHEMVeto20)
         self.out.fillBranch("Pass_exHEMVeto30"   + self.suffix, PassexHEMVeto30)
-	self.out.fillBranch("Stop0l_nJetIdx"     + self.suffix, len(sortedIdx))
-	self.out.fillBranch("Stop0l_JetIdx"      + self.suffix, sortedIdx)
+	self.out.fillBranch("Jet_nsortedIdx"     + self.suffix, len(sortedIdx))
+	self.out.fillBranch("Jet_sortedIdx"      + self.suffix, sortedIdx)
         return True
 
 
