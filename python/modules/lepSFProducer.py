@@ -5,16 +5,19 @@ ROOT.PyConfig.IgnoreCommandLineOptions = True
 
 from PhysicsTools.NanoAODTools.postprocessing.framework.datamodel import Collection
 from PhysicsTools.NanoAODTools.postprocessing.framework.eventloop import Module
+from TauPOG.TauIDSFs.TauIDSFTool import TauIDSFTool
 
 class lepSFProducer(Module):
     """ This module is copied from the NanoAOD-tools,
     but developed for lastest SUSY Lepton ID
     """
-    def __init__(self, era, muonSelectionTag="Loose", electronSelectionTag="Veto", photonSelectionTag="Loose"):
+    def __init__(self, era, muonSelectionTag="Loose", electronSelectionTag="Veto", 
+                 photonSelectionTag="Loose", tauSelectionTag="Medium"):
         self.era = era
         self.muonSelectionTag = muonSelectionTag
         self.electronSelectionTag = electronSelectionTag
         self.photonSelectionTag = photonSelectionTag
+        self.tauSelectionTag = tauSelectionTag
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Muon ~~~~~
         # TODO: Muon POG provides 2016 SF in different format!
@@ -81,6 +84,9 @@ class lepSFProducer(Module):
                 print("Load Library '%s'" % library)
                 ROOT.gSystem.Load(library)
 
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Tau ~~~~~
+        self.tauSFTool = TauIDSFTool(int(self.era),'MVAoldDM2017v2',self.tauSelectionTag)
+    
 
     def beginJob(self):
         self._worker_mu = ROOT.LeptonEfficiencyCorrector(self.mu_f,self.mu_h)
@@ -103,6 +109,12 @@ class lepSFProducer(Module):
                         lenVar="nPhoton", title="ID scale factor per Photon")
         self.out.branch("Photon_%sSFErr" % self.photonSelectionTag , "F" , \
                         lenVar="nPhoton", title="ID scale factor error  per Photon")
+        self.out.branch("Tau_%sSF" % self.tauSelectionTag    , "F" , \
+                        lenVar="nTau", title="ID scale factor per Tau")
+        self.out.branch("Tau_%sSF_Up" % self.tauSelectionTag    , "F" , \
+                        lenVar="nTau", title="ID scale factor up error per Tau")
+        self.out.branch("Tau_%sSF_Down" % self.tauSelectionTag    , "F" , \
+                        lenVar="nTau", title="ID scale factor down error per Tau")
 
     def endFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
         pass
@@ -112,6 +124,8 @@ class lepSFProducer(Module):
         muons = Collection(event, "Muon")
         electrons = Collection(event, "Electron")
         photons   = Collection(event, "Photon")
+        taus   = Collection(event, "Tau")
+
         sf_el = [ self._worker_el.getSF(el.pdgId,el.pt,el.eta) for el in electrons ]
         if self.era == "2016":
             sf_mu = [ self._worker_mu.getSF(12,mu.pt,mu.eta) for mu in muons ]
@@ -125,12 +139,22 @@ class lepSFProducer(Module):
         else:
             sferr_mu = [ self._worker_mu.getSFErr(mu.pdgId,mu.pt,mu.eta) for mu in muons ]
         sferr_pho = [ self._worker_pho.getSFErr(pho.pdgId,pho.pt,pho.eta) for pho in photons ]
+
+        #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Tau ~~~~~
+        sf_tau = [self.tauSFTool.getSFvsPT(tau.pt, tau.genPartIdx != -1) for tau in taus]
+        sf_tau_up = [self.tauSFTool.getSFvsPT(tau.pt, tau.genPartIdx != -1, unc="Up") for tau in taus]
+        sf_tau_down = [ self.tauSFTool.getSFvsPT(tau.pt, tau.genPartIdx != -1, unc='Down') for tau in taus]
+
+
         self.out.fillBranch("Muon_%sSF" % self.muonSelectionTag            , sf_mu)
         self.out.fillBranch("Muon_%sSFErr" % self.muonSelectionTag         , sferr_mu)
         self.out.fillBranch("Electron_%sSF" % self.electronSelectionTag    , sf_el)
         self.out.fillBranch("Electron_%sSFErr" % self.electronSelectionTag , sferr_el)
-        self.out.fillBranch("Photon_%sSF" % self.photonSelectionTag    , sf_pho)
-        self.out.fillBranch("Photon_%sSFErr" % self.photonSelectionTag , sferr_pho)
+        self.out.fillBranch("Photon_%sSF" % self.photonSelectionTag        , sf_pho)
+        self.out.fillBranch("Photon_%sSFErr" % self.photonSelectionTag     , sferr_pho)
+        self.out.fillBranch("Tau_%sSF" % self.tauSelectionTag              , sf_tau)
+        self.out.fillBranch("Tau_%sSF_Up" % self.tauSelectionTag           , sf_tau_up)
+        self.out.fillBranch("Tau_%sSF_Down" % self.tauSelectionTag         , sf_tau_down)
         return True
 
 # define modules using the syntax 'name = lambda : constructor' to avoid having them loaded when not needed
