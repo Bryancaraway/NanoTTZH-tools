@@ -121,10 +121,11 @@ class lepSFProducer(Module):
 
     def analyze(self, event):
         """process event, return True (go to next module) or False (fail, go to next event)"""
-        muons = Collection(event, "Muon")
+        muons     = Collection(event, "Muon")
         electrons = Collection(event, "Electron")
         photons   = Collection(event, "Photon")
-        taus   = Collection(event, "Tau")
+        taus      = Collection(event, "Tau")
+        gens      = Collection(event, "GenPart")
 
         sf_el = [ self._worker_el.getSF(el.pdgId,el.pt,el.eta) for el in electrons ]
         if self.era == "2016":
@@ -141,10 +142,18 @@ class lepSFProducer(Module):
         sferr_pho = [ self._worker_pho.getSFErr(pho.pdgId,pho.pt,pho.eta) for pho in photons ]
 
         #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Tau ~~~~~
-        sf_tau = [self.tauSFTool.getSFvsPT(tau.pt, tau.genPartIdx != -1) for tau in taus]
-        sf_tau_up = [self.tauSFTool.getSFvsPT(tau.pt, tau.genPartIdx != -1, unc="Up") for tau in taus]
-        sf_tau_down = [ self.tauSFTool.getSFvsPT(tau.pt, tau.genPartIdx != -1, unc='Down') for tau in taus]
-
+        sf_tau = []
+        sf_tau_up = []
+        sf_tau_down = []
+        for tau in taus:
+            genmatch = -1
+            ## genPartFlave: 1 = prompt electron, 2 = prompt muon, 3 = tau->e decay, 
+            ## 4 = tau->mu decay, 5 = hadronic tau decay, 0 = unknown or unmatched
+            if tau.genPartFlav >= 3 :
+                genmatch = 5
+            sf_tau.append(self.tauSFTool.getSFvsPT(tau.pt, genmatch))
+            sf_tau_up.append(self.tauSFTool.getSFvsPT(tau.pt, genmatch, unc="Up"))
+            sf_tau_down.append(self.tauSFTool.getSFvsPT(tau.pt, genmatch, unc="Down"))
 
         self.out.fillBranch("Muon_%sSF" % self.muonSelectionTag            , sf_mu)
         self.out.fillBranch("Muon_%sSFErr" % self.muonSelectionTag         , sferr_mu)
