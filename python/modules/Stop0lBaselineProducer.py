@@ -93,8 +93,7 @@ class Stop0lBaselineProducer(Module):
             ## Common filters
             passEventFilter = flags.goodVertices and flags.HBHENoiseFilter and \
                     flags.HBHENoiseIsoFilter and flags.EcalDeadCellTriggerPrimitiveFilter \
-                    and flags.BadPFMuonFilter and flags.BadChargedCandidateFilter # Post 2016 ICHEP
-                    # and flags.BadPFMuonSummer16Filter and # flags.BadChargedCandidateSummer16Filter
+                    and flags.BadPFMuonFilter 
             ## Only data
             if self.isData:
                 passEventFilter = passEventFilter and flags.globalSuperTightHalo2016Filter and flags.eeBadScFilter
@@ -104,10 +103,11 @@ class Stop0lBaselineProducer(Module):
         #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ 2017 ~~~~~
         if self.era == "2017" or self.era == "2018":
             ## Common filters
+            ## Missing the latest ecalBadCalibReducedMINIAODFilter, not in MiniAOD
+            ## But still using the old ecalBadCalibFilter from MiniAOD
             passEventFilter = flags.goodVertices and flags.HBHENoiseFilter and \
                     flags.HBHENoiseIsoFilter and flags.EcalDeadCellTriggerPrimitiveFilter \
-                    and flags.BadPFMuonFilter and flags.BadChargedCandidateFilter \
-                    and flags.ecalBadCalibFilter  ## Need to double check whether is outdated
+                    and flags.BadPFMuonFilter and flags.ecalBadCalibFilter  
             ## Only data
             if self.isData:
                 passEventFilter = passEventFilter and flags.globalSuperTightHalo2016Filter and flags.eeBadScFilter
@@ -204,20 +204,20 @@ class Stop0lBaselineProducer(Module):
         electrons = Collection(event, "Electron")
         muons     = Collection(event, "Muon")
         isotracks = Collection(event, "IsoTrack")
-	taus      = Collection(event, "Tau")
+        taus      = Collection(event, "Tau")
 
         ## Baseline Selection
         PassJetID       = self.PassJetID(jets)
         ## This was an old recommendation in ICHEP16, store this optional bit in case we need it
         ## https://twiki.cern.ch/twiki/bin/viewauth/CMS/SUSRecommendationsICHEP16 
         PassCaloMETRatio= (met.pt / caloMET.pt ) < 5 if caloMET.pt > 0 else True
-        PassEventFilter = self.PassEventFilter(flags) and PassJetID
+        PassEventFilter = self.PassEventFilter(flags)
 
         countEle, countMu, countIsk, countTauPOG = self.calculateNLeptons(electrons, muons, isotracks, taus)
-        PassElecVeto    = countEle == 0
-        PassMuonVeto    = countMu == 0
-        PassIsoTrkVeto  = countIsk == 0
-	PassTauVeto	= countTauPOG == 0
+        PassElecVeto   = countEle == 0
+        PassMuonVeto   = countMu == 0
+        PassIsoTrkVeto = countIsk == 0
+        PassTauVeto    = countTauPOG == 0
         PassLeptonVeto  = PassElecVeto and PassMuonVeto and PassIsoTrkVeto and PassTauVeto
 
         totlep = countEle + countMu
@@ -230,20 +230,22 @@ class Stop0lBaselineProducer(Module):
         ## In case JEC changed jet pt order, resort jets
         sortedIdx, sortedPhi = self.GetJetSortedIdx(jets)
         PassdPhiLowDM   = self.PassdPhi(sortedPhi, [0.5, 0.15, 0.15])
+
 	PassdPhiMedDM   = self.PassdPhiVal(sortedPhi, [0.15, 0.15, 0.15], [0.5, 4., 4.]) #Variable for LowDM Validation bins
+
         PassdPhiHighDM  = self.PassdPhi(sortedPhi, [0.5, 0.5, 0.5, 0.5])
         PassdPhiQCD     = self.PassdPhi(sortedPhi, [0.1, 0.1, 0.1], invertdPhi =True)
 
-        PassBaseline    = PassEventFilter and PassLeptonVeto and PassNjets and PassMET and PassHT and PassdPhiLowDM
+        PassBaseline    = PassEventFilter and PassJetID and PassLeptonVeto and PassNjets and PassMET and PassHT and PassdPhiLowDM
         PasshighDM      = PassBaseline and stop0l.nJets >= 5 and PassdPhiHighDM and stop0l.nbtags >= 1
         PasslowDM       = PassBaseline and stop0l.nTop == 0 and stop0l.nW == 0 and stop0l.nResolved == 0 and \
                 stop0l.Mtb < 175 and stop0l.ISRJetPt > 200 and stop0l.METSig > 10
-        PassQCDCR       = PassEventFilter and PassLeptonVeto and PassNjets and PassMET and PassHT and PassdPhiQCD
+        PassQCDCR       = PassEventFilter and PassJetID and PassLeptonVeto and PassNjets and PassMET and PassHT and PassdPhiQCD
         PassQCD_highDM  = PassQCDCR and stop0l.nJets >= 5 and stop0l.nbtags >= 1
         PassQCD_lowDM   = PassQCDCR and stop0l.nTop == 0 and stop0l.nW == 0 and stop0l.nResolved == 0 and \
                 stop0l.Mtb < 175 and stop0l.ISRJetPt > 200 and stop0l.METSig > 10
 
-        PassLLCR       = PassEventFilter and PassLLLep and PassNjets and PassMET and PassHT and PassdPhiLowDM
+        PassLLCR       = PassEventFilter and PassJetID and PassLLLep and PassNjets and PassMET and PassHT and PassdPhiLowDM
         PassLL_highDM  = PassLLCR and stop0l.nJets >= 5 and PassdPhiHighDM and stop0l.nbtags >= 1
         PassLL_lowDM   = PassLLCR and stop0l.nTop == 0 and stop0l.nW == 0 and stop0l.nResolved == 0 and \
                 stop0l.Mtb < 175 and stop0l.ISRJetPt > 200 and stop0l.METSig > 10
@@ -259,14 +261,14 @@ class Stop0lBaselineProducer(Module):
         self.out.fillBranch("Pass_ElecVeto"      + self.suffix, PassElecVeto)
         self.out.fillBranch("Pass_MuonVeto"      + self.suffix, PassMuonVeto)
         self.out.fillBranch("Pass_IsoTrkVeto"    + self.suffix, PassIsoTrkVeto)
-	self.out.fillBranch("Pass_TauVeto"       + self.suffix, PassTauVeto)
+        self.out.fillBranch("Pass_TauVeto"       + self.suffix, PassTauVeto)
         self.out.fillBranch("Pass_LeptonVeto"    + self.suffix, PassLeptonVeto)
         self.out.fillBranch("Pass_NJets20"       + self.suffix, PassNjets)
         self.out.fillBranch("Pass_MET"           + self.suffix, PassMET)
         self.out.fillBranch("Pass_HT"            + self.suffix, PassHT)
         self.out.fillBranch("Pass_dPhiMET"       + self.suffix, PassdPhiLowDM)
         self.out.fillBranch("Pass_dPhiMETLowDM"  + self.suffix, PassdPhiLowDM)
-	self.out.fillBranch("Pass_dPhiMETMedDM"  + self.suffix, PassdPhiMedDM)
+        self.out.fillBranch("Pass_dPhiMETMedDM"  + self.suffix, PassdPhiMedDM)
         self.out.fillBranch("Pass_dPhiMETHighDM" + self.suffix, PassdPhiHighDM)
         self.out.fillBranch("Pass_Baseline"      + self.suffix, PassBaseline)
         self.out.fillBranch("Pass_highDM"        + self.suffix, PasshighDM)

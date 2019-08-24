@@ -54,7 +54,7 @@ class GenPartFilter(Module):
         pass
 
     def recursiveMotherSearch(self, startIdx, GenPartCut_genPartIdxMother, filterArray):
-        if startIdx < 0: 
+        if startIdx < 0 or filterArray[startIdx]: 
             return startIdx
 
         mom = GenPartCut_genPartIdxMother[startIdx]
@@ -89,15 +89,16 @@ class GenPartFilter(Module):
 
         #calculate filter array 
         flagStatIDReq = (self.statusFlags, self.statuses, self.parentPdgIds)
-        filterArrays = [ np.logical_and( (GenPartCut_statusFlags & statusFlag) == statusFlag if statusFlag else np.ones(len(GenPartCut_eta), dtype=bool),
-                                         GenPartCut_status                     == status     if status     else np.ones(len(GenPartCut_eta), dtype=bool),
-                                         abs(GenPartCut_pdgId)                 == pdgId      if pdgId      else np.ones(len(GenPartCut_eta), dtype=bool)  )
+        filterArrays = [ np.logical_and.reduce( ( (GenPartCut_statusFlags & statusFlag) == statusFlag if statusFlag else np.ones(len(GenPartCut_eta), dtype=bool),
+                                                   GenPartCut_status                    == status     if status     else np.ones(len(GenPartCut_eta), dtype=bool),
+                                                   abs(GenPartCut_pdgId)                == pdgId      if pdgId      else np.ones(len(GenPartCut_eta), dtype=bool) ) )
                          for statusFlag, status, pdgId in zip(*flagStatIDReq) ]
+
         #if a gen particle passed any of the filters we to keep it 
         if len(filterArrays) == 1:
             filterArray = filterArrays[0]
         else:
-            filterArray = np.logical_or(*filterArrays)
+            filterArray = np.logical_or.reduce(filterArrays)
 
         #revise mother history to fill in the gaps left by the filtering 
         GenPartCut_genPartIdxMother = self.vector_recursiveMotherSearch(GenPartCut_genPartIdxMother, GenPartCut_genPartIdxMother, filterArray)
