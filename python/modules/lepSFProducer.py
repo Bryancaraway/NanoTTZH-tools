@@ -172,20 +172,19 @@ class lepSFProducer(Module):
         sferr_mu = [a/b for a, b in zip(sferr_mu, sf_mu)] 
 
         #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Photon ~~~~~
-        sf_eleveto = sferr_eleveto= []
+        sf_eleveto = []
+        sferr_eleveto= []
         if self.era == "2016":
             sf_eleveto = [ self._worker_eleveto.getSF(pho.pdgId,pho.pt,abs(pho.eta)) for pho in photons ]
             sferr_eleveto = [ self._worker_eleveto.getSFErr(pho.pdgId,pho.pt,abs(pho.eta)) for pho in photons ]
         else:
             for pho in photons:
-                binx = 2 if pho.r9 > 0.94 else 3
+                binx = 1 if pho.r9 > 0.94 else 2
                 binx = binx + 3 if pho.isScEtaEE else binx 
                 sf_eleveto.append(self._worker_eleveto.getSF(pho.pdgId, 0, binx ))
                 sferr_eleveto.append(self._worker_eleveto.getSFErr(pho.pdgId, 0, binx ))
         ssf_pho = [a*b for a, b in zip(sf_pho, sf_eleveto)] 
-        ssferr_pho = [ math.sqrt(((serrp/sp)** 2 + (serre/se)**2))/ssf for sp, se, serrp, serre, ssf in zip(sf_pho, sf_eleveto, sferr_pho, sferr_eleveto, ssf_pho)] 
-        print("value", sf_pho, sf_eleveto, ssf_pho)
-        print("error", sferr_pho, sferr_eleveto, ssferr_pho)
+        ssferr_pho = [ math.sqrt(((serrp/sp)** 2 + (serre/se)**2))/ ssf for sp, se, serrp, serre, ssf in zip(sf_pho, sf_eleveto, sferr_pho, sferr_eleveto, ssf_pho) ] 
 
 
         #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Tau ~~~~~
