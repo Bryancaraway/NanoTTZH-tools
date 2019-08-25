@@ -15,12 +15,27 @@ from PhysicsTools.NanoSUSYTools.modules.datamodelRemap import ObjectRemapped, Co
 class DeepTopProducer(Module):
     def __init__(self, era, applyUncert=None):
         ## WP from Hui's study https://indico.cern.ch/event/780000/contributions/3248659/attachments/1768782/2873013/Search_bin_study_with_combine_tools_v13.pdf
-        self.DeepAK8TopWP  = 0.9377
-        self.DeepAK8TopPt  = 400.0
+        ## Updated WP from https://indico.cern.ch/event/840827/contributions/3527925/attachments/1895214/3126510/DeepAK8_Top_W_SFs_2017_JMAR_PK.pdf
         self.minAK8TopMass = 105
+        self.maxAK8TopMass = 210
+        self.DeepAK8TopPt  = 300.0 # New SF seems to start from 300
+        ## Mistag 0.5% WP, using 2017 WP as 2018
+        self.DeepAK8TopWP  = {
+            "2016" : 0.937,
+            "2017" : 0.895,
+            "2018" : 0.895
+        }
+
+        ## Mistag 0.5% WP, using 2017 WP as 2018
         self.minAK8WMass   = 65
-        self.DeepAK8WWP    = 0.9530
+        self.maxAK8WMass   = 105
         self.DeepAK8WPt    = 200.0
+        self.DeepAK8WWP    = {
+            "2016" : 0.973,
+            "2017" : 0.991,
+            "2018" : 0.991
+        }
+
         self.DeepResolveWP = 0.92
         self.etaMax        = 2.0
         self.bJetEtaMax    = 2.4
@@ -45,7 +60,7 @@ class DeepTopProducer(Module):
 
     def beginFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
         self.out = wrappedOutputTree
-        self.out.branch("FatJet_Stop0l" + self.suffix, "I", lenVar="nFatJet")
+        self.out.branch("FatJet_Stop0l", "I", lenVar="nFatJet")
         self.out.branch("ResolvedTop_Stop0l" + self.suffix, "O", lenVar="nResolvedTopCandidate")
         self.out.branch("Stop0l_nTop" + self.suffix, "I")
         self.out.branch("Stop0l_nW" + self.suffix, "I")
@@ -62,9 +77,11 @@ class DeepTopProducer(Module):
         pass
 
     def SelDeepAK8(self, fatj):
-        if fatj.deepTag_TvsQCD > self.DeepAK8TopWP and fatj.msoftdrop > self.minAK8TopMass and fatj.pt > self.DeepAK8TopPt and abs(fatj.eta) < self.etaMax:
+        if fatj.deepTag_TvsQCD > self.DeepAK8TopWP[self.era] and fatj.msoftdrop >= self.minAK8TopMass \
+           and fatj.msoftdrop < self.maxAK8TopMass and fatj.pt > self.DeepAK8TopPt and abs(fatj.eta) < self.etaMax:
             return 1
-        elif fatj.deepTag_WvsQCD > self.DeepAK8WWP and fatj.msoftdrop > self.minAK8WMass and fatj.pt > self.DeepAK8WPt and abs(fatj.eta) < self.etaMax:
+        elif fatj.deepTag_WvsQCD > self.DeepAK8WWP[self.era] and fatj.msoftdrop >= self.minAK8WMass \
+                and fatj.msoftdrop < self.maxAK8WMass and fatj.pt > self.DeepAK8WPt and abs(fatj.eta) < self.etaMax:
             return 2
         else:
             return 0
@@ -229,7 +246,7 @@ class DeepTopProducer(Module):
         (HOTpt, HOTeta, HOTphi, HOTmass, HOTtype) =  self.CreateHOTs(fatjets, resolves)
 
         ### Store output
-        self.out.fillBranch("FatJet_Stop0l" + self.suffix, self.FatJet_Stop0l)
+        self.out.fillBranch("FatJet_Stop0l", self.FatJet_Stop0l)
         self.out.fillBranch("ResolvedTop_Stop0l" + self.suffix, self.ResolvedTop_Stop0l)
         self.out.fillBranch("Stop0l_nTop" + self.suffix, self.nTop)
         self.out.fillBranch("Stop0l_nW" + self.suffix, self.nW)
