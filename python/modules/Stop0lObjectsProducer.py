@@ -189,7 +189,7 @@ class Stop0lObjectsProducer(Module):
         electrons = Collection(event, "Electron")
         muons     = Collection(event, "Muon")
         isotracks = Collection(event, "IsoTrack")
-	taus	  = Collection(event, "Tau")
+        taus	  = Collection(event, "Tau")
 
         if self.applyUncert == "JESUp":
             jets      = CollectionRemapped(event, "Jet", replaceMap={"pt":"pt_jesTotalUp", "mass":"mass_jesTotalUp"})
