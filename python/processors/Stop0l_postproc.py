@@ -215,6 +215,7 @@ def main(args):
                                systToSave=["Btag_Up", "Btag_Down", "Pileup_Up", "Pileup_Down", "CSPur_Up", "CSPur_Down", "Stat_Up", "Stat_Down", "Closure_Up", "Closure_Down"]),
              DeepTopProducer(args.era),
              Stop0lBaselineProducer(args.era, isData=isdata, isFastSim=isfastsim),
+             SoftBDeepAK8SFProducer(args.era, isData=isdata, isFastSim=isfastsim),
              Stop0l_trigger(args.era, isData=isdata),
              UpdateEvtWeight(isdata, args.crossSection, args.nEvents, args.sampleName)
             ]
