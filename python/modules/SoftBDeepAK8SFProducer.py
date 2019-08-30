@@ -170,7 +170,7 @@ class SoftBDeepAK8SFProducer(Module):
                 if self.isFastSim:
                     for k, v in DeepTop_fastSF[self.era].items():
                         if fj.pt >= k[0] and fj.pt < k[1]:
-                            top_fastsf[i]= v[0])
+                            top_fastsf[i]= v[0]
                             top_fastsferr[i] = v[1]
             elif fj.Stop0l == 2:
                 for k, v in DeepW_SF[self.era].items():

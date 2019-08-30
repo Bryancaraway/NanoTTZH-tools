@@ -184,7 +184,7 @@ class lepSFProducer(Module):
                 sf_eleveto.append(self._worker_eleveto.getSF(pho.pdgId, 0, binx ))
                 sferr_eleveto.append(self._worker_eleveto.getSFErr(pho.pdgId, 0, binx ))
         ssf_pho = [a*b for a, b in zip(sf_pho, sf_eleveto)] 
-        ssferr_pho = [ math.sqrt(((serrp/sp)** 2 + (serre/se)**2))/ ssf for sp, se, serrp, serre, ssf in zip(sf_pho, sf_eleveto, sferr_pho, sferr_eleveto, ssf_pho) ] 
+        ssferr_pho = [ math.sqrt(((serrp/sp)** 2 + (serre/se)**2))/ ssf if ssf !=0 else 0 for sp, se, serrp, serre, ssf in zip(sf_pho, sf_eleveto, sferr_pho, sferr_eleveto, ssf_pho) ] 
 
 
         #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Tau ~~~~~

@@ -28,6 +28,7 @@ from PhysicsTools.NanoSUSYTools.modules.FastsimVarProducer import FastsimVarProd
 from PhysicsTools.NanoSUSYTools.modules.PrefireCorr import PrefCorr
 from PhysicsTools.NanoSUSYTools.modules.ISRWeightProducer import ISRSFWeightProducer
 from PhysicsTools.NanoSUSYTools.modules.Stop0l_trigger import Stop0l_trigger
+from PhysicsTools.NanoSUSYTools.modules.SoftBDeepAK8SFProducer import SoftBDeepAK8SFProducer
 
 # JEC files are those recomended here (as of Mar 1, 2019)
 # https://twiki.cern.ch/twiki/bin/view/CMS/JECDataMC#Recommended_for_MC
