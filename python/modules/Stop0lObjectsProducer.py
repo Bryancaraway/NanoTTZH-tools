@@ -5,6 +5,7 @@ import numpy as np
 
 from PhysicsTools.NanoAODTools.postprocessing.framework.datamodel import Collection, Object
 from PhysicsTools.NanoAODTools.postprocessing.framework.eventloop import Module
+from PhysicsTools.NanoAODTools.postprocessing.tools import deltaR
 
 from PhysicsTools.NanoSUSYTools.modules.datamodelRemap import ObjectRemapped, CollectionRemapped
 
@@ -127,11 +128,12 @@ class Stop0lObjectsProducer(Module):
             return True
         return False
 
-    def SelSoftb(self, isv):
+    def SelSoftb(self, isv, jets):
         ## Select soft bs
         ## SV is not associate with selected jets
-        if isv.JetIdx >0 and isv.JetIdx < len(self.Jet_Stop0l) and self.Jet_Stop0l[isv.JetIdx]:
-            return False
+        for j in jets:
+            if j.pt >= 20 and math.fabs(j.eta) <= 2.4 and deltaR(j.eta, j.phi, isv.eta, isv.phi) <= 0.4 :
+                return False
         if isv.ntracks < 3 or math.fabs(isv.dxy)>3. or isv.dlenSig <4:
             return False
         if isv.DdotP < 0.98 :
@@ -223,7 +225,7 @@ class Stop0lObjectsProducer(Module):
         self.Jet_Stop0l      = map(self.SelJets, jets)
         local_BJet_Stop0l    = map(self.SelBtagJets, jets)
         self.BJet_Stop0l     = [a and b for a, b in zip(self.Jet_Stop0l, local_BJet_Stop0l )]
-        self.SB_Stop0l       = map(self.SelSoftb, isvs)
+        self.SB_Stop0l       = map(lambda x : self.SelSoftb(x, jets), isvs)
         self.Photon_Stop0l   = map(self.SelPhotons, photons)
 
         ## Jet variables
