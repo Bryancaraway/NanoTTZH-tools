@@ -18,7 +18,7 @@ class DeepTopProducer(Module):
         ## Updated WP from https://indico.cern.ch/event/840827/contributions/3527925/attachments/1895214/3126510/DeepAK8_Top_W_SFs_2017_JMAR_PK.pdf
         self.minAK8TopMass = 105
         self.maxAK8TopMass = 210
-        self.DeepAK8TopPt  = 300.0 # New SF seems to start from 300
+        self.DeepAK8TopPt  = 400.0 # Using 400 Pt cut 
         ## Mistag 0.5% WP, using 2017 WP as 2018
         self.DeepAK8TopWP  = {
             "2016" : 0.937,
