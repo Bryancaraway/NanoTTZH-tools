@@ -17,9 +17,9 @@ from collections import defaultdict
 from multiprocessing import Pool
 
 DelExe    = '../Stop0l_postproc.py'
-tempdir = '/uscms_data/d3/%s/condor_temp/' % getpass.getuser()
+tempdir = '/uscmst1b_scratch/lpc1/3DayLifetime/%s/TestCondor/'  % getpass.getuser()
 ShortProjectName = 'PostProcess'
-VersionNumber = '_v2p7'
+VersionNumber = '_v3'
 argument = "--inputFiles=%s.$(Process).list "
 sendfiles = ["../keep_and_drop.txt"]
 TTreeName = "Events"

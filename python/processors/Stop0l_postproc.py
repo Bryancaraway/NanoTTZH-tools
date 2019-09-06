@@ -209,6 +209,7 @@ def main(args):
 
     #~~~~~ Common modules for Data and MC ~~~~~
     mods += [ eleMiniCutID(),
+             FastsimVarProducer(isfastsim),
              Stop0lObjectsProducer(args.era),
              TopTaggerProducer(recalculateFromRawInputs=True, topDiscCut=DeepResovledCandidateDiscCut, 
                                cfgWD=os.environ["CMSSW_BASE"] + "/src/PhysicsTools/NanoSUSYTools/python/processors/" + DataDepInputs[dataType][args.era if not isdata else (args.era + args.dataEra)]["taggerWD"],
@@ -241,6 +242,10 @@ def main(args):
                               cfgWD=os.environ["CMSSW_BASE"] + "/src/PhysicsTools/NanoSUSYTools/python/processors/" + DataDepInputs[dataType][args.era if not isdata else (args.era + args.dataEra)]["taggerWD"]),
             DeepTopProducer(args.era, "JESUp"),
             DeepTopProducer(args.era, "JESDown"),
+            FastsimVarProducer(isfastsim, "JESUp"),
+            FastsimVarProducer(isfastsim, "JESDown"),
+            FastsimVarProducer(isfastsim, "METUnClustUp"),
+            FastsimVarProducer(isfastsim, "METUnClustDown"),
             Stop0lObjectsProducer(args.era, "JESUp"),
             Stop0lObjectsProducer(args.era, "JESDown"),
             Stop0lObjectsProducer(args.era, "METUnClustUp"),
@@ -263,7 +268,6 @@ def main(args):
             GenPartFilter(statusFlags = [0x2100, 0x2080, 0x2000], pdgIds = [0, 0, 22], statuses = [0, 0, 1]),
             # TODO: first implemtation, need double check
             ISRSFWeightProducer(args.era, isSUSY, "allInOne_ISRWeight.root", args.sampleName), 
-            FastsimVarProducer(isfastsim)
             ]
         # Special PU reweighting for 2017 separately
         if args.era == "2017":
