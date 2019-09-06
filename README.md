@@ -16,7 +16,7 @@ cmsenv
 cd $CMSSW_BASE/src
 cmsenv
 git clone https://github.com/cms-tau-pog/TauIDSFs TauPOG/TauIDSFs
-git clone -b postprocess_v3.0.0 git@github.com:susy2015/nanoAOD-tools.git PhysicsTools/NanoAODTools
+git clone -b Stop0l git@github.com:susy2015/nanoAOD-tools.git PhysicsTools/NanoAODTools
 git clone -b dev_v3 git@github.com:susy2015/NanoSUSY-tools.git PhysicsTools/NanoSUSYTools
 git clone -b Stop0l_NanoAOD_production_V3.1 git@github.com:susy2015/TopTagger.git
 scram b
