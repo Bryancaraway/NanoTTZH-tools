@@ -8,7 +8,7 @@ import itertools
 
 from PhysicsTools.NanoAODTools.postprocessing.framework.datamodel import Collection, Object
 from PhysicsTools.NanoAODTools.postprocessing.framework.eventloop import Module
-from PhysicsTools.NanoSUSYTools.modules.Stop0lObjectsProducer import DeepCSVMediumWP, CSVv2MediumWP
+from PhysicsTools.NanoSUSYTools.modules.Stop0lObjectsProducer import DeepCSVMediumWP, DeepCSVLooseWP
 
 from PhysicsTools.NanoSUSYTools.modules.datamodelRemap import ObjectRemapped, CollectionRemapped
 
@@ -165,15 +165,15 @@ class DeepTopProducer(Module):
 
         leadingjet = fatjets[0]
         if leadingjet.pt < 200 or math.fabs(leadingjet.eta) > 2.4 or \
-           leadingjet.btagDeepB > DeepCSVMediumWP[self.era]:
+           leadingjet.btagDeepB > DeepCSVLooseWP[self.era]:
             return -1
 
         if leadingjet.subJetIdx1 >= 0 and leadingjet.subJetIdx1 < len(subjets) and \
-           subjets[leadingjet.subJetIdx1].btagDeepB >= DeepCSVMediumWP[self.era]:
+           subjets[leadingjet.subJetIdx1].btagDeepB >= DeepCSVLooseWP[self.era]:
             return -1
 
         if leadingjet.subJetIdx2 >= 0 and leadingjet.subJetIdx2 < len(subjets) and \
-           subjets[leadingjet.subJetIdx2].btagDeepB >= DeepCSVMediumWP[self.era]:
+           subjets[leadingjet.subJetIdx2].btagDeepB >= DeepCSVLooseWP[self.era]:
             return -1
 
         if math.fabs(ROOT.TVector2.Phi_mpi_pi( leadingjet.phi - met_phi )) < 2:
