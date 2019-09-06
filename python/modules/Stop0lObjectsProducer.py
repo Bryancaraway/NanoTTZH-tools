@@ -9,17 +9,17 @@ from PhysicsTools.NanoAODTools.postprocessing.tools import deltaR
 
 from PhysicsTools.NanoSUSYTools.modules.datamodelRemap import ObjectRemapped, CollectionRemapped
 
-#2016 MC: https://twiki.cern.ch/twiki/bin/view/CMS/BtagRecommendation80XReReco#Data_MC_Scale_Factors_period_dep
+#2016 MC: https://twiki.cern.ch/twiki/bin/viewauth/CMS/BtagRecommendation2016Legacy
 #2017 MC: https://twiki.cern.ch/twiki/bin/view/CMS/BtagRecommendation94X
 #2018 MC: https://twiki.cern.ch/twiki/bin/view/CMS/BtagRecommendation102X
 DeepCSVMediumWP ={
-    "2016" : 0.6324,
+    "2016" : 0.6321,
     "2017" : 0.4941,
     "2018" : 0.4184
 }
 
 DeepCSVLooseWP ={
-    "2016" : 0.2219,
+    "2016" : 0.2217,
     "2017" : 0.1522,
     "2018" : 0.1241
 }
