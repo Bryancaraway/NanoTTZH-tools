@@ -1,6 +1,8 @@
 # NanoSUSY-tools
 Postprocessing script for Stop 0L analysis
 
+See the [readme](python/processors/Condor/README.md) in "NanoSUSYTools/python/processors/Condor" for specific instructions for condor submission.
+
 ### Set up CMSSW
 
 ```tcsh
@@ -17,6 +19,7 @@ cd $CMSSW_BASE/src
 cmsenv
 git clone https://github.com/cms-tau-pog/TauIDSFs TauPOG/TauIDSFs
 git clone -b Stop0l git@github.com:susy2015/nanoAOD-tools.git PhysicsTools/NanoAODTools
+# For condor submission check the specific tag checkout instructions in [readme](python/processors/Condor/README.md)
 git clone -b dev_v3 git@github.com:susy2015/NanoSUSY-tools.git PhysicsTools/NanoSUSYTools
 git clone -b Stop0l_NanoAOD_production_V3.1 git@github.com:susy2015/TopTagger.git
 scram b
