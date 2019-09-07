@@ -57,6 +57,7 @@ if ($? == 0) then
     xrdcp -f $argv[1] "root://cmseos.fnal.gov/${OUTPUT}/$argv[1]"
     ## Remove output file once it is copied
     if ($? == 0) then
+      rm $argv[1] 
       break
     endif
   end
