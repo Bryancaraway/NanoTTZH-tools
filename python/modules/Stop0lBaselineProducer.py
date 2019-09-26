@@ -42,12 +42,14 @@ class Stop0lBaselineProducer(Module):
         self.out.branch("Pass_ElecVeto"      + self.suffix, "O")
         self.out.branch("Pass_MuonVeto"      + self.suffix, "O")
         self.out.branch("Pass_IsoTrkVeto"    + self.suffix, "O")
+        self.out.branch("Pass_TauVeto"       + self.suffix, "O")
         self.out.branch("Pass_LeptonVeto"    + self.suffix, "O")
         self.out.branch("Pass_NJets20"       + self.suffix, "O")
         self.out.branch("Pass_MET"           + self.suffix, "O")
         self.out.branch("Pass_HT"            + self.suffix, "O")
         self.out.branch("Pass_dPhiMET"       + self.suffix, "O")
         self.out.branch("Pass_dPhiMETLowDM"  + self.suffix, "O")
+        self.out.branch("Pass_dPhiMETMedDM"  + self.suffix, "O")
         self.out.branch("Pass_dPhiMETHighDM" + self.suffix, "O")
         self.out.branch("Pass_Baseline"      + self.suffix, "O")
         self.out.branch("Pass_highDM"        + self.suffix, "O")
@@ -62,6 +64,8 @@ class Stop0lBaselineProducer(Module):
         self.out.branch("Pass_HEMVeto30"     + self.suffix, "O", title="HEM Veto 2018: eta[-3, -1.4], phi[-1.57, -0.87], pt > 30")
         self.out.branch("Pass_exHEMVeto20"   + self.suffix, "O", title="HEM Veto 2018: eta[-3.2, -1.2], phi[-1.77, -0.67], pt > 20")
         self.out.branch("Pass_exHEMVeto30"   + self.suffix, "O", title="HEM Veto 2018: eta[-3.2, -1.2], phi[-1.77, -0.67], pt > 30")
+	self.out.branch("Jet_nsortedIdx"     + self.suffix, "I")
+	self.out.branch("Jet_sortedIdx"      + self.suffix, "I", lenVar="Jet_nsortedIdx")
 
         # Construct Stop0l map
         lob = wrappedOutputTree._branches.keys()
@@ -73,11 +77,12 @@ class Stop0lBaselineProducer(Module):
     def endFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
         pass
 
-    def calculateNLeptons(self, eles, muons, isks):
+    def calculateNLeptons(self, eles, muons, isks, taus):
         countEle = sum([e.Stop0l for e in eles])
         countMu  = sum([m.Stop0l for m in muons])
         countIsk = sum([i.Stop0l for i in isks])
-        return countEle, countMu, countIsk
+	countTau = sum([t.Stop0l for t in taus])
+        return countEle, countMu, countIsk, countTau
 
     def PassEventFilter(self, flags):
         # https://twiki.cern.ch/twiki/bin/viewauth/CMS/MissingETOptionalFiltersRun2#2016_data
@@ -88,8 +93,7 @@ class Stop0lBaselineProducer(Module):
             ## Common filters
             passEventFilter = flags.goodVertices and flags.HBHENoiseFilter and \
                     flags.HBHENoiseIsoFilter and flags.EcalDeadCellTriggerPrimitiveFilter \
-                    and flags.BadPFMuonFilter and flags.BadChargedCandidateFilter # Post 2016 ICHEP
-                    # and flags.BadPFMuonSummer16Filter and # flags.BadChargedCandidateSummer16Filter
+                    and flags.BadPFMuonFilter 
             ## Only data
             if self.isData:
                 passEventFilter = passEventFilter and flags.globalSuperTightHalo2016Filter and flags.eeBadScFilter
@@ -99,10 +103,11 @@ class Stop0lBaselineProducer(Module):
         #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ 2017 ~~~~~
         if self.era == "2017" or self.era == "2018":
             ## Common filters
+            ## Missing the latest ecalBadCalibReducedMINIAODFilter, not in MiniAOD
+            ## But still using the old ecalBadCalibFilter from MiniAOD
             passEventFilter = flags.goodVertices and flags.HBHENoiseFilter and \
                     flags.HBHENoiseIsoFilter and flags.EcalDeadCellTriggerPrimitiveFilter \
-                    and flags.BadPFMuonFilter and flags.BadChargedCandidateFilter \
-                    and flags.ecalBadCalibFilter  ## Need to double check whether is outdated
+                    and flags.BadPFMuonFilter and flags.ecalBadCalibFilter  
             ## Only data
             if self.isData:
                 passEventFilter = passEventFilter and flags.globalSuperTightHalo2016Filter and flags.eeBadScFilter
@@ -133,20 +138,28 @@ class Stop0lBaselineProducer(Module):
 
     def GetJetSortedIdx(self, jets):
         ptlist = []
+	etalist = []
         dphiMET = []
         for j in jets:
             if math.fabs(j.eta) > 4.7 or j.pt < 20:
                 pass
             else:
-                ptlist.append(j.pt)
+		ptlist.append(-j.pt)
+		etalist.append(math.fabs(j.eta))
                 dphiMET.append(j.dPhiMET)
-        return [dphiMET[j] for j in np.argsort(ptlist)[::-1]]
+
+	sortIdx = np.lexsort((etalist, ptlist))
+
+	return sortIdx, [dphiMET[j] for j in sortIdx]
 
     def PassdPhi(self, sortedPhi, dPhiCuts, invertdPhi =False):
         if invertdPhi:
             return any( a < b for a, b in zip(sortedPhi, dPhiCuts))
         else:
             return all( a > b for a, b in zip(sortedPhi, dPhiCuts))
+
+    def PassdPhiVal(self, sortedPhi, dPhiCutsLow, dPhiCutsHigh):
+            return all( (a < b and b < c) for a, b, c in zip(dPhiCutsLow, sortedPhi, dPhiCutsHigh))
 
     def PassHEMVeto(self, jets, etalow, etahigh, philow, phihigh, ptcut):
         # Calculating HEM veto for 2017 and 2018.
@@ -191,6 +204,7 @@ class Stop0lBaselineProducer(Module):
         electrons = Collection(event, "Electron")
         muons     = Collection(event, "Muon")
         isotracks = Collection(event, "IsoTrack")
+        taus      = Collection(event, "Tau")
 
         ## Baseline Selection
         PassJetID       = self.PassJetID(jets)
@@ -199,39 +213,42 @@ class Stop0lBaselineProducer(Module):
         PassCaloMETRatio= (met.pt / caloMET.pt ) < 5 if caloMET.pt > 0 else True
         PassEventFilter = self.PassEventFilter(flags)
 
-        countEle, countMu, countIsk = self.calculateNLeptons(electrons, muons, isotracks)
-        PassElecVeto    = countEle == 0
-        PassMuonVeto    = countMu == 0
-        PassIsoTrkVeto  = countIsk == 0
-        PassLeptonVeto  = PassElecVeto and PassMuonVeto and PassIsoTrkVeto
+        countEle, countMu, countIsk, countTauPOG = self.calculateNLeptons(electrons, muons, isotracks, taus)
+        PassElecVeto   = countEle == 0
+        PassMuonVeto   = countMu == 0
+        PassIsoTrkVeto = countIsk == 0
+        PassTauVeto    = countTauPOG == 0
+        PassLeptonVeto  = PassElecVeto and PassMuonVeto and PassIsoTrkVeto and PassTauVeto
 
-        totlep = countEle + countMu + countIsk
+        totlep = countEle + countMu
         PassLLLep = (totlep == 1) and sum([ e.MtW for e in electrons if e.Stop0l ] + 
-                                          [ m.MtW for m in muons if m.Stop0l ] + 
-                                          [ i.MtW for i in isotracks if i.Stop0l ]) < 100
+                                          [ m.MtW for m in muons if m.Stop0l ]) < 100
 
         PassNjets       = self.PassNjets(jets)
         PassMET         = met.pt >= 250
         PassHT          = stop0l.HT >= 300
         ## In case JEC changed jet pt order, resort jets
-        sortedPhi = self.GetJetSortedIdx(jets)
+        sortedIdx, sortedPhi = self.GetJetSortedIdx(jets)
         PassdPhiLowDM   = self.PassdPhi(sortedPhi, [0.5, 0.15, 0.15])
+
+	PassdPhiMedDM   = self.PassdPhiVal(sortedPhi, [0.15, 0.15, 0.15], [0.5, 4., 4.]) #Variable for LowDM Validation bins
+
         PassdPhiHighDM  = self.PassdPhi(sortedPhi, [0.5, 0.5, 0.5, 0.5])
         PassdPhiQCD     = self.PassdPhi(sortedPhi, [0.1, 0.1, 0.1], invertdPhi =True)
 
         PassBaseline    = PassEventFilter and PassJetID and PassLeptonVeto and PassNjets and PassMET and PassHT and PassdPhiLowDM
         PasshighDM      = PassBaseline and stop0l.nJets >= 5 and PassdPhiHighDM and stop0l.nbtags >= 1
         PasslowDM       = PassBaseline and stop0l.nTop == 0 and stop0l.nW == 0 and stop0l.nResolved == 0 and \
-                stop0l.Mtb < 175 and stop0l.ISRJetPt > 200 and stop0l.METSig > 10
+                stop0l.Mtb < 175 and stop0l.ISRJetPt >= 200 and stop0l.METSig > 10
         PassQCDCR       = PassEventFilter and PassJetID and PassLeptonVeto and PassNjets and PassMET and PassHT and PassdPhiQCD
         PassQCD_highDM  = PassQCDCR and stop0l.nJets >= 5 and stop0l.nbtags >= 1
         PassQCD_lowDM   = PassQCDCR and stop0l.nTop == 0 and stop0l.nW == 0 and stop0l.nResolved == 0 and \
-                stop0l.Mtb < 175 and stop0l.ISRJetPt > 200 and stop0l.METSig > 10
+                stop0l.Mtb < 175 and stop0l.ISRJetPt >= 200 and stop0l.METSig > 10
 
         PassLLCR       = PassEventFilter and PassJetID and PassLLLep and PassNjets and PassMET and PassHT and PassdPhiLowDM
         PassLL_highDM  = PassLLCR and stop0l.nJets >= 5 and PassdPhiHighDM and stop0l.nbtags >= 1
         PassLL_lowDM   = PassLLCR and stop0l.nTop == 0 and stop0l.nW == 0 and stop0l.nResolved == 0 and \
-                stop0l.Mtb < 175 and stop0l.ISRJetPt > 200 and stop0l.METSig > 10
+                stop0l.Mtb < 175 and stop0l.ISRJetPt >= 200 and stop0l.METSig > 10
 
         PassHEMVeto20   = self.PassHEMVeto(jets, -3, -1.4, -1.57, -0.87, 20)
         PassHEMVeto30   = self.PassHEMVeto(jets, -3, -1.4, -1.57, -0.87, 30)
@@ -244,12 +261,14 @@ class Stop0lBaselineProducer(Module):
         self.out.fillBranch("Pass_ElecVeto"      + self.suffix, PassElecVeto)
         self.out.fillBranch("Pass_MuonVeto"      + self.suffix, PassMuonVeto)
         self.out.fillBranch("Pass_IsoTrkVeto"    + self.suffix, PassIsoTrkVeto)
+        self.out.fillBranch("Pass_TauVeto"       + self.suffix, PassTauVeto)
         self.out.fillBranch("Pass_LeptonVeto"    + self.suffix, PassLeptonVeto)
         self.out.fillBranch("Pass_NJets20"       + self.suffix, PassNjets)
         self.out.fillBranch("Pass_MET"           + self.suffix, PassMET)
         self.out.fillBranch("Pass_HT"            + self.suffix, PassHT)
         self.out.fillBranch("Pass_dPhiMET"       + self.suffix, PassdPhiLowDM)
         self.out.fillBranch("Pass_dPhiMETLowDM"  + self.suffix, PassdPhiLowDM)
+        self.out.fillBranch("Pass_dPhiMETMedDM"  + self.suffix, PassdPhiMedDM)
         self.out.fillBranch("Pass_dPhiMETHighDM" + self.suffix, PassdPhiHighDM)
         self.out.fillBranch("Pass_Baseline"      + self.suffix, PassBaseline)
         self.out.fillBranch("Pass_highDM"        + self.suffix, PasshighDM)
@@ -264,6 +283,8 @@ class Stop0lBaselineProducer(Module):
         self.out.fillBranch("Pass_HEMVeto30"     + self.suffix, PassHEMVeto30)
         self.out.fillBranch("Pass_exHEMVeto20"   + self.suffix, PassexHEMVeto20)
         self.out.fillBranch("Pass_exHEMVeto30"   + self.suffix, PassexHEMVeto30)
+	self.out.fillBranch("Jet_nsortedIdx"     + self.suffix, len(sortedIdx))
+	self.out.fillBranch("Jet_sortedIdx"      + self.suffix, sortedIdx)
         return True
 
 

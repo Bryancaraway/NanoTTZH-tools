@@ -58,9 +58,6 @@ if ($? == 0) then
     ## Remove output file once it is copied
     if ($? == 0) then
       rm $argv[1] 
-      foreach tarfile (`ls *gz FileList/*gz`)
-        tar -tf $tarfile  | xargs rm -r
-      end
       break
     endif
   end

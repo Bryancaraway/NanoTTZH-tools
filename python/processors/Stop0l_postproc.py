@@ -28,6 +28,7 @@ from PhysicsTools.NanoSUSYTools.modules.FastsimVarProducer import FastsimVarProd
 from PhysicsTools.NanoSUSYTools.modules.PrefireCorr import PrefCorr
 from PhysicsTools.NanoSUSYTools.modules.ISRWeightProducer import ISRSFWeightProducer
 from PhysicsTools.NanoSUSYTools.modules.Stop0l_trigger import Stop0l_trigger
+from PhysicsTools.NanoSUSYTools.modules.SoftBDeepAK8SFProducer import SoftBDeepAK8SFProducer
 
 # JEC files are those recomended here (as of Mar 1, 2019)
 # https://twiki.cern.ch/twiki/bin/view/CMS/JECDataMC#Recommended_for_MC
@@ -41,18 +42,21 @@ DataDepInputs = {
                   "JERMC": "Summer16_25nsV1_MC",
                   "JECMC": "Summer16_07Aug2017_V11_MC",
                   "redoJEC": False,
+                  "taggerWD": "TopTaggerCfg-DeepResolved_DeepCSV_GR_nanoAOD_2016_v1.0.3",
                  },
         "2017" : {"pileup_Data": "Cert294927_306462_EOY2017ReReco_Collisions17.root",
                   "pileup_MC": "pileup_profile_2017.root",
                   "JERMC": "Fall17_V3_MC",
                   "JECMC": "Fall17_17Nov2017_V32_MC",
                   "redoJEC": False,
+                  "taggerWD": "TopTaggerCfg-DeepResolved_DeepCSV_GR_nanoAOD_2017_v1.0.3",
                  },
         "2018" : {"pileup_Data": "ReReco2018ABC_PromptEraD_Collisions18.root",
                   "pileup_MC": "pileup_profile_2018.root",
                   "JERMC": "Autumn18_V1_MC",
                   "JECMC": "Autumn18_V8_MC",
                   "redoJEC": True,
+                  "taggerWD": "TopTaggerCfg-DeepResolved_DeepCSV_GR_nanoAOD_2018_v1.0.3",
                  }
     },
 
@@ -62,76 +66,96 @@ DataDepInputs = {
                   "JERMC": "Summer16_25nsV1_MC",
                   "JECMC": "Spring16_25nsFastSimV1_MC",
                   "redoJEC": False,
+                  "taggerWD": "TopTaggerCfg-DeepResolved_DeepCSV_GR_nanoAOD_2016_v1.0.3",
                  },
         "2017" : {"pileup_Data": "Cert294927_306462_EOY2017ReReco_Collisions17.root",
                   "pileup_MC": "pileup_profile_2017.root",
                   "JERMC": "Fall17_V3_MC",
                   "JECMC": "Fall17_FastsimV1_MC",
                   "redoJEC": True,
+                  "taggerWD": "TopTaggerCfg-DeepResolved_DeepCSV_GR_nanoAOD_2017_v1.0.3",
                  },
         "2018" : {"pileup_Data": "ReReco2018ABC_PromptEraD_Collisions18.root",
                   "pileup_MC": "pileup_profile_2018.root",
                   "JERMC": "Autumn18_V1_MC",
                   "JECMC": "Fall17_FastsimV1_MC",
                   "redoJEC": True,
+                  "taggerWD": "TopTaggerCfg-DeepResolved_DeepCSV_GR_nanoAOD_2018_v1.0.3",
                  }
     },
 
     "Data": {
         "2016B" : { "JEC": "Summer16_07Aug2017BCD_V11_DATA",
                     "redoJEC": False,
+                    "taggerWD": "TopTaggerCfg-DeepResolved_DeepCSV_GR_nanoAOD_2016_v1.0.3",
                    },
         "2016C" : { "JEC": "Summer16_07Aug2017BCD_V11_DATA",
                     "redoJEC": False,
+                    "taggerWD": "TopTaggerCfg-DeepResolved_DeepCSV_GR_nanoAOD_2016_v1.0.3",
                    },
         "2016D" : { "JEC": "Summer16_07Aug2017BCD_V11_DATA",
                     "redoJEC": False,
+                    "taggerWD": "TopTaggerCfg-DeepResolved_DeepCSV_GR_nanoAOD_2016_v1.0.3",
                    },
         "2016E" : { "JEC": "Summer16_07Aug2017EF_V11_DATA",
                     "redoJEC": False,
+                    "taggerWD": "TopTaggerCfg-DeepResolved_DeepCSV_GR_nanoAOD_2016_v1.0.3",
                    },
         "2016F" : { "JEC": "Summer16_07Aug2017EF_V11_DATA",
                     "redoJEC": False,
+                    "taggerWD": "TopTaggerCfg-DeepResolved_DeepCSV_GR_nanoAOD_2016_v1.0.3",
                    },
         "2016G" : { "JEC": "Summer16_07Aug2017GH_V11_DATA",
                     "redoJEC": False,
+                    "taggerWD": "TopTaggerCfg-DeepResolved_DeepCSV_GR_nanoAOD_2016_v1.0.3",
                    },
         "2016H" : { "JEC": "Summer16_07Aug2017GH_V11_DATA",
                     "redoJEC": False,
+                    "taggerWD": "TopTaggerCfg-DeepResolved_DeepCSV_GR_nanoAOD_2016_v1.0.3",
                    },
 
         "2017B" : { "JEC": "Fall17_17Nov2017B_V32_DATA",
                     "redoJEC": False,
+                    "taggerWD": "TopTaggerCfg-DeepResolved_DeepCSV_GR_nanoAOD_2017_v1.0.3",
                    },
         "2017C" : { "JEC": "Fall17_17Nov2017C_V32_DATA",
                     "redoJEC": False,
+                    "taggerWD": "TopTaggerCfg-DeepResolved_DeepCSV_GR_nanoAOD_2017_v1.0.3",
                    },
         "2017D" : { "JEC": "Fall17_17Nov2017DE_V32_DATA",
                     "redoJEC": False,
+                    "taggerWD": "TopTaggerCfg-DeepResolved_DeepCSV_GR_nanoAOD_2017_v1.0.3",
                    },
         "2017E" : { "JEC": "Fall17_17Nov2017DE_V32_DATA",
                     "redoJEC": False,
+                    "taggerWD": "TopTaggerCfg-DeepResolved_DeepCSV_GR_nanoAOD_2017_v1.0.3",
                    },
         "2017F" : { "JEC": "Fall17_17Nov2017F_V32_DATA",
                     "redoJEC": False,
+                    "taggerWD": "TopTaggerCfg-DeepResolved_DeepCSV_GR_nanoAOD_2017_v1.0.3",
                    },
 
         "2018A" : { "JEC": "Autumn18_RunA_V8_DATA",
                     "redoJEC": True,
+                    "taggerWD": "TopTaggerCfg-DeepResolved_DeepCSV_GR_nanoAOD_2018_v1.0.3",
                    },
         "2018B" : { "JEC": "Autumn18_RunB_V8_DATA",
                     "redoJEC": True,
+                    "taggerWD": "TopTaggerCfg-DeepResolved_DeepCSV_GR_nanoAOD_2018_v1.0.3",
                    },
         "2018C" : { "JEC": "Autumn18_RunC_V8_DATA",
                     "redoJEC": True,
+                    "taggerWD": "TopTaggerCfg-DeepResolved_DeepCSV_GR_nanoAOD_2018_v1.0.3",
                    },
         "2018D" : { "JEC": "Autumn18_RunD_V8_DATA",
                     "redoJEC": True,
+                    "taggerWD": "TopTaggerCfg-DeepResolved_DeepCSV_GR_nanoAOD_2018_v1.0.3",
                    },
             }
 }
 
-DeepResovledDiscCut = 0.6
+#cut on raw resolved candidates, not final analysis cut
+DeepResovledCandidateDiscCut = 0.75
 
 def main(args):
     isdata = len(args.dataEra) > 0
@@ -185,12 +209,16 @@ def main(args):
 
     #~~~~~ Common modules for Data and MC ~~~~~
     mods += [ eleMiniCutID(),
+             FastsimVarProducer(isfastsim),
              Stop0lObjectsProducer(args.era),
-             TopTaggerProducer(recalculateFromRawInputs=True, topDiscCut=DeepResovledDiscCut, 
-                               cfgWD=os.environ["CMSSW_BASE"] + "/src/PhysicsTools/NanoSUSYTools/python/processors"),
+             TopTaggerProducer(recalculateFromRawInputs=True, topDiscCut=DeepResovledCandidateDiscCut, 
+                               cfgWD=os.environ["CMSSW_BASE"] + "/src/PhysicsTools/NanoSUSYTools/python/processors/" + DataDepInputs[dataType][args.era if not isdata else (args.era + args.dataEra)]["taggerWD"],
+                               saveSFAndSyst=not isdata, 
+                               systToSave=["Btag_Up", "Btag_Down", "Pileup_Up", "Pileup_Down", "CSPur_Up", "CSPur_Down", "Stat_Up", "Stat_Down", "Closure_Up", "Closure_Down"]),
              DeepTopProducer(args.era),
              Stop0lBaselineProducer(args.era, isData=isdata, isFastSim=isfastsim),
-             Stop0l_trigger(args.era),
+             SoftBDeepAK8SFProducer(args.era, isData=isdata, isFastSim=isfastsim),
+             Stop0l_trigger(args.era, isData=isdata),
              UpdateEvtWeight(isdata, args.crossSection, args.nEvents, args.sampleName)
             ]
 
@@ -207,11 +235,17 @@ def main(args):
         ## Major modules for MC
         mods += [
             TopTaggerProducer(recalculateFromRawInputs=True, suffix="JESUp", AK4JetInputs=("Jet_pt_jesTotalUp",   "Jet_eta", "Jet_phi", "Jet_mass_jesTotalUp"),
-                              topDiscCut=DeepResovledDiscCut, cfgWD=os.environ["CMSSW_BASE"] + "/src/PhysicsTools/NanoSUSYTools/python/processors"),
+                              topDiscCut=DeepResovledCandidateDiscCut, 
+                              cfgWD=os.environ["CMSSW_BASE"] + "/src/PhysicsTools/NanoSUSYTools/python/processors/" + DataDepInputs[dataType][args.era if not isdata else (args.era + args.dataEra)]["taggerWD"]),
             TopTaggerProducer(recalculateFromRawInputs=True, suffix="JESDown", AK4JetInputs=("Jet_pt_jesTotalDown", "Jet_eta", "Jet_phi", "Jet_mass_jesTotalDown"), 
-                              topDiscCut=DeepResovledDiscCut, cfgWD=os.environ["CMSSW_BASE"] + "/src/PhysicsTools/NanoSUSYTools/python/processors"),
+                              topDiscCut=DeepResovledCandidateDiscCut, 
+                              cfgWD=os.environ["CMSSW_BASE"] + "/src/PhysicsTools/NanoSUSYTools/python/processors/" + DataDepInputs[dataType][args.era if not isdata else (args.era + args.dataEra)]["taggerWD"]),
             DeepTopProducer(args.era, "JESUp"),
             DeepTopProducer(args.era, "JESDown"),
+            FastsimVarProducer(isfastsim, "JESUp"),
+            FastsimVarProducer(isfastsim, "JESDown"),
+            FastsimVarProducer(isfastsim, "METUnClustUp"),
+            FastsimVarProducer(isfastsim, "METUnClustDown"),
             Stop0lObjectsProducer(args.era, "JESUp"),
             Stop0lObjectsProducer(args.era, "JESDown"),
             Stop0lObjectsProducer(args.era, "METUnClustUp"),
@@ -224,7 +258,8 @@ def main(args):
             lepSFProducer(args.era),
             lepSFProducer(args.era, muonSelectionTag="Medium",
                           electronSelectionTag="Medium",
-                          photonSelectionTag="Medium"),
+                          photonSelectionTag="Medium", 
+                          tauSelectionTag="Tight"),
             puWeightProducer(pufile_mc, pufile_data, args.sampleName,"pileup"),
             btagSFProducer(era=args.era, algo="deepcsv"),
             BtagSFWeightProducer("allInOne_bTagEff_deepCSVb_med.root", args.sampleName, DeepCSVMediumWP[args.era]),

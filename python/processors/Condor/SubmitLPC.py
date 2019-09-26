@@ -17,9 +17,9 @@ from collections import defaultdict
 from multiprocessing import Pool
 
 DelExe    = '../Stop0l_postproc.py'
-tempdir = '/uscms_data/d3/%s/condor_temp/' % getpass.getuser()
+tempdir = '/uscmst1b_scratch/lpc1/3DayLifetime/%s/TestCondor/'  % getpass.getuser()
 ShortProjectName = 'PostProcess'
-VersionNumber = '_v2p7'
+VersionNumber = '_v3'
 argument = "--inputFiles=%s.$(Process).list "
 sendfiles = ["../keep_and_drop.txt"]
 TTreeName = "Events"
@@ -77,6 +77,16 @@ def ConfigList(config):
         stripped_entry = [ i.strip() for i in entry]
         #print(stripped_entry)
         replaced_outdir = stripped_entry[1].replace("Pre","Post")
+
+        #cut off anything after the processing date folder 
+        replaced_outdir = replaced_outdir.split("/")
+        nCut = 0
+        for i, s in enumerate(replaced_outdir):
+            if"PostProcessed" in s:
+                nCut = i
+                break
+        replaced_outdir = "/".join(replaced_outdir[:nCut + 1])
+            
         process[stripped_entry[0]] = {
             #Note that anything appended with __ will not be passed along. These are for bookkeeping. Furthermore, Outpath is not used if an output directory argument is given.
             "Filepath__" : "%s/%s" % (stripped_entry[1], stripped_entry[2]),

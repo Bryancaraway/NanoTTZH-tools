@@ -1,6 +1,8 @@
 # NanoSUSY-tools
 Postprocessing script for Stop 0L analysis
 
+See the [readme](python/processors/Condor/README.md) in "NanoSUSYTools/python/processors/Condor" for specific instructions for condor submission.
+
 ### Set up CMSSW
 
 ```tcsh
@@ -15,16 +17,20 @@ cmsenv
 ```tcsh
 cd $CMSSW_BASE/src
 cmsenv
+git clone https://github.com/cms-tau-pog/TauIDSFs TauPOG/TauIDSFs
 git clone -b Stop0l git@github.com:susy2015/nanoAOD-tools.git PhysicsTools/NanoAODTools
-git clone -b postpro_v2.7 git@github.com:susy2015/NanoSUSY-tools.git PhysicsTools/NanoSUSYTools
-git clone -b Stop0l_NanoAOD_production_V2.3 git@github.com:susy2015/TopTagger.git
+# For condor submission check the specific tag checkout instructions in [readme](python/processors/Condor/README.md)
+git clone -b dev_v3 git@github.com:susy2015/NanoSUSY-tools.git PhysicsTools/NanoSUSYTools
+git clone -b Stop0l_NanoAOD_production_V3.1 git@github.com:susy2015/TopTagger.git
 scram b
 cd $CMSSW_BASE/src/TopTagger/TopTagger/test
 ./configure
 make
 cmsenv
 cd $CMSSW_BASE/src/PhysicsTools/NanoSUSYTools/python/processors
-getTaggerCfg.sh -t DeepResolved_DeepCSV_GR_nanoAOD_V1.0.0
+getTaggerCfg.sh -n -t DeepResolved_DeepCSV_GR_nanoAOD_2016_v1.0.3
+getTaggerCfg.sh -n -t DeepResolved_DeepCSV_GR_nanoAOD_2017_v1.0.3
+getTaggerCfg.sh -n -t DeepResolved_DeepCSV_GR_nanoAOD_2018_v1.0.3
 ```
 
 ### Run local MC test
