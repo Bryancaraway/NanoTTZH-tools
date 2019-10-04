@@ -44,7 +44,7 @@ class Stop0lBaselineProducer(Module):
         self.out.branch("Pass_IsoTrkVeto"    + self.suffix, "O")
         self.out.branch("Pass_TauVeto"       + self.suffix, "O")
         self.out.branch("Pass_LeptonVeto"    + self.suffix, "O")
-        self.out.branch("Pass_NJets20"       + self.suffix, "O")
+        self.out.branch("Pass_NJets30"       + self.suffix, "O")
         self.out.branch("Pass_MET"           + self.suffix, "O")
         self.out.branch("Pass_HT"            + self.suffix, "O")
         self.out.branch("Pass_dPhiMET"       + self.suffix, "O")
@@ -64,7 +64,7 @@ class Stop0lBaselineProducer(Module):
         self.out.branch("Pass_HEMVeto30"     + self.suffix, "O", title="HEM Veto 2018: eta[-3, -1.4], phi[-1.57, -0.87], pt > 30")
         self.out.branch("Pass_exHEMVeto20"   + self.suffix, "O", title="HEM Veto 2018: eta[-3.2, -1.2], phi[-1.77, -0.67], pt > 20")
         self.out.branch("Pass_exHEMVeto30"   + self.suffix, "O", title="HEM Veto 2018: eta[-3.2, -1.2], phi[-1.77, -0.67], pt > 30")
-	self.out.branch("Jet_sortedIdx"      + self.suffix, "I", lenVar="Jet_nsortedIdx" + self.suffix)
+        self.out.branch("Jet_sortedIdx"      + self.suffix, "I", lenVar="Jet_nsortedIdx" + self.suffix)
 
         # Construct Stop0l map
         lob = wrappedOutputTree._branches.keys()
@@ -137,19 +137,17 @@ class Stop0lBaselineProducer(Module):
 
     def GetJetSortedIdx(self, jets):
         ptlist = []
-	etalist = []
+        etalist = []
         dphiMET = []
         for j in jets:
-            if math.fabs(j.eta) > 4.7 or j.pt < 20:
+            if math.fabs(j.eta) > 4.7 or j.pt < 30:
                 pass
             else:
-		ptlist.append(-j.pt)
-		etalist.append(math.fabs(j.eta))
+                ptlist.append(-j.pt)
+                etalist.append(math.fabs(j.eta))
                 dphiMET.append(j.dPhiMET)
-
-	sortIdx = np.lexsort((etalist, ptlist))
-
-	return sortIdx, [dphiMET[j] for j in sortIdx]
+        sortIdx = np.lexsort((etalist, ptlist))
+        return sortIdx, [dphiMET[j] for j in sortIdx]
 
     def PassdPhi(self, sortedPhi, dPhiCuts, invertdPhi =False):
         if invertdPhi:
@@ -230,7 +228,7 @@ class Stop0lBaselineProducer(Module):
         sortedIdx, sortedPhi = self.GetJetSortedIdx(jets)
         PassdPhiLowDM   = self.PassdPhi(sortedPhi, [0.5, 0.15, 0.15])
 
-	PassdPhiMedDM   = self.PassdPhiVal(sortedPhi, [0.15, 0.15, 0.15], [0.5, 4., 4.]) #Variable for LowDM Validation bins
+        PassdPhiMedDM   = self.PassdPhiVal(sortedPhi, [0.15, 0.15, 0.15], [0.5, 4., 4.]) #Variable for LowDM Validation bins
 
         PassdPhiHighDM  = self.PassdPhi(sortedPhi, [0.5, 0.5, 0.5, 0.5])
         PassdPhiQCD     = self.PassdPhi(sortedPhi, [0.1, 0.1, 0.1], invertdPhi =True)
@@ -262,7 +260,7 @@ class Stop0lBaselineProducer(Module):
         self.out.fillBranch("Pass_IsoTrkVeto"    + self.suffix, PassIsoTrkVeto)
         self.out.fillBranch("Pass_TauVeto"       + self.suffix, PassTauVeto)
         self.out.fillBranch("Pass_LeptonVeto"    + self.suffix, PassLeptonVeto)
-        self.out.fillBranch("Pass_NJets20"       + self.suffix, PassNjets)
+        self.out.fillBranch("Pass_NJets30"       + self.suffix, PassNjets)
         self.out.fillBranch("Pass_MET"           + self.suffix, PassMET)
         self.out.fillBranch("Pass_HT"            + self.suffix, PassHT)
         self.out.fillBranch("Pass_dPhiMET"       + self.suffix, PassdPhiLowDM)
@@ -282,8 +280,8 @@ class Stop0lBaselineProducer(Module):
         self.out.fillBranch("Pass_HEMVeto30"     + self.suffix, PassHEMVeto30)
         self.out.fillBranch("Pass_exHEMVeto20"   + self.suffix, PassexHEMVeto20)
         self.out.fillBranch("Pass_exHEMVeto30"   + self.suffix, PassexHEMVeto30)
-	self.out.fillBranch("Jet_nsortedIdx"     + self.suffix, len(sortedIdx))
-	self.out.fillBranch("Jet_sortedIdx"      + self.suffix, sortedIdx)
+        self.out.fillBranch("Jet_nsortedIdx"     + self.suffix, len(sortedIdx))
+        self.out.fillBranch("Jet_sortedIdx"      + self.suffix, sortedIdx)
         return True
 
 

@@ -130,6 +130,8 @@ class Stop0lObjectsProducer(Module):
 
     def SelBtagJets(self, jet):
         global DeepCSVMediumWP
+        if jet.pt < 20 or math.fabs(jet.eta) > 2.4:
+            return False
         if jet.btagDeepB >= DeepCSVMediumWP[self.era]:
             return True
         return False
@@ -148,7 +150,7 @@ class Stop0lObjectsProducer(Module):
 
 
     def SelJets(self, jet):
-        if jet.pt < 20 or math.fabs(jet.eta) > 2.4:
+        if jet.pt < 30 or math.fabs(jet.eta) > 2.4:
             return False
         return True
 
@@ -229,8 +231,7 @@ class Stop0lObjectsProducer(Module):
         self.IsoTrack_Stop0l = map(lambda x : self.SelIsotrack(x, met), isotracks)
         self.Tau_MtW	     = map(lambda x : self.CalMtW(x, met), taus)
         self.Jet_Stop0l      = map(self.SelJets, jets)
-        local_BJet_Stop0l    = map(self.SelBtagJets, jets)
-        self.BJet_Stop0l     = [a and b for a, b in zip(self.Jet_Stop0l, local_BJet_Stop0l )]
+        self.BJet_Stop0l     = map(self.SelBtagJets, jets)
         self.SB_Stop0l       = map(lambda x : self.SelSoftb(x, jets), isvs)
         self.Photon_Stop0l   = map(self.SelPhotons, photons)
 
