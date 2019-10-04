@@ -64,8 +64,7 @@ class Stop0lBaselineProducer(Module):
         self.out.branch("Pass_HEMVeto30"     + self.suffix, "O", title="HEM Veto 2018: eta[-3, -1.4], phi[-1.57, -0.87], pt > 30")
         self.out.branch("Pass_exHEMVeto20"   + self.suffix, "O", title="HEM Veto 2018: eta[-3.2, -1.2], phi[-1.77, -0.67], pt > 20")
         self.out.branch("Pass_exHEMVeto30"   + self.suffix, "O", title="HEM Veto 2018: eta[-3.2, -1.2], phi[-1.77, -0.67], pt > 30")
-	self.out.branch("Jet_nsortedIdx"     + self.suffix, "I")
-	self.out.branch("Jet_sortedIdx"      + self.suffix, "I", lenVar="Jet_nsortedIdx")
+	self.out.branch("Jet_sortedIdx"      + self.suffix, "I", lenVar="Jet_nsortedIdx" + self.suffix)
 
         # Construct Stop0l map
         lob = wrappedOutputTree._branches.keys()
