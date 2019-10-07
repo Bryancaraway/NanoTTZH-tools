@@ -120,9 +120,12 @@ class Stop0lObjectsProducer(Module):
             return False
         return True
 
-    def SelTauPOG(self, tau):
+    def SelTauPOG(self, tau, met):
         if tau.pt < 20 or abs(tau.eta) > 2.4 or not tau.idDecayMode or not (tau.idMVAoldDM2017v2 & 8):
                 return False
+	mtW = self.CalMtW(tau, met)
+	if mtW > 100:
+		return False
         return True
 
     def CalMtW(self, lep, met):
@@ -222,7 +225,7 @@ class Stop0lObjectsProducer(Module):
         ## Selecting objects
         self.Electron_Stop0l = map(self.SelEle, electrons)
         self.Muon_Stop0l     = map(self.SelMuon, muons)
-        self.Tau_Stop0l      = map(self.SelTauPOG, taus)
+        self.Tau_Stop0l      = map(lambda x : self.SelTauPOG(x, met), taus)
         self.Electron_MtW    = map(lambda x : self.CalMtW(x, met), electrons)
         self.Muon_MtW        = map(lambda x : self.CalMtW(x, met), muons)
         self.IsoTrack_MtW    = map(lambda x : self.CalMtW(x, met), isotracks)
