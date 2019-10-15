@@ -54,7 +54,7 @@ DataDepInputs = {
         "2018" : {"pileup_Data": "ReReco2018ABC_PromptEraD_Collisions18.root",
                   "pileup_MC": "pileup_profile_2018.root",
                   "JERMC": "Autumn18_V1_MC",
-                  "JECMC": "Autumn18_V8_MC",
+                  "JECMC": "Autumn18_V19_MC",
                   "redoJEC": True,
                   "taggerWD": "TopTaggerCfg-DeepResolved_DeepCSV_GR_nanoAOD_2018_v1.0.3",
                  }
