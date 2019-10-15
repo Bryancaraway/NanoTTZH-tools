@@ -86,7 +86,13 @@ class lepSFProducer(Module):
             eleveto_f =[ "ElectronVeto_PixelSeed_ScaleFactors_2017.root" ]
             eleveto_h = ["%s_ID" % self.photonSelectionTag]
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Tau ~~~~~
-        self.tauSFTool = TauIDSFTool(int(self.era),'MVAoldDM2017v2',self.tauSelectionTag)
+        # Update to new TauPOG era mapping 
+        self.TauPOGEraMap= {
+            "2016":"2016Legacy",
+            "2017":"2017ReReco",
+            "2018":"2018ReReco",
+        }
+        self.tauSFTool = TauIDSFTool(self.TauPOGEraMap[self.era],'MVAoldDM2017v2',self.tauSelectionTag)
 
 
         mu_f = ["%s/src/PhysicsTools/NanoSUSYTools/data/leptonSF/" % os.environ['CMSSW_BASE'] + f for f in mu_f]
