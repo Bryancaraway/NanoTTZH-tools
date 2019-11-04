@@ -46,10 +46,10 @@ python $EXE $argv[2-]
 if ($? == 0) then
   echo "Process finished. Listing current files: "
   echo "Hadd file will be named: " $argv[1]
-  python $CMSSW_BASE/src/PhysicsTools/NanoAODTools/scripts/haddnano.py $argv[1] `ls *_Skim.root`
+  python $CMSSW_BASE/src/PhysicsTools/NanoAODTools/scripts/haddnano.py $argv[1] `ls *_Skim*.root`
   ## Remove skim files once they are merged
   if ($? == 0) then
-    foreach outfile (`ls *_Skim.root`)
+    foreach outfile (`ls *_Skim*.root`)
       rm $outfile
     end
   endif
