@@ -61,17 +61,17 @@ class DeepTopProducer(Module):
     def beginFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
         self.out = wrappedOutputTree
         self.out.branch("FatJet_Stop0l", "I", lenVar="nFatJet")
-        self.out.branch("ResolvedTop_Stop0l" + self.suffix, "O", lenVar="nResolvedTopCandidate")
+        self.out.branch("ResolvedTop_Stop0l" + self.suffix, "O", lenVar="nResolvedTopCandidate" + self.suffix)
         self.out.branch("Stop0l_nTop" + self.suffix, "I")
         self.out.branch("Stop0l_nW" + self.suffix, "I")
         self.out.branch("Stop0l_nResolved" + self.suffix, "I")
         self.out.branch("Stop0l_ISRJetIdx" + self.suffix, "I")
         self.out.branch("Stop0l_ISRJetPt" + self.suffix, "F")
-        self.out.branch("HOT_pt" + self.suffix,   "F", lenVar = "nHOT")
-        self.out.branch("HOT_eta" + self.suffix,  "F", lenVar = "nHOT")
-        self.out.branch("HOT_phi" + self.suffix,  "F", lenVar = "nHOT")
-        self.out.branch("HOT_mass" + self.suffix, "F", lenVar = "nHOT")
-        self.out.branch("HOT_type" + self.suffix, "I", lenVar = "nHOT")
+        self.out.branch("HOT_pt" + self.suffix,   "F", lenVar = "nHOT" + self.suffix)
+        self.out.branch("HOT_eta" + self.suffix,  "F", lenVar = "nHOT" + self.suffix)
+        self.out.branch("HOT_phi" + self.suffix,  "F", lenVar = "nHOT" + self.suffix)
+        self.out.branch("HOT_mass" + self.suffix, "F", lenVar = "nHOT" + self.suffix)
+        self.out.branch("HOT_type" + self.suffix, "I", lenVar = "nHOT" + self.suffix)
 
     def endFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
         pass
