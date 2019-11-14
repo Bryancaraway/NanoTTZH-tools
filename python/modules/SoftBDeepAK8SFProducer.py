@@ -155,10 +155,10 @@ class SoftBDeepAK8SFProducer(Module):
     def GetDeepAK8SF(self, fjets):
         stop0l        = np.fromiter([fj.Stop0l for fj in fjets ], int)
         ntop          = len(stop0l)
-        top_sf        = [1.] * ntop
-        top_sferr     = [0.] * ntop
-        top_fastsf    = [1.] * ntop
-        top_fastsferr = [0.] * ntop
+        top_sf        = np.ones(ntop)
+        top_sferr     = np.zeros(ntop)
+        top_fastsf    = np.ones(ntop)
+        top_fastsferr = np.zeros(ntop)
 
         if self.isData:
             return top_sf, top_sferr, top_fastsf, top_fastsferr
@@ -187,6 +187,43 @@ class SoftBDeepAK8SFProducer(Module):
         # print (top_sf, top_sferr, top_fastsf, top_fastsferr)
         return top_sf, top_sferr, top_fastsf, top_fastsferr
 
+    class TTreeReaderArrayWrapper:
+        def __init__(self, ttarray):
+            self.ttarray = ttarray
+
+        def __iter__(self):
+            for i in xrange(len(self.ttarray)):
+                yield self.ttarray[i]
+            return
+
+    def nGenParts(self, event):
+        if not self.isData:
+            GenPart_pdgId = np.fromiter(self.TTreeReaderArrayWrapper(event.GenPart_pdgId), int)
+            GenPart_statusFlags = np.fromiter(self.TTreeReaderArrayWrapper(event.GenPart_statusFlags), int)
+            GenPart_eta = np.fromiter(self.TTreeReaderArrayWrapper(event.GenPart_eta), float)
+            GenPart_phi = np.fromiter(self.TTreeReaderArrayWrapper(event.GenPart_phi), float)
+
+            fatJet_eta = np.fromiter(self.TTreeReaderArrayWrapper(event.FatJet_eta), float)
+            fatJet_phi = np.fromiter(self.TTreeReaderArrayWrapper(event.FatJet_phi), float)
+
+            # statusFlag 0x2100 corresponds to "isLastCopy and fromHardProcess"
+            # statusFlag 0x2080 corresponds to "IsLastCopy and isHardProcess"
+            genPartsFilt = (((abs(GenPart_pdgId) >= 1) & (abs(GenPart_pdgId) <= 5)) | (abs(GenPart_pdgId) == 21)) & (((GenPart_statusFlags & 0x2100) == 0x2100) | ((GenPart_statusFlags & 0x2080) == 0x2080))
+
+            #calculate deltaR matches
+            etas = np.array(np.meshgrid(fatJet_eta, GenPart_eta[genPartsFilt])).T
+            deta = np.power(etas[:, :, 0] - etas[:, :, 1], 2)
+            phis = np.array(np.meshgrid(fatJet_phi, GenPart_phi[genPartsFilt])).T
+            dPhi = phis[:, :, 0] - phis[:, :, 1]
+            np.subtract(dPhi, 2*math.pi, out = dPhi, where= (dPhi >=math.pi))
+            np.add(dPhi, 2*math.pi,  out =dPhi , where=(dPhi < -1*math.pi))
+            np.power(dPhi, 2, out=dPhi)
+            dR2 = np.add(deta, dPhi)
+            nGenPartMatch = (dR2 < 0.6*0.6).sum(axis=1)
+            return nGenPartMatch
+        else:
+            return np.zeros(len(fatjet["pt"]))
+
 
 
     def analyze(self, event):
@@ -196,6 +233,13 @@ class SoftBDeepAK8SFProducer(Module):
 
         sb_sf, sb_sferr, sb_fastsf, sb_fastsferr = self.GetSoftBSF(isvs)
         top_sf, top_sferr, top_fastsf, top_fastsferr = self.GetDeepAK8SF(fatjets)
+
+        #add additional uncertainty for tops with more than 3 gen particles matched 
+        additionalUncertainty = 0.2
+        nGenPart = self.nGenParts(event)
+        fatJet_stop0l = np.fromiter(self.TTreeReaderArrayWrapper(event.FatJet_Stop0l), int)
+        nGenPartCut = nGenPart[fatJet_stop0l == 1]
+        top_sferr[(fatJet_stop0l == 1) & (nGenPart >= 4)] = np.sqrt(np.power(top_sferr[(fatJet_stop0l == 1) & (nGenPart >= 4)], 2) + additionalUncertainty*additionalUncertainty)
 
         ### Store output
         self.out.fillBranch("SB_SF",        sb_sf)
