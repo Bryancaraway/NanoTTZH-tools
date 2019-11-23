@@ -47,6 +47,7 @@ class GenPartFilter(Module):
         self.out.branch("GenPart_pt",               "F", lenVar = "nGenPart", title=inputTree.GetBranch("GenPart_pt").GetTitle())
         self.out.branch("GenPart_genPartIdxMother", "I", lenVar = "nGenPart", title=inputTree.GetBranch("GenPart_genPartIdxMother").GetTitle())
         self.out.branch("GenPart_pdgId",            "I", lenVar = "nGenPart", title=inputTree.GetBranch("GenPart_pdgId").GetTitle())
+        self.out.branch("GenPart_momPdgId",         "I", lenVar = "nGenPart", title="pdgID of the mother particle before post-processing slimming of gen particles. A value of 0 means no mother existed (for instance the incomming particles).")
         self.out.branch("GenPart_status",           "I", lenVar = "nGenPart", title=inputTree.GetBranch("GenPart_status").GetTitle())
         self.out.branch("GenPart_statusFlags",      "I", lenVar = "nGenPart", title=inputTree.GetBranch("GenPart_statusFlags").GetTitle())
 
@@ -87,6 +88,11 @@ class GenPartFilter(Module):
         GenPartCut_status           = np.fromiter(self.TTreeReaderArrayWrapper(event.GenPart_status),           dtype=int)
         GenPartCut_statusFlags      = np.fromiter(self.TTreeReaderArrayWrapper(event.GenPart_statusFlags),      dtype=int)
 
+        #mother pdg IDs 
+        GenPartCut_momPdgId = GenPartCut_pdgId[GenPartCut_genPartIdxMother]
+        #set any particles with an index of -1 to id 0
+        GenPartCut_momPdgId[GenPartCut_genPartIdxMother < 0] = 0
+
         #calculate filter array 
         flagStatIDReq = (self.statusFlags, self.statuses, self.parentPdgIds)
         filterArrays = [ np.logical_and.reduce( ( (GenPartCut_statusFlags & statusFlag) == statusFlag if statusFlag else np.ones(len(GenPartCut_eta), dtype=bool),
@@ -118,6 +124,7 @@ class GenPartFilter(Module):
         self.out.fillBranch("GenPart_pdgId",            GenPartCut_pdgId[filterArray])
         self.out.fillBranch("GenPart_status",           GenPartCut_status[filterArray])
         self.out.fillBranch("GenPart_statusFlags",      GenPartCut_statusFlags[filterArray])
+        self.out.fillBranch("GenPart_momPdgId",         GenPartCut_momPdgId[filterArray])
 
         return True
 

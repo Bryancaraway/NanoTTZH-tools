@@ -266,7 +266,7 @@ def main(args):
             BtagSFWeightProducer("allInOne_bTagEff_deepCSVb_med.root", args.sampleName, DeepCSVMediumWP[args.era]),
             # statusFlag 0x2100 corresponds to "isLastCopy and fromHardProcess"
             # statusFlag 0x2080 corresponds to "IsLastCopy and isHardProcess"
-            GenPartFilter(statusFlags = [0x2100, 0x2080, 0x2000], pdgIds = [0, 0, 22], statuses = [0, 0, 1]),
+            GenPartFilter(statusFlags = [0x2100, 0x2080, 0x2000, 0], pdgIds = [0, 0, 22, 0], statuses = [0, 0, 1, 23]),
             # TODO: first implemtation, need double check
             ISRSFWeightProducer(args.era, isSUSY, "allInOne_ISRWeight.root", args.sampleName), 
             ]
