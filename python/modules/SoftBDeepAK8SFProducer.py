@@ -126,6 +126,7 @@ class SoftBDeepAK8SFProducer(Module):
         self.out.branch("FatJet_SFerr"     , "F", lenVar="nFatJet",       limitedPrecision=12)
         self.out.branch("FatJet_fastSF"    , "F", lenVar="nFatJet",       limitedPrecision=12)
         self.out.branch("FatJet_fastSFerr" , "F", lenVar="nFatJet",       limitedPrecision=12)
+        self.out.branch("FatJet_nGenPart" , "I", lenVar="nFatJet")
 
     def endFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
         pass
@@ -247,5 +248,6 @@ class SoftBDeepAK8SFProducer(Module):
         self.out.fillBranch("FatJet_SFerr",     top_sferr)
         self.out.fillBranch("FatJet_fastSF",    top_fastsf)
         self.out.fillBranch("FatJet_fastSFerr", top_fastsferr)
+        self.out.fillBranch("FatJet_nGenPart",  nGenPart)
 
         return True
