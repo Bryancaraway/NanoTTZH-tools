@@ -25,14 +25,14 @@ class lepSFProducer(Module):
         mu_f =[]
         mu_h =[]
         if self.era == "2016":
-            mu_f+= [ "Muon_IDScaleFactor_%sGH.root" % self.era, 
+            mu_f+= [ "Muon_IDScaleFactor_wSys_%sGH.root" % self.era, 
                      "Muon_LooseID_MiniIso0p2SF_2016.root"
                    ]
             mu_h += ["NUM_%sID_DEN_genTracks_eta_pt" % self.muonSelectionTag, 
                      "SF"
                     ]
         if self.era == "2017":
-            mu_f+= [ "Muon_IDScaleFactor_%s.root" % self.era, 
+            mu_f+= [ "Muon_IDScaleFactor_wSys_%s.root" % self.era, 
                     "Muon_%sID_MiniIso0p2SF_%s.root" % (self.muonSelectionTag, self.era)
                    ]
             mu_h += ["NUM_%sID_DEN_genTracks_pt_abseta" % self.muonSelectionTag, 
@@ -41,29 +41,44 @@ class lepSFProducer(Module):
         elif self.era == "2018":
             ##  SUSY recommend to use the 2017 Data/FullSim SFs for MiniIso also
             ##  for 2018, as no changes are expected and these SFs are very close to 1. 
-            mu_f+= [ "Muon_IDScaleFactor_%s.root" % self.era, 
+            mu_f+= [ "Muon_IDScaleFactor_wSys_%s.root" % self.era, 
                     "Muon_%sID_MiniIso0p2SF_%s.root" % (self.muonSelectionTag, "2017")
                    ]
             mu_h += ["NUM_%sID_DEN_TrackerMuons_pt_abseta" % self.muonSelectionTag, 
                      "TnP_MC_NUM_MiniIso02Cut_DEN_%sID_PAR_pt_eta" % self.muonSelectionTag
                     ]
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Electron ~~~~~
-        if self.era == "2018":
-            el_f = [ "Electron_GT10GeV_RecoSF_2017v2ID_Run%s.root" % self.era,
-                "Electron_SUSYScaleFactors_2017v2ID_Run%s.root" % self.era
-            ]
-            el_h = ["EGamma_SF2D",
-                    "Run%s_CutBased%sNoIso94XV2" % (self.era, self.electronSelectionTag)
-                    ]
-        else:
+        if self.era == "2016":
             el_f = [ "Electron_GT20GeV_RecoSF_2017v2ID_Run%s.root" % self.era,
-                "Electron_LT20GeV_RecoSF_2017v2ID_Run%s.root" % self.era,
-                "Electron_SUSYScaleFactors_2017v2ID_Run%s.root" % self.era
-            ]
+                    "Electron_LT20GeV_RecoSF_2017v2ID_Run%s.root" % self.era,
+                    "Electron_SUSYScaleFactors_2017v2ID_Run%s.root" % self.era,
+                    "Electron_SUSYScaleFactors_2017v2ID_Run%s.root" % self.era
+                   ]
             el_h = ["EGamma_SF2D",
                     "EGamma_SF2D",
-                    "Run%s_CutBased%sNoIso94XV2" % (self.era, self.electronSelectionTag)
-                    ]
+                    "Run%s_CutBased%sNoIso94XV2" % (self.era, self.electronSelectionTag),
+                    "Run%s_Mini" % self.era
+                   ]
+        elif self.era == "2017":
+            el_f = [ "Electron_GT20GeV_RecoSF_2017v2ID_Run%s.root" % self.era,
+                    "Electron_LT20GeV_RecoSF_2017v2ID_Run%s.root" % self.era,
+                    "Electron_SUSYScaleFactors_2017v2ID_Run%s.root" % self.era,
+                    "Electron_SUSYScaleFactors_2017v2ID_Run%s.root" % self.era
+                   ]
+            el_h = ["EGamma_SF2D",
+                    "EGamma_SF2D",
+                    "Run%s_CutBased%sNoIso94XV2" % (self.era, self.electronSelectionTag),
+                    "Run%s_MVAVLooseTightIP2DMini" % self.era
+                   ]
+        elif self.era == "2018":
+            el_f = [ "Electron_GT10GeV_RecoSF_2017v2ID_Run%s.root" % self.era,
+                    "Electron_SUSYScaleFactors_2017v2ID_Run%s.root" % self.era,
+                    "Electron_SUSYScaleFactors_2017v2ID_Run%s.root" % self.era
+                   ]
+            el_h = ["EGamma_SF2D",
+                    "Run%s_CutBased%sNoIso94XV2" % (self.era, self.electronSelectionTag),
+                    "Run%s_Mini" % self.era
+                   ]
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Photon ~~~~~
 
