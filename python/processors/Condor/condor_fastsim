@@ -1,0 +1,12 @@
+universe = vanilla
+Executable = EXECUTABLE
+Requirements = (OpSys == "LINUX") && (Arch != "DUMMY" )
+Should_Transfer_Files = YES
+WhenToTransferOutput = ON_EXIT
+Transfer_Input_Files = TARFILES, haddnano.py
+Output = TEMPDIR/PROJECTNAME_SAMPLENAME_$(Cluster)_$(Process).stdout
+Error = TEMPDIR/PROJECTNAME_SAMPLENAME_$(Cluster)_$(Process).stderr
+Log = TEMPDIR/PROJECTNAME_SAMPLENAME_$(Cluster)_$(Process).log
+
+ARGUMENTS
+
