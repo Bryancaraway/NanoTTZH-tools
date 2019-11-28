@@ -220,7 +220,7 @@ class SoftBDeepAK8SFProducer(Module):
             nGenPartMatch = (dR2 < 0.6*0.6).sum(axis=1)
             return nGenPartMatch
         else:
-            return np.zeros(len(fatjet["pt"]))
+            return np.zeros(len(event.FatJet_pt)).astype(int)
 
 
 
