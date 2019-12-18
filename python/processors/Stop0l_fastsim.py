@@ -202,7 +202,7 @@ def main(args):
         pp=PostProcessor(args.outputfile,g,cut=cutstr, postfix=poststr, provenance=False,maxEvents=args.maxEvents)
         pp.run()
         print(p, poststr)
-        os.system("python haddnano.py SMS_{0}_fastsim_Mom{1}_LSP{2}.root *_Mom{1}_LSP{2}_*.root".format(sampleType,int(p[0]),int(p[1]))
+        os.system("python haddnano.py SMS_{0}_fastsim_Mom{1}_LSP{2}.root *_Mom{1}_LSP{2}_*.root".format(sampleType,int(p[0]),int(p[1])))
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='NanoAOD postprocessing.')
