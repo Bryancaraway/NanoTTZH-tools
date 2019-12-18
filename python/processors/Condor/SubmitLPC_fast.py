@@ -197,7 +197,6 @@ def my_process(args):
         NewNpro[key] = nque
 
     Tarfiles.append(os.path.abspath(DelExe))
-    Tarfiles.append(os.path.abspath("../haddnano.py"))
     tarballname ="%s/%s.tar.gz" % (tempdir, ProjectName)
     with tarfile.open(tarballname, "w:gz", dereference=True) as tar:
         [tar.add(f, arcname=f.split('/')[-1]) for f in Tarfiles]
@@ -215,7 +214,6 @@ def my_process(args):
         #Update RunExe.csh
         RunHTFile = tempdir + "/" + name + "_RunExe.csh"
         with open(RunHTFile, "wt") as outfile:
-            # for line in open("RunExe_splitHEM.csh","r"):
             for line in open("RunExe_fastsim.csh","r"):
                 line = line.replace("DELSCR", os.environ['SCRAM_ARCH'])
                 line = line.replace("DELDIR", os.environ['CMSSW_VERSION'])
@@ -225,7 +223,7 @@ def my_process(args):
 
         #Update condor file
         #First argument is output file name. Rest are to be passed to Stop0l_postproc.py.
-        arg = "\nArguments = _$(Process).root --inputfile={common_name}.$(Process).list ".format(common_name=name)
+        arg = "\nArguments = {common_name}_$(Process).root --inputfile={common_name}.$(Process).list ".format(common_name=name)
         for k, v in sample.items():
             if "__" in k:
                 continue
@@ -239,7 +237,7 @@ def my_process(args):
         ## Prepare the condor file
         condorfile = tempdir + "/" + "condor_" + ProjectName + "_" + name
         with open(condorfile, "wt") as outfile:
-            for line in open("condor_fastsim", "r"):
+            for line in open("condor_template", "r"):
                 line = line.replace("EXECUTABLE", os.path.abspath(RunHTFile))
                 line = line.replace("TARFILES", tarballname)
                 line = line.replace("TEMPDIR", tempdir)
@@ -248,7 +246,7 @@ def my_process(args):
                 line = line.replace("ARGUMENTS", arg)
                 outfile.write(line)
 
-        #Condor_Sub(condorfile)
+        Condor_Sub(condorfile)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='NanoAOD postprocessing.')
