@@ -47,11 +47,11 @@ if ($? == 0) then
   #echo "Process finished. Listing current files: "
   echo "Process finished. Removing (unmerged) Skim files."
   #echo "Hadd file will be named: " $argv[1]
-  foreach outfile (`ls *_Skim*.root`)
+  foreach outfile (`find . -name "*_Skim*.root"`)
     rm $outfile
   end
 
-  foreach outfile (`ls *_Mom*_LSP*.root`)
+  foreach outfile (`ls SMS_T*_Mom*_LSP*.root`)
     #Cut off ".root" and append "_{ProcessNum}.root", passed as first argument
     set cutoffoutfile = `echo $outfile | rev | cut -c 6- | rev`
     echo "Copying " $outfile " to root://cmseos.fnal.gov/${OUTPUT}/$cutoffoutfile$argv[1]"
