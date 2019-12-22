@@ -64,7 +64,7 @@ DataDepInputs = {
     },
 
     "FASTSIM": {
-        "2016" : {"bTagEff": "SMS_T1tttt_Total_2017.root",
+        "2016" : {"bTagEff": "FastSim2016AllSamples.root",
                   "pileup_Data": "Cert271036_284044_23Sep2016ReReco_Collisions16.root",
                   "pileup_MC": "pileup_profile_2016.root",
                   "JERMC": "Summer16_25nsV1_MC",
@@ -72,7 +72,7 @@ DataDepInputs = {
                   "redoJEC": False,
                   "taggerWD": "TopTaggerCfg-DeepResolved_DeepCSV_GR_nanoAOD_2016_v1.0.3",
                  },
-        "2017" : {"bTagEff": "SMS_T1tttt_Total_2017.root",
+        "2017" : {"bTagEff": "FastSim2017AllSamples.root",
                   "pileup_Data": "Cert294927_306462_EOY2017ReReco_Collisions17.root",
                   "pileup_MC": "pileup_profile_2017.root",
                   "JERMC": "Fall17_V3_MC",
@@ -80,7 +80,7 @@ DataDepInputs = {
                   "redoJEC": True,
                   "taggerWD": "TopTaggerCfg-DeepResolved_DeepCSV_GR_nanoAOD_2017_v1.0.3",
                  },
-        "2018" : {"bTagEff": "SMS_T1tttt_Total_2017.root",
+        "2018" : {"bTagEff": "FastSim2018AllSamples.root",
                   "pileup_Data": "ReReco2018ABC_PromptEraD_Collisions18.root",
                   "pileup_MC": "pileup_profile_2018.root",
                   "JERMC": "Autumn18_V1_MC",
