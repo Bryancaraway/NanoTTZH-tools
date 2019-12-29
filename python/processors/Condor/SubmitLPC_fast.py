@@ -20,9 +20,9 @@ from itertools import izip_longest
 # DelExe    = '../Stop0l_splitHEM.py'
 DelExe    = '../Stop0l_fastsim.py'
 tempdir = "/uscmst1b_scratch/lpc1/3DayLifetime/ahenckel/TestCondor/"
-ShortProjectName = 'PreProcess17'
+ShortProjectName = 'FastsimSplitting'
 # VersionNumber = '_splitHEM'
-VersionNumber = '_fastsimv4'
+VersionNumber = '_fastsimv5'
 argument = "--inputFiles=%s.$(Process).list "
 sendfiles = ["/uscms/home/benwu/python-packages.tgz", "../keep_and_drop.txt"]
 TTreeName = "Events"
@@ -108,14 +108,14 @@ def ConfigList(config):
 def Condor_Sub(condor_file):
     curdir = os.path.abspath(os.path.curdir)
     os.chdir(os.path.dirname(condor_file))
-    print "To submit condor with " + condor_file
+    print "Submitting to condor: " + condor_file
     os.system("condor_submit " + condor_file)
     os.chdir(curdir)
 
 def GetNEvent(file):
     return (file, uproot.numentries(file, TTreeName))
 
-def SplitPro(key, file, lineperfile=20, eventsplit=2**18, TreeName=None):
+def SplitPro(key, file, lineperfile=10, eventsplit=2**21, TreeName=None):
     # Default to 20 file per job, or 2**20 ~ 1M event per job
     # At 26Hz processing time in postv2, 1M event runs ~11 hours
     splitedfiles = []
@@ -140,7 +140,7 @@ def SplitPro(key, file, lineperfile=20, eventsplit=2**18, TreeName=None):
 
     f = open(filename, 'r')
     filelist = [l.strip() for l in f.readlines()]
-    splitbyNevent = False
+    splitbyNevent = True
     if splitbyNevent:
         r = None
         pool = Pool(processes=NProcess)
@@ -156,12 +156,14 @@ def SplitPro(key, file, lineperfile=20, eventsplit=2**18, TreeName=None):
             filemap[filecnt].append(l)
     else:
         g = izip_longest(fillvalue=None, *([iter(filelist)]*lineperfile))
-        filemap = {i:gg for i, gg in enumerate(g)}
+        filemap = {i:gg for i, gg in enumerate(g) if gg is not None}
+        #print "filemap:",filemap[0]
+        #print "filtered filemap:",filter(None,filemap[0])
         filecnt = filemap.keys()[-1]
 
     for k,v in filemap.items():
         outf = open("%s/%s.%d.list" % (filelistdir, key, k), 'w')
-        outf.write("\n".join(v))
+        outf.write("\n".join(filter(None,v)))
         splitedfiles.append(os.path.abspath("%s/%s.%d.list" % (filelistdir, key, k)))
         outf.close()
 
@@ -212,7 +214,6 @@ def my_process(args):
         #Update RunExe.csh
         RunHTFile = tempdir + "/" + name + "_RunExe.csh"
         with open(RunHTFile, "wt") as outfile:
-            # for line in open("RunExe_splitHEM.csh","r"):
             for line in open("RunExe_fastsim.csh","r"):
                 line = line.replace("DELSCR", os.environ['SCRAM_ARCH'])
                 line = line.replace("DELDIR", os.environ['CMSSW_VERSION'])
@@ -222,7 +223,7 @@ def my_process(args):
 
         #Update condor file
         #First argument is output file name. Rest are to be passed to Stop0l_postproc.py.
-        arg = "\nArguments = _$(Process).root --inputfile={common_name}.$(Process).list ".format(common_name=name)
+        arg = "\nArguments = {common_name}_$(Process).root --inputfile={common_name}.$(Process).list ".format(common_name=name)
         for k, v in sample.items():
             if "__" in k:
                 continue
@@ -236,7 +237,7 @@ def my_process(args):
         ## Prepare the condor file
         condorfile = tempdir + "/" + "condor_" + ProjectName + "_" + name
         with open(condorfile, "wt") as outfile:
-            for line in open("condor_fastsim", "r"):
+            for line in open("condor_template", "r"):
                 line = line.replace("EXECUTABLE", os.path.abspath(RunHTFile))
                 line = line.replace("TARFILES", tarballname)
                 line = line.replace("TEMPDIR", tempdir)
