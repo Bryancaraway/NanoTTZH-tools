@@ -44,18 +44,18 @@ echo $EXE $argv[2-]
 python $EXE $argv[2-]
 
 if ($? == 0) then
+  #echo "Process finished. Listing current files: "
   echo "Process finished. Removing (unmerged) Skim files."
-  foreach outfile (`find . -name "*_Skim*.root"`)
+  #echo "Hadd file will be named: " $argv[1]
+  foreach outfile (`ls *_Skim*.root`)
     rm $outfile
   end
 
-  set newpost = `echo $argv[1] | rev | cut -f 1 -d _ | rev`
-
-  foreach outfile (`ls SMS_*_Mom*_LSP*.root`)
+  foreach outfile (`ls *_Mom*_LSP*.root`)
     #Cut off ".root" and append "_{ProcessNum}.root", passed as first argument
-    set pre = `echo $outfile | cut -f 1 -d .`
-    echo "Copying " $outfile "root://cmseos.fnal.gov/${OUTPUT}/${pre}_${newpost}"
-    xrdcp -f $outfile "root://cmseos.fnal.gov/${OUTPUT}/${pre}_${newpost}"
+    set cutoffoutfile = `echo $outfile | rev | cut -c 6- | rev`
+    echo "Copying " $outfile " to root://cmseos.fnal.gov/${OUTPUT}/$cutoffoutfile$argv[1]"
+    xrdcp -f $outfile "root://cmseos.fnal.gov/${OUTPUT}/$cutoffoutfile$argv[1]"
     ## Remove output file once it is copied
     if ($? == 0) then
       rm $outfile
