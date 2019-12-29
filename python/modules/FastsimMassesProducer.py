@@ -17,8 +17,6 @@ class FastsimMassesProducer(Module):
         pass
 
     def beginFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
-        if not self.isFastsim:
-            return True
         self.out = wrappedOutputTree
         self.out.branch("Stop0l_MotherMass", "F")
         self.out.branch("Stop0l_LSPMass",    "F")
@@ -28,6 +26,8 @@ class FastsimMassesProducer(Module):
 
     def analyze(self, event):
         """process event, return True (go to next module) or False (fail, go to next event)"""
+        if not self.isFastsim:
+            return True
 
         genpar = Collection(event, "GenPart")
 
