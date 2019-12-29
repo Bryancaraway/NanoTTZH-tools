@@ -28,8 +28,6 @@ class FastsimMassesProducer(Module):
 
     def analyze(self, event):
         """process event, return True (go to next module) or False (fail, go to next event)"""
-        if not self.isFastsim:
-            return True
 
         genpar = Collection(event, "GenPart")
 
