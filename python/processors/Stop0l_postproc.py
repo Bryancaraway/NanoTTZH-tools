@@ -167,6 +167,9 @@ DeepResovledCandidateDiscCut = 0.75
 def main(args):
     isdata = len(args.dataEra) > 0
     isfastsim = args.isFastSim
+    BTagERA= args.era
+    if args.isFastSim:
+       BTagERA= args.era+"FastSim"
     isSUSY = args.sampleName.startswith("SMS_")
 
     if isdata and isfastsim:
@@ -229,7 +232,8 @@ def main(args):
              UpdateEvtWeight(isdata, args.crossSection, args.nEvents, args.sampleName)
             ]
 
-    #~~~~~ Modules for MC Only ~~~~~
+    #~~~~~ Modules for MC Only ~~~~
+    print "fhfhjgghfjiafj"+BTagERA
     if not isdata:
         pufile_data = "%s/src/PhysicsTools/NanoSUSYTools/data/pileup/%s" % (os.environ['CMSSW_BASE'], DataDepInputs[dataType][args.era]["pileup_Data"])
         pufile_mc = "%s/src/PhysicsTools/NanoSUSYTools/data/pileup/%s" % (os.environ['CMSSW_BASE'], DataDepInputs[dataType][args.era]["pileup_MC"])
@@ -268,7 +272,7 @@ def main(args):
                           photonSelectionTag="Medium", 
                           tauSelectionTag="Tight"),
             puWeightProducer(pufile_mc, pufile_data, args.sampleName,"pileup"),
-            btagSFProducer(era=args.era, algo="deepcsv"),
+            btagSFProducer(era=BTagERA, algo="deepcsv"),
             #BtagSFWeightProducer("allInOne_bTagEff_deepCSVb_med.root", args.sampleName, DeepCSVMediumWP[args.era]),
             BtagSFWeightProducer(DataDepInputs[dataType][args.era]["bTagEff"], args.sampleName, DeepCSVMediumWP[args.era]),
             # statusFlag 0x2100 corresponds to "isLastCopy and fromHardProcess"
