@@ -167,9 +167,6 @@ DeepResovledCandidateDiscCut = 0.75
 def main(args):
     isdata = len(args.dataEra) > 0
     isfastsim = args.isFastSim
-    BTagERA= args.era
-    if args.isFastSim:
-       BTagERA= args.era+"FastSim"
     isSUSY = args.sampleName.startswith("SMS_")
 
     if isdata and isfastsim:
@@ -241,6 +238,7 @@ def main(args):
         if not isfastsim:
             mods += [
                 jecUncertProducer(DataDepInputs[dataType][args.era]["JECMC"]),
+                btagSFProducer(args.era+"FastSim", algo="deepcsv"),
                 ]
         ## Major modules for MC
         mods += [
@@ -271,9 +269,9 @@ def main(args):
                           photonSelectionTag="Medium", 
                           tauSelectionTag="Tight"),
             puWeightProducer(pufile_mc, pufile_data, args.sampleName,"pileup"),
-            btagSFProducer(era=BTagERA, algo="deepcsv"),
+            btagSFProducer(args.era, algo="deepcsv"),
             #BtagSFWeightProducer("allInOne_bTagEff_deepCSVb_med.root", args.sampleName, DeepCSVMediumWP[args.era]),
-            BtagSFWeightProducer(DataDepInputs[dataType][args.era]["bTagEff"], args.sampleName, DeepCSVMediumWP[args.era]),
+            BtagSFWeightProducer(DataDepInputs[dataType][args.era]["bTagEff"], args.sampleName, DeepCSVMediumWP[args.era], isfastsim),
             # statusFlag 0x2100 corresponds to "isLastCopy and fromHardProcess"
             # statusFlag 0x2080 corresponds to "IsLastCopy and isHardProcess"
             GenPartFilter(statusFlags = [0x2100, 0x2080, 0x2000, 0], pdgIds = [0, 0, 22, 0], statuses = [0, 0, 1, 23]),
