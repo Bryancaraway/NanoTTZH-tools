@@ -10,9 +10,10 @@ from PhysicsTools.NanoAODTools.postprocessing.tools import deltaPhi, deltaR, clo
 
 class ISRSFWeightProducer(Module):
 
-    def __init__(self, era, isSUSY, isrEffFile, sampleName, fileDirectory = os.environ['CMSSW_BASE'] + "/src/PhysicsTools/NanoSUSYTools/data/isrSF/"):
+    def __init__(self, era, isSUSY, isFastsim, isrEffFile, sampleName, fileDirectory = os.environ['CMSSW_BASE'] + "/src/PhysicsTools/NanoSUSYTools/data/isrSF/"):
         self.era = era
         self.isSUSY = isSUSY
+        self.isFastsim = isFastsim
         self.isrEffFile = isrEffFile
         self.sampleName = sampleName
         self.fileDirectory = fileDirectory
@@ -26,18 +27,19 @@ class ISRSFWeightProducer(Module):
         self.ISRcentral = np.ones(self.Corr2016.shape)
         self.ISRUp      = np.ones(self.Corr2016.shape)
         self.ISRDown    = np.ones(self.Corr2016.shape)
+        self.fin = None
 
 
     def beginJob(self):
         ROOT.TH1.AddDirectory(False)
-        fin = ROOT.TFile.Open(self.fileDirectory + "/" + self.isrEffFile)
-        self.h_eff          = fin.Get(("NJetsISR_" + self.sampleName));
+        self.fin = ROOT.TFile.Open(self.fileDirectory + "/" + self.isrEffFile)
+        self.h_eff          = self.fin.Get(("NJetsISR_" + self.sampleName));
 
-        if  ("TTbar" in self.sampleName and self.era == "2016") or self.isSUSY:
+        if  (("TTbar" in self.sampleName and self.era == "2016") or self.isSUSY) and not self.isFastsim:
             if not self.h_eff:
                 print "ISRJet efficiency histograms for sample \"%s\" are not found in file \"%s\".  Using TTBar_2016 inclusive numbers as default setting!!!!"%( self.sampleName, self.isrEffFile)
                 self.sampleName = "TTbarInc_2016"
-                self.h_eff         = fin.Get(("NJetsISR_" + self.sampleName));
+                self.h_eff         = self.fin.Get(("NJetsISR_" + self.sampleName));
             self.PropISRWeightUnc()
 
     def PropISRWeightUnc(self):
@@ -74,6 +76,10 @@ class ISRSFWeightProducer(Module):
         self.out.branch("ISRWeight_Up",   "F", title="ISR event weight up uncertainty")
         self.out.branch("ISRWeight_Down", "F", title="ISR event weight down uncertainty")
         self.out.branch("nISRJets",       "F", title="The number of jets that contain a unmatched jet to a gen particle")
+        if self.isFastsim and self.isSUSY:
+            self.sampleName = os.path.splitext(os.path.basename(inputFile.GetName()))[0]
+            self.h_eff         =self.fin.Get(("NJetsISR_" + self.sampleName));
+            self.PropISRWeightUnc()
 
     def endFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
         pass
