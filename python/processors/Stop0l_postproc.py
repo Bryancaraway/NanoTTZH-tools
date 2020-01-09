@@ -24,7 +24,7 @@ from PhysicsTools.NanoSUSYTools.modules.PDFUncertaintyProducer import PDFUncerti
 from PhysicsTools.NanoSUSYTools.modules.GenPartFilter import GenPartFilter
 from PhysicsTools.NanoSUSYTools.modules.BtagSFWeightProducer import BtagSFWeightProducer
 from PhysicsTools.NanoSUSYTools.modules.UpdateMETProducer import UpdateMETProducer
-from PhysicsTools.NanoSUSYTools.modules.FastsimVarProducer import FastsimVarProducer
+from PhysicsTools.NanoSUSYTools.modules.FastsimOtherVarProducer import FastsimOtherVarProducer
 from PhysicsTools.NanoSUSYTools.modules.PrefireCorr import PrefCorr
 from PhysicsTools.NanoSUSYTools.modules.ISRWeightProducer import ISRSFWeightProducer
 from PhysicsTools.NanoSUSYTools.modules.Stop0l_trigger import Stop0l_trigger
@@ -210,7 +210,7 @@ def main(args):
 
     #~~~~~ Common modules for Data and MC ~~~~~
     mods += [ eleMiniCutID(),
-             FastsimVarProducer(isfastsim),
+             FastsimOtherVarProducer(isfastsim),
              Stop0lObjectsProducer(args.era),
              TopTaggerProducer(recalculateFromRawInputs=True, topDiscCut=DeepResovledCandidateDiscCut, 
                                cfgWD=os.environ["CMSSW_BASE"] + "/src/PhysicsTools/NanoSUSYTools/python/processors/" + DataDepInputs[dataType][args.era if not isdata else (args.era + args.dataEra)]["taggerWD"],
@@ -243,10 +243,10 @@ def main(args):
                               cfgWD=os.environ["CMSSW_BASE"] + "/src/PhysicsTools/NanoSUSYTools/python/processors/" + DataDepInputs[dataType][args.era if not isdata else (args.era + args.dataEra)]["taggerWD"]),
             DeepTopProducer(args.era, "JESUp"),
             DeepTopProducer(args.era, "JESDown"),
-            FastsimVarProducer(isfastsim, "JESUp"),
-            FastsimVarProducer(isfastsim, "JESDown"),
-            FastsimVarProducer(isfastsim, "METUnClustUp"),
-            FastsimVarProducer(isfastsim, "METUnClustDown"),
+            FastsimOtherVarProducer(isfastsim, "JESUp"),
+            FastsimOtherVarProducer(isfastsim, "JESDown"),
+            FastsimOtherVarProducer(isfastsim, "METUnClustUp"),
+            FastsimOtherVarProducer(isfastsim, "METUnClustDown"),
             Stop0lObjectsProducer(args.era, "JESUp"),
             Stop0lObjectsProducer(args.era, "JESDown"),
             Stop0lObjectsProducer(args.era, "METUnClustUp"),
@@ -266,7 +266,7 @@ def main(args):
             BtagSFWeightProducer("allInOne_bTagEff_deepCSVb_med.root", args.sampleName, DeepCSVMediumWP[args.era]),
             # statusFlag 0x2100 corresponds to "isLastCopy and fromHardProcess"
             # statusFlag 0x2080 corresponds to "IsLastCopy and isHardProcess"
-            GenPartFilter(statusFlags = [0x2100, 0x2080, 0x2000], pdgIds = [0, 0, 22], statuses = [0, 0, 1]),
+            GenPartFilter(statusFlags = [0x2100, 0x2080, 0x2000, 0], pdgIds = [0, 0, 22, 0], statuses = [0, 0, 1, 23]),
             # TODO: first implemtation, need double check
             ISRSFWeightProducer(args.era, isSUSY, "allInOne_ISRWeight.root", args.sampleName), 
             ]

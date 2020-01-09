@@ -15,13 +15,16 @@ import argparse
 import uproot
 from collections import defaultdict
 from multiprocessing import Pool
+from itertools import izip_longest
 
-DelExe    = '../Stop0l_postproc.py'
-tempdir = '/uscmst1b_scratch/lpc1/3DayLifetime/%s/TestCondor/'  % getpass.getuser()
-ShortProjectName = 'PostProcess'
-VersionNumber = '_v5'
+# DelExe    = '../Stop0l_splitHEM.py'
+DelExe    = '../Stop0l_fastsim.py'
+tempdir = "/uscmst1b_scratch/lpc1/3DayLifetime/ahenckel/TestCondor/"
+ShortProjectName = 'PreProcess17'
+# VersionNumber = '_splitHEM'
+VersionNumber = '_fastsimv4'
 argument = "--inputFiles=%s.$(Process).list "
-sendfiles = ["../keep_and_drop.txt"]
+sendfiles = ["/uscms/home/benwu/python-packages.tgz", "../keep_and_drop.txt"]
 TTreeName = "Events"
 NProcess = 10
 
@@ -77,21 +80,11 @@ def ConfigList(config):
         stripped_entry = [ i.strip() for i in entry]
         #print(stripped_entry)
         replaced_outdir = stripped_entry[1].replace("Pre","Post")
-
-        #cut off anything after the processing date folder 
-        replaced_outdir = replaced_outdir.split("/")
-        nCut = 0
-        for i, s in enumerate(replaced_outdir):
-            if"PostProcessed" in s:
-                nCut = i
-                break
-        replaced_outdir = "/".join(replaced_outdir[:nCut + 1])
-            
         process[stripped_entry[0]] = {
             #Note that anything appended with __ will not be passed along. These are for bookkeeping. Furthermore, Outpath is not used if an output directory argument is given.
             "Filepath__" : "%s/%s" % (stripped_entry[1], stripped_entry[2]),
-            #"Outpath__" : "%s" % (stripped_entry[1]) + "/" + ShortProjectName + VersionNumber + "/" + stripped_entry[0]+"/", #old
-            "Outpath__" : "%s" % (replaced_outdir) + VersionNumber + "/" + stripped_entry[0] + "/", #new
+            #"Outpath__" : "%s" % (replaced_outdir) + VersionNumber + "/" + stripped_entry[0] + "/",
+            "Outpath__" : "%s" % (stripped_entry[1]) + VersionNumber + "/" + stripped_entry[0] + "/", #since these are preprocessed
             "isData__" : "Data" in stripped_entry[0],
             "isFastSim" : "fastsim" in stripped_entry[0], #isFastSim is a toggle in Stop0l_postproc.py, so it should be sent with no value.
             "era" : temp_era,
@@ -122,7 +115,7 @@ def Condor_Sub(condor_file):
 def GetNEvent(file):
     return (file, uproot.numentries(file, TTreeName))
 
-def SplitPro(key, file, lineperfile=20, eventsplit=2**20, TreeName=None):
+def SplitPro(key, file, lineperfile=20, eventsplit=2**18, TreeName=None):
     # Default to 20 file per job, or 2**20 ~ 1M event per job
     # At 26Hz processing time in postv2, 1M event runs ~11 hours
     splitedfiles = []
@@ -143,22 +136,28 @@ def SplitPro(key, file, lineperfile=20, eventsplit=2**20, TreeName=None):
     filemap = defaultdict(list)
     if TreeName is None:
         print("Need Tree name to get number of entries")
-        return splitedfiles
+        return splitedfiles, 0
 
     f = open(filename, 'r')
     filelist = [l.strip() for l in f.readlines()]
-    r = None
-    pool = Pool(processes=NProcess)
-    r = pool.map(GetNEvent, filelist)
-    pool.close()
-    filedict = dict(r)
-    for l in filelist:
-        n = filedict[l]
-        eventcnt += n
-        if eventcnt > eventsplit:
-            filecnt += 1
-            eventcnt = n
-        filemap[filecnt].append(l)
+    splitbyNevent = False
+    if splitbyNevent:
+        r = None
+        pool = Pool(processes=NProcess)
+        r = pool.map(GetNEvent, filelist)
+        pool.close()
+        filedict = dict(r)
+        for l in filelist:
+            n = filedict[l]
+            eventcnt += n
+            if eventcnt > eventsplit:
+                filecnt += 1
+                eventcnt = n
+            filemap[filecnt].append(l)
+    else:
+        g = izip_longest(fillvalue=None, *([iter(filelist)]*lineperfile))
+        filemap = {i:gg for i, gg in enumerate(g)}
+        filecnt = filemap.keys()[-1]
 
     for k,v in filemap.items():
         outf = open("%s/%s.%d.list" % (filelistdir, key, k), 'w')
@@ -166,7 +165,7 @@ def SplitPro(key, file, lineperfile=20, eventsplit=2**20, TreeName=None):
         splitedfiles.append(os.path.abspath("%s/%s.%d.list" % (filelistdir, key, k)))
         outf.close()
 
-    return splitedfiles
+    return splitedfiles, filecnt+1
 
 def my_process(args):
     ## temp dir for submit
@@ -191,9 +190,9 @@ def my_process(args):
     #Process = ConfigList(os.path.abspath(args.config), args.era)
     for key, sample in Process.items():
         print("Getting process: " + key + " " + sample['Filepath__'])
-        npro = SplitPro(key, sample['Filepath__'], TreeName=TTreeName)
+        npro, nque = SplitPro(key, sample['Filepath__'], TreeName=TTreeName)
         Tarfiles+= npro
-        NewNpro[key] = len(npro)
+        NewNpro[key] = nque
 
     Tarfiles.append(os.path.abspath(DelExe))
     tarballname ="%s/%s.tar.gz" % (tempdir, ProjectName)
@@ -213,7 +212,8 @@ def my_process(args):
         #Update RunExe.csh
         RunHTFile = tempdir + "/" + name + "_RunExe.csh"
         with open(RunHTFile, "wt") as outfile:
-            for line in open("RunExe.csh","r"):
+            # for line in open("RunExe_splitHEM.csh","r"):
+            for line in open("RunExe_fastsim.csh","r"):
                 line = line.replace("DELSCR", os.environ['SCRAM_ARCH'])
                 line = line.replace("DELDIR", os.environ['CMSSW_VERSION'])
                 line = line.replace("DELEXE", DelExe.split('/')[-1])
@@ -222,7 +222,7 @@ def my_process(args):
 
         #Update condor file
         #First argument is output file name. Rest are to be passed to Stop0l_postproc.py.
-        arg = "\nArguments = {common_name}_$(Process).root --inputfile={common_name}.$(Process).list ".format(common_name=name)
+        arg = "\nArguments = _$(Process).root --inputfile={common_name}.$(Process).list ".format(common_name=name)
         for k, v in sample.items():
             if "__" in k:
                 continue
@@ -236,7 +236,7 @@ def my_process(args):
         ## Prepare the condor file
         condorfile = tempdir + "/" + "condor_" + ProjectName + "_" + name
         with open(condorfile, "wt") as outfile:
-            for line in open("condor_template", "r"):
+            for line in open("condor_fastsim", "r"):
                 line = line.replace("EXECUTABLE", os.path.abspath(RunHTFile))
                 line = line.replace("TARFILES", tarballname)
                 line = line.replace("TEMPDIR", tempdir)

@@ -20,6 +20,7 @@ class Stop0l_trigger(Module):
         ## Keep the TGraph in memory
         histo_name_list = ["MET_loose_baseline", "MET_high_dm", "MET_low_dm",
 			   "MET_loose_baseline_QCD", "MET_high_dm_QCD", "MET_low_dm_QCD",
+			   "MET_low_dm_QCD_METSig",
 			   "Electron_pt", "Electron_eta", "Muon_pt", "Muon_eta", 
                            "Photon_pt", "Photon_eta", "Zmumu_pt", "Zee_pt"]
         self.effs = { }
@@ -54,6 +55,8 @@ class Stop0l_trigger(Module):
         self.out.branch("Stop0l_trigger_eff_MET_low_dm_QCD", "F")
         self.out.branch("Stop0l_trigger_eff_MET_low_dm_QCD_down", "F")
         self.out.branch("Stop0l_trigger_eff_MET_low_dm_QCD_up", "F")
+        self.out.branch("Stop0l_trigger_eff_MET_low_dm_QCD_down_METSig", "F")
+        self.out.branch("Stop0l_trigger_eff_MET_low_dm_QCD_up_METSig", "F")
         self.out.branch("Stop0l_trigger_eff_MET_high_dm_QCD", "F")
         self.out.branch("Stop0l_trigger_eff_MET_high_dm_QCD_down", "F")
         self.out.branch("Stop0l_trigger_eff_MET_high_dm_QCD_up", "F")
@@ -107,7 +110,27 @@ class Stop0l_trigger(Module):
 	#print " my_xrange is ", my_xrange
         if findbix == -1:
             return 0, 0, 0
-        return eff.GetY()[findbix], eff.GetY()[findbix] - eff.GetErrorYlow(findbix), eff.GetY()[findbix] + eff.GetErrorYhigh(findbix)
+	
+	eff_central = eff.GetY()[findbix]
+	eff_down = eff_central - eff.GetErrorYlow(findbix)
+	eff_up = eff_central + eff.GetErrorYhigh(findbix)
+
+	if(trigger_name == "MET_low_dm_QCD"): 		#assign additional sys unc for MET trigger eff in low dm QCD CR
+		eff_METSig = self.effs["MET_low_dm_QCD_METSig"]
+        	my_xrange_METSig = np.array([eff_METSig.GetX()[i] - eff_METSig.GetErrorXlow(i) for i in range(eff_METSig.GetN()) ])
+        	my_xrange_METSig = np.append(my_xrange_METSig, 99999)
+        	findbix_METSig = np.searchsorted(my_xrange_METSig, kinematic)-1
+        	if findbix_METSig == -1:
+            		return eff_central, eff_down, eff_up, 0, 0
+		eff_diff = abs(eff_central - eff_METSig.GetY()[findbix_METSig])
+		eff_down_METSig = eff_central - eff_diff
+		if (eff_down_METSig < 0): eff_down_METSig = 0
+		eff_up_METSig = eff_central + eff_diff
+		if (eff_up_METSig > 1): eff_up_METSig = 1
+        	return eff_central, eff_down, eff_up, eff_down_METSig, eff_up_METSig
+			
+        return eff_central, eff_down, eff_up
+        #return eff.GetY()[findbix], eff.GetY()[findbix] - eff.GetErrorYlow(findbix), eff.GetY()[findbix] + eff.GetErrorYhigh(findbix)
 
     def analyze(self, event):
         """process event, return True (go to next module) or False (fail, go to next event)"""
@@ -256,7 +279,7 @@ class Stop0l_trigger(Module):
 	MET_trigger_eff_low_dm = MET_trigger_eff_low_dm_down = MET_trigger_eff_low_dm_up = 0
 	MET_trigger_eff_loose_baseline_QCD = MET_trigger_eff_loose_baseline_QCD_down = MET_trigger_eff_loose_baseline_QCD_up = 0
 	MET_trigger_eff_high_dm_QCD = MET_trigger_eff_high_dm_QCD_down = MET_trigger_eff_high_dm_QCD_up = 0
-	MET_trigger_eff_low_dm_QCD = MET_trigger_eff_low_dm_QCD_down = MET_trigger_eff_low_dm_QCD_up = 0
+	MET_trigger_eff_low_dm_QCD = MET_trigger_eff_low_dm_QCD_down = MET_trigger_eff_low_dm_QCD_up = MET_trigger_eff_low_dm_QCD_down_METSig = MET_trigger_eff_low_dm_QCD_up_METSig = 0
 
 	if (met.pt > 100):
 		MET_trigger_eff_loose_baseline, MET_trigger_eff_loose_baseline_down, MET_trigger_eff_loose_baseline_up = self.get_efficiency("MET_loose_baseline", met.pt)
@@ -264,7 +287,7 @@ class Stop0l_trigger(Module):
 		MET_trigger_eff_low_dm, MET_trigger_eff_low_dm_down, MET_trigger_eff_low_dm_up = self.get_efficiency("MET_low_dm", met.pt)
 		MET_trigger_eff_loose_baseline_QCD, MET_trigger_eff_loose_baseline_QCD_down, MET_trigger_eff_loose_baseline_QCD_up = self.get_efficiency("MET_loose_baseline_QCD", met.pt)
 		MET_trigger_eff_high_dm_QCD, MET_trigger_eff_high_dm_QCD_down, MET_trigger_eff_high_dm_QCD_up = self.get_efficiency("MET_high_dm_QCD", met.pt)
-		MET_trigger_eff_low_dm_QCD, MET_trigger_eff_low_dm_QCD_down, MET_trigger_eff_low_dm_QCD_up = self.get_efficiency("MET_low_dm_QCD", met.pt)
+		MET_trigger_eff_low_dm_QCD, MET_trigger_eff_low_dm_QCD_down, MET_trigger_eff_low_dm_QCD_up, MET_trigger_eff_low_dm_QCD_down_METSig, MET_trigger_eff_low_dm_QCD_up_METSig = self.get_efficiency("MET_low_dm_QCD", met.pt)
 
 	Electron_trigger_eff_pt = Electron_trigger_eff_pt_down = Electron_trigger_eff_pt_up = 0
 	if (n_ele_mid >=1): Electron_trigger_eff_pt, Electron_trigger_eff_pt_down, Electron_trigger_eff_pt_up = self.get_efficiency("Electron_pt", ele_mid[0].pt)
@@ -308,6 +331,8 @@ class Stop0l_trigger(Module):
         self.out.fillBranch("Stop0l_trigger_eff_MET_low_dm_QCD", MET_trigger_eff_low_dm_QCD)
         self.out.fillBranch("Stop0l_trigger_eff_MET_low_dm_QCD_down", MET_trigger_eff_low_dm_QCD_down)
         self.out.fillBranch("Stop0l_trigger_eff_MET_low_dm_QCD_up", MET_trigger_eff_low_dm_QCD_up)
+        self.out.fillBranch("Stop0l_trigger_eff_MET_low_dm_QCD_down_METSig", MET_trigger_eff_low_dm_QCD_down_METSig)
+        self.out.fillBranch("Stop0l_trigger_eff_MET_low_dm_QCD_up_METSig", MET_trigger_eff_low_dm_QCD_up_METSig)
         self.out.fillBranch("Stop0l_trigger_eff_MET_high_dm_QCD", MET_trigger_eff_high_dm_QCD)
         self.out.fillBranch("Stop0l_trigger_eff_MET_high_dm_QCD_down", MET_trigger_eff_high_dm_QCD_down)
         self.out.fillBranch("Stop0l_trigger_eff_MET_high_dm_QCD_up", MET_trigger_eff_high_dm_QCD_up)
