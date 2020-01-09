@@ -169,7 +169,7 @@ DataDepInputs = {
 }
 
 #cut on raw resolved candidates, not final analysis cut
-DeepResovledCandidateDiscCut = 0.75
+DeepResovledCandidateDiscCut = 0.00
 
 def main(args):
     isdata = len(args.dataEra) > 0

@@ -44,6 +44,34 @@ class DeepTopProducer(Module):
         self.era = era
         self.metBranchName = "MET"
 
+        #get resolved top eff histos
+        tTagEffFileName = "tTagEff_2016.root"
+        sample = "ttHToNonbb_2016"
+
+        ROOT.TH1.AddDirectory(False)
+        tTagEffFile = ROOT.TFile.Open(tTagEffFileName)
+        
+        h_res_sig_den = tTagEffFile.Get("d_res_sig_" + sample)
+        h_res_sig = tTagEffFile.Get("n_res_sig_" + sample)
+        h_res_bg_den = tTagEffFile.Get("d_res_bg_" + sample)
+        h_res_bg = tTagEffFile.Get("n_res_bg_" + sample)
+
+        tTagEffFile.Close()
+
+        h_res_sig.Divide(h_res_sig_den)
+        h_res_bg.Divide(h_res_bg_num)
+
+        self.resEffHists = {
+            "res_sig_hist": {
+                "edges": np.fromiter(h_res_sig.GetXaxis().GetXbins(), np.float),
+                "values": np.array([h_res_sig.GetBinContent(iBin) for iBin in range(1, h_res_sig.GetNbinsX() + 1)])
+                },
+            "res_bg_hist": {
+                "edges": np.fromiter(h_res_bg.GetXaxis().GetXbins(), np.float),
+                "values": np.array([h_res_bg.GetBinContent(iBin) for iBin in range(1, h_res_bg.GetNbinsX() + 1)])
+                },
+            }            
+
         self.applyUncert = applyUncert
 
         self.suffix = ""
@@ -89,12 +117,17 @@ class DeepTopProducer(Module):
     def SelDeepResolved(self, res, jets):
         if math.fabs(res.eta) >= self.etaMax:
             return False
-        if res.discriminator <= self.DeepResolveWP:
-            return False
+        #Moved elsewhere 
+        #if res.discriminator <= self.DeepResolveWP:
+        #    return False
 
         if ((abs(jets[res.j1Idx].eta) < self.bJetEtaMax and jets[res.j1Idx].btagDeepB > self.resAK4bTagWP) + (abs(jets[res.j2Idx].eta) < self.bJetEtaMax and jets[res.j2Idx].btagDeepB > self.resAK4bTagWP) + (abs(jets[res.j3Idx].eta) < self.bJetEtaMax and jets[res.j3Idx].btagDeepB > self.resAK4bTagWP)) >= 2 :
             return False
         return True
+
+    def DeepResolvedDiscCut(self, res):
+        #res here is a list with the resolved top and the existing Stop0l var
+        return res[1] and (res[0].discriminator <= self.DeepResolveWP)
 
     def ResovleOverlapDeepAK8(self, res, fatj, jets, subjets):
         ## Counting number of tops
@@ -214,6 +247,15 @@ class DeepTopProducer(Module):
                 HOTtype.append(Type)
         return (HOTpt, HOTeta, HOTphi, HOTmass, HOTtype)
 
+    def calculateResTopSFWeight(self, res, histos):
+        #res here is all resolved tops which survive the overlap removal procedure and final cuts, except the final discriminator cut
+        resTopPt = np.array([topCand.pt for topCand in res])
+        resTopSF = np.array([topCand.SF for topCand in res])
+        
+        resTopStop0l = np.array(self.ResolvedTop_Stop0l)
+        
+        
+
     def analyze(self, event):
         """process event, return True (go to next module) or False (fail, go to next event)"""
         ## Getting objects
@@ -236,8 +278,14 @@ class DeepTopProducer(Module):
 
         ## Selecting objects
         self.FatJet_Stop0l = map(self.SelDeepAK8, fatjets)
+        #apply initial selection to reduce combinatorics, discriminator cut moved later for SF calculation
         self.ResolvedTop_Stop0l = map(lambda x : self.SelDeepResolved(x, jets), resolves)
+        #resolve overlap between resolved top candidates and between resovled tops and merged top/W
         self.ResovleOverlapDeepAK8(resolves, fatjets, jets, subjets)
+        #calcualte resolved top scaler factor (the merged top SF is calculated in SoftBDeepAK8SFProducer.py for ... reasons ...)
+        
+        #we need all the overlap resolved candidates in the step above, so the discriminator filter is moved here
+        self.ResolvedTop_Stop0l = map(lambda x : self.DeepResolvedDiscCut(x), zip(resolves, self.ResolvedTop_Stop0l))
         self.nTop = sum( [ i for i in self.FatJet_Stop0l if i == 1 ])
         self.nW = sum( [ 1 for i in self.FatJet_Stop0l if i == 2 ])
         self.nResolved = sum(self.ResolvedTop_Stop0l)
