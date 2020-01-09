@@ -124,7 +124,6 @@ class BtagSFWeightProducer(Module):
                 btagSF = jet.btagSF*jet.btagSF_FS
                 btagSF_up = jet.btagSF_up*jet.btagSF_FS_up
                 btagSF_down = jet.btagSF_down*jet.btagSF_FS_down
-                print btagSF
             else:
                 btagSF = jet.btagSF
                 btagSF_up = jet.btagSF_up
