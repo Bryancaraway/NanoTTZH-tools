@@ -19,34 +19,15 @@ class BtagSFWeightProducer(Module):
 
         self.FastSim = isfastsim
 
+        self.h_eff_b          = None
+        self.h_eff_c          = None
+        self.h_eff_udsg       = None
+
+
     def beginJob(self):
         ROOT.TH1.AddDirectory(False)
         
-        fin = ROOT.TFile.Open(self.fileDirectory + "/" + self.bTagEffFile)
-
-        self.h_eff_b          = fin.Get(("n_eff_b_" + self.sampleName));
-        self.h_eff_c          = fin.Get(("n_eff_c_" + self.sampleName));
-        self.h_eff_udsg       = fin.Get(("n_eff_udsg_" + self.sampleName));
-        d_eff_b          = fin.Get(("d_eff_b_" + self.sampleName));
-        d_eff_c          = fin.Get(("d_eff_c_" + self.sampleName));
-        d_eff_udsg       = fin.Get(("d_eff_udsg_" + self.sampleName));
-
-        if not self.h_eff_b or not self.h_eff_c or not self.h_eff_udsg:
-            print "B-tag efficiency histograms for sample \"%s\" are not found in file \"%s\".  Using TTBar_2016 inclusive numbers as default setting!!!!"%( self.sampleName, self.bTagEffFile)
-
-            self.sampleName = "TTbarInc_2016"
-
-            self.h_eff_b          = fin.Get(("n_eff_b_" + self.sampleName));
-            self.h_eff_c          = fin.Get(("n_eff_c_" + self.sampleName));
-            self.h_eff_udsg       = fin.Get(("n_eff_udsg_" + self.sampleName));
-            d_eff_b          = fin.Get(("d_eff_b_" + self.sampleName));
-            d_eff_c          = fin.Get(("d_eff_c_" + self.sampleName));
-            d_eff_udsg       = fin.Get(("d_eff_udsg_" + self.sampleName));
-        
-        self.h_eff_b.Divide(d_eff_b);
-        self.h_eff_c.Divide(d_eff_c);
-        self.h_eff_udsg.Divide(d_eff_udsg);
-
+        self.fin = ROOT.TFile.Open(self.fileDirectory + "/" + self.bTagEffFile)
         
     def endJob(self):
         pass
@@ -62,6 +43,39 @@ class BtagSFWeightProducer(Module):
         self.out.branch("BTagWeightLight",      "F", title="BTag event light weight following method 1a")
         self.out.branch("BTagWeightLight_Up",   "F", title="BTag event light weight up uncertainty")
         self.out.branch("BTagWeightLight_Down", "F", title="BTag event light weight down uncertainty")
+
+        if self.h_eff_b:
+            del self.h_eff_b
+        if self.h_eff_c:
+            del self.h_eff_c
+        if self.h_eff_udsg:
+            del self.h_eff_udsg
+
+        sampleName = self.sampleName
+
+        self.h_eff_b          = self.fin.Get(("n_eff_b_" + sampleName));
+        self.h_eff_c          = self.fin.Get(("n_eff_c_" + sampleName));
+        self.h_eff_udsg       = self.fin.Get(("n_eff_udsg_" + sampleName));
+        d_eff_b          = self.fin.Get(("d_eff_b_" + sampleName));
+        d_eff_c          = self.fin.Get(("d_eff_c_" + sampleName));
+        d_eff_udsg       = self.fin.Get(("d_eff_udsg_" + sampleName));
+
+        if not self.h_eff_b or not self.h_eff_c or not self.h_eff_udsg:
+            print "B-tag efficiency histograms for sample \"%s\" are not found in file \"%s\".  Using TTBar_2016 inclusive numbers as default setting!!!!"%( sampleName, self.bTagEffFile)
+
+            sampleName = "TTbarInc_2016"
+
+            self.h_eff_b          = self.fin.Get(("n_eff_b_" + sampleName));
+            self.h_eff_c          = self.fin.Get(("n_eff_c_" + sampleName));
+            self.h_eff_udsg       = self.fin.Get(("n_eff_udsg_" + sampleName));
+            d_eff_b          = self.fin.Get(("d_eff_b_" + sampleName));
+            d_eff_c          = self.fin.Get(("d_eff_c_" + sampleName));
+            d_eff_udsg       = self.fin.Get(("d_eff_udsg_" + sampleName));
+        
+        self.h_eff_b.Divide(d_eff_b);
+        self.h_eff_c.Divide(d_eff_c);
+        self.h_eff_udsg.Divide(d_eff_udsg);
+
 
     def endFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
         pass
