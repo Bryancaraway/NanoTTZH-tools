@@ -238,8 +238,11 @@ def main(args):
         if not isfastsim:
             mods += [
                 jecUncertProducer(DataDepInputs[dataType][args.era]["JECMC"]),
-                btagSFProducer(args.era+"FastSim", algo="deepcsv"),
                 ]
+        if isfastsim:
+            mods += [
+                    btagSFProducer(args.era+"FastSim", algo="deepcsv"),
+                    ]
         ## Major modules for MC
         mods += [
             TopTaggerProducer(recalculateFromRawInputs=True, suffix="JESUp", AK4JetInputs=("Jet_pt_jesTotalUp",   "Jet_eta", "Jet_phi", "Jet_mass_jesTotalUp"),
