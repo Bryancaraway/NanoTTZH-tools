@@ -17,12 +17,10 @@ from collections import defaultdict
 from multiprocessing import Pool
 from itertools import izip_longest
 
-# DelExe    = '../Stop0l_splitHEM.py'
 DelExe    = '../Stop0l_fastsim.py'
-tempdir = "/uscmst1b_scratch/lpc1/3DayLifetime/ahenckel/TestCondor/"
-ShortProjectName = 'PreProcess17'
-# VersionNumber = '_splitHEM'
-VersionNumber = '_fastsimv4'
+tempdir = '/uscmst1b_scratch/lpc1/3DayLifetime/%s/TestCondor/'  % getpass.getuser()
+ShortProjectName = 'PreProcess'
+VersionNumber = '_v5'
 argument = "--inputFiles=%s.$(Process).list "
 sendfiles = ["/uscms/home/benwu/python-packages.tgz", "../keep_and_drop.txt"]
 TTreeName = "Events"
@@ -236,7 +234,7 @@ def my_process(args):
         ## Prepare the condor file
         condorfile = tempdir + "/" + "condor_" + ProjectName + "_" + name
         with open(condorfile, "wt") as outfile:
-            for line in open("condor_fastsim", "r"):
+            for line in open("condor_template", "r"):
                 line = line.replace("EXECUTABLE", os.path.abspath(RunHTFile))
                 line = line.replace("TARFILES", tarballname)
                 line = line.replace("TEMPDIR", tempdir)
