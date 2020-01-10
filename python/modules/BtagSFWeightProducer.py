@@ -51,7 +51,10 @@ class BtagSFWeightProducer(Module):
         if self.h_eff_udsg:
             del self.h_eff_udsg
 
-        sampleName = self.sampleName
+        if self.FastSim:
+            sampleName = os.path.splitext(os.path.basename(inputFile.GetName()))[0]
+        else:
+            sampleName = self.sampleName
 
         self.h_eff_b          = self.fin.Get(("n_eff_b_" + sampleName));
         self.h_eff_c          = self.fin.Get(("n_eff_c_" + sampleName));
