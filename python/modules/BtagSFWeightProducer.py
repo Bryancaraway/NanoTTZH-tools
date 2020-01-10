@@ -8,7 +8,7 @@ from PhysicsTools.NanoAODTools.postprocessing.framework.eventloop import Module
 
 class BtagSFWeightProducer(Module):
 
-    def __init__(self, bTagEffFile, sampleName, bDiscCut, jetPtMin = 20, jetEtaMax = 2.4, fileDirectory = os.environ['CMSSW_BASE'] + "/src/PhysicsTools/NanoSUSYTools/data/btagSF/", isfastsim=False):
+    def __init__(self, bTagEffFile, sampleName, bDiscCut, isfastsim, jetPtMin = 20, jetEtaMax = 2.4, fileDirectory = os.environ['CMSSW_BASE'] + "/src/PhysicsTools/NanoSUSYTools/data/btagSF/"):
         self.jetPtMin = jetPtMin
         self.jetEtaMax = jetEtaMax
         self.bDiscCut = bDiscCut
@@ -17,7 +17,7 @@ class BtagSFWeightProducer(Module):
         self.sampleName = sampleName
         self.fileDirectory = fileDirectory
 
-        self.FastSim = isfastsim
+        self.isfastsim = isfastsim
 
         self.h_eff_b          = None
         self.h_eff_c          = None
@@ -50,9 +50,11 @@ class BtagSFWeightProducer(Module):
             del self.h_eff_c
         if self.h_eff_udsg:
             del self.h_eff_udsg
-
-        sampleName = self.sampleName
-
+        
+        if self.isfastsim:
+            sampleName = os.path.splitext(os.path.basename(inputFile.GetName()))[0]
+        else:
+            sampleName = self.sampleName
         self.h_eff_b          = self.fin.Get(("n_eff_b_" + sampleName));
         self.h_eff_c          = self.fin.Get(("n_eff_c_" + sampleName));
         self.h_eff_udsg       = self.fin.Get(("n_eff_udsg_" + sampleName));
@@ -134,7 +136,7 @@ class BtagSFWeightProducer(Module):
 
                 eff = self.h_eff_udsg.GetBinContent(pt_bin, eta_bin);
             
-            if self.FastSim:
+            if self.isfastsim:
                 btagSF = jet.btagSF*jet.btagSF_FS
                 btagSF_up = jet.btagSF_up*jet.btagSF_FS_up
                 btagSF_down = jet.btagSF_down*jet.btagSF_FS_down

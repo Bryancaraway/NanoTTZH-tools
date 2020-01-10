@@ -29,7 +29,7 @@ from PhysicsTools.NanoSUSYTools.modules.PrefireCorr import PrefCorr
 from PhysicsTools.NanoSUSYTools.modules.ISRWeightProducer import ISRSFWeightProducer
 from PhysicsTools.NanoSUSYTools.modules.Stop0l_trigger import Stop0l_trigger
 from PhysicsTools.NanoSUSYTools.modules.SoftBDeepAK8SFProducer import SoftBDeepAK8SFProducer
-from PhysicsTools.NanoSUSYTools.processors.FastsimISR import *
+#from PhysicsTools.NanoSUSYTools.processors.FastsimISR import *
 
 # JEC files are those recomended here (as of Mar 1, 2019)
 # https://twiki.cern.ch/twiki/bin/view/CMS/JECDataMC#Recommended_for_MC
@@ -286,7 +286,7 @@ def main(args):
             # statusFlag 0x2080 corresponds to "IsLastCopy and isHardProcess"
             GenPartFilter(statusFlags = [0x2100, 0x2080, 0x2000, 0], pdgIds = [0, 0, 22, 0], statuses = [0, 0, 1, 23]),
             # TODO: first implemtation, need double check
-            ISRSFWeightProducer(args.era, isSUSY, isfastsim, DataDepInputs[dataType][args.era]["nISRjets"], args.sampleName), 
+            #ISRSFWeightProducer(args.era, isSUSY, isfastsim, DataDepInputs[dataType][args.era]["nISRjets"], args.sampleName), 
             ]
         # Special PU reweighting for 2017 separately
         if args.era == "2017":
@@ -312,8 +312,8 @@ def main(args):
         with open(args.inputfile) as f:
             files = [line.strip() for line in f]
 
-    if isfastsim:
-        GetNISRJetDist(files, DataDepInputs[dataType][args.era]["nISRjets"])
+    #if isfastsim:
+        #GetNISRJetDist(files, DataDepInputs[dataType][args.era]["nISRjets"])
     p=PostProcessor(args.outputfile,files,cut=None, branchsel=None, outputbranchsel="keep_and_drop.txt", modules=mods,provenance=False,maxEvents=args.maxEvents)
     p.run()
 
