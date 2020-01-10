@@ -10,31 +10,23 @@
 
 import uproot
 import numpy as np
-import types
+import ROOT
 import os
-import uproot_methods.classes.TH1
 
-class MyTH1(uproot_methods.classes.TH1.Methods, list):
-    def __init__(self, low, high, values, title=""):
-        self._fXaxis = lambda:None
-        self._fXaxis._fNbins = len(values)
-        self._fXaxis._fXmin = low
-        self._fXaxis._fXmax = high
-        for x in values:
-            self.append(float(x))
-        self._fTitle = title
-        self._classname = "TH1F"
 
 def GetNISRJetDist(files, isrEffFile, fileDirectory = os.environ['CMSSW_BASE'] + "/src/PhysicsTools/NanoSUSYTools/data/isrSF/"):
     # Assuming each file is a unique process
-    outfile = uproot.recreate(fileDirectory + "/" + isrEffFile)
+    outfile = ROOT.TFile(fileDirectory + "/" + isrEffFile, "RECREATE")
     for i, filename in enumerate(files):
         f = uproot.open(filename)["Events"]
         procname=os.path.splitext(os.path.basename(filename))[0]
         hist, binedges = np.histogram(f.array("nISRJets"), bins=10, range=(0, 10))
-        histogram = MyTH1(binedges[0], binedges[-1], hist)
-        outfile["NJetsISR_"+procname] = histogram
-    outfile.close()
+        histogram = ROOT.TH1F("NJetsISR_"+procname, procname, 10, 0, 10)
+        for i in range(0, 10):
+            histogram.SetBinContent(i+1, hist[i])
+        outfile.cd()
+        histogram.Write()
+    outfile.Close()
 
 if __name__ == "__main__":
     with open("./SMS_T2tt_mStop_150to250_fastsim_2018.txt") as f:
