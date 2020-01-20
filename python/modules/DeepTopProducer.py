@@ -71,7 +71,6 @@ class DeepTopProducer(Module):
                 "values": np.array([h_res_bg.GetBinContent(iBin) for iBin in range(1, h_res_bg.GetNbinsX() + 1)])
                 },
             }
-        print(self.resEffHists)
 
         self.applyUncert = applyUncert
 
@@ -278,6 +277,9 @@ class DeepTopProducer(Module):
                     uncert_up += var_up**2
                     uncert_dn += var_dn**2
         
+            uncert_up = np.sqrt(uncert_up)
+            uncert_dn = np.sqrt(uncert_dn)
+
         #Get efficiencies 
         resTopEff = np.ones(resTopSF.shape)
 
