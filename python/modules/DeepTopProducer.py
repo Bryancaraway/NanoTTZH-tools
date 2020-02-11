@@ -80,6 +80,9 @@ class DeepTopProducer(Module):
             if not self.applyUncert:
                 self.out.branch("Stop0l_ResTopWeight_Up" + self.suffix, "F")
                 self.out.branch("Stop0l_ResTopWeight_Dn" + self.suffix, "F")
+                if self.isFastSim:
+                    self.out.branch("Stop0l_ResTopWeight_fast_Up" + self.suffix, "F")
+                    self.out.branch("Stop0l_ResTopWeight_fast_Dn" + self.suffix, "F")
         self.out.branch("HOT_pt" + self.suffix,   "F", lenVar = "nHOT" + self.suffix)
         self.out.branch("HOT_eta" + self.suffix,  "F", lenVar = "nHOT" + self.suffix)
         self.out.branch("HOT_phi" + self.suffix,  "F", lenVar = "nHOT" + self.suffix)
@@ -332,11 +335,19 @@ class DeepTopProducer(Module):
 
             numerator_up = ((1 + uncert_up_tagged)*resTopSF_tagged*resTopEff_tagged).prod() * (1 - ((1 + uncert_up_notTagged)*resTopSF_notTagged*resTopEff_notTagged)).prod()
             numerator_dn = ((1 - uncert_dn_tagged)*resTopSF_tagged*resTopEff_tagged).prod() * (1 - ((1 - uncert_dn_notTagged)*resTopSF_notTagged*resTopEff_notTagged)).prod()
+
+            fastSimErr = 0.05
+            numerator_fast_up = ((1 + fastSimErr)*resTopSF_tagged*resTopEff_tagged).prod() * (1 - ((1 + fastSimErr)*resTopSF_notTagged*resTopEff_notTagged)).prod()
+            numerator_fast_dn = ((1 - fastSimErr)*resTopSF_tagged*resTopEff_tagged).prod() * (1 - ((1 - fastSimErr)*resTopSF_notTagged*resTopEff_notTagged)).prod()
         else:
             numerator_up = 0.0
             numerator_dn = 0.0
 
-        return numerator/denominator, numerator_up/denominator, numerator_dn/denominator
+            numerator_fast_up = 0.0
+            numerator_fast_dn = 0.0
+
+
+        return numerator/denominator, numerator_up/denominator, numerator_dn/denominator, numerator_fast_up/denominator, numerator_fast_dn/denominator
 
     def analyze(self, event):
         """process event, return True (go to next module) or False (fail, go to next event)"""
@@ -366,7 +377,7 @@ class DeepTopProducer(Module):
         self.ResovleOverlapDeepAK8(resolves, fatjets, jets, subjets)
         #calcualte resolved top scaler factor (the merged top SF is calculated in SoftBDeepAK8SFProducer.py for ... reasons ...)
         if not self.isData:
-            resolvedTopSF, resolvedTopSF_Up, resolvedTopSF_Dn = self.calculateResTopSFWeight(resolves)
+            resolvedTopSF, resolvedTopSF_Up, resolvedTopSF_Dn, resolvedTopSF_fast_Up, resolvedTopSF_fast_Dn = self.calculateResTopSFWeight(resolves)
         #we need all the overlap resolved candidates in the step above, so the discriminator filter is moved here
         self.ResolvedTop_Stop0l = map(lambda x : self.DeepResolvedDiscCut(x), zip(resolves, self.ResolvedTop_Stop0l))
         self.nTop = sum( [ i for i in self.FatJet_Stop0l if i == 1 ])
@@ -389,6 +400,10 @@ class DeepTopProducer(Module):
             if not self.applyUncert:
                 self.out.fillBranch("Stop0l_ResTopWeight_Up" + self.suffix, resolvedTopSF_Up)
                 self.out.fillBranch("Stop0l_ResTopWeight_Dn" + self.suffix, resolvedTopSF_Dn)
+                if self.isFastSim:
+                    self.out.fillBranch("Stop0l_ResTopWeight_fast_Up" + self.suffix, resolvedTopSF_fast_Up)
+                    self.out.fillBranch("Stop0l_ResTopWeight_fast_Dn" + self.suffix, resolvedTopSF_fast_Dn)
+                
         self.out.fillBranch("HOT_pt" + self.suffix, HOTpt)
         self.out.fillBranch("HOT_eta" + self.suffix, HOTeta)
         self.out.fillBranch("HOT_phi" + self.suffix, HOTphi)
