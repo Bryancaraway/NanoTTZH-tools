@@ -1,6 +1,8 @@
 import ROOT
 ROOT.PyConfig.IgnoreCommandLineOptions = True
 import math
+import numba
+import os
 
 import numpy as np
 from PhysicsTools.NanoAODTools.postprocessing.framework.datamodel import Collection, Object
@@ -104,11 +106,116 @@ DeepW_fastSF = {
     }
 }
 
+@numba.jit(nopython=True)
+def recursiveMotherSearch(startIdx, targetIdx, GenPartCut_genPartIdxMother):
+    if startIdx < 0:
+        return False
+
+    mom = GenPartCut_genPartIdxMother[startIdx]
+
+    if mom < 0:
+        return False
+    elif startIdx == targetIdx:
+        return True
+    else:
+        return recursiveMotherSearch(mom, targetIdx, GenPartCut_genPartIdxMother)
+
+@numba.jit(nopython=True)
+def genParticleAssociation(GenPart_genPartIdxMother, GenPart_pdgId, GenPart_statusFlags):
+    GenPart_momPdgId = GenPart_pdgId[GenPart_genPartIdxMother]
+    #set any particles with an index of -1 to id 0                                                                                                                      
+    GenPart_momPdgId[GenPart_genPartIdxMother < 0] = 0
+
+    genTopDaughters = []
+    genWDaughters = []
+    for iGP, pdgId in enumerate(GenPart_pdgId):
+        if (GenPart_statusFlags[iGP] & 0x2100) != 0x2100:
+            continue
+        if abs(pdgId) == 6:
+            gtd = []
+            for iGP2, pdgId2 in enumerate(GenPart_pdgId):
+                if abs(pdgId2) >= 1 and abs(pdgId2) <= 5 and (GenPart_statusFlags[iGP2] & 0x2100) == 0x2100:
+                    if recursiveMotherSearch(iGP2, iGP, GenPart_genPartIdxMother):
+                        gtd.append(iGP2)
+            if len(gtd) == 3:
+                genTopDaughters.extend(gtd)
+        elif abs(pdgId) == 24:
+            gwd = []
+            for iGP2, pdgId2 in enumerate(GenPart_pdgId):
+                if abs(pdgId2) >= 1 and abs(pdgId2) <= 5 and (GenPart_statusFlags[iGP2] & 0x2100) == 0x2100:
+                    if recursiveMotherSearch(iGP2, iGP, GenPart_genPartIdxMother):
+                        gwd.append(iGP2)
+            if len(gwd) == 2:
+                genWDaughters.extend(gwd)
+
+    return genTopDaughters, genWDaughters
+
+def deltaRMatch(fatJetEta, fatJetPhi, genTopDaughters_eta, genTopDaughters_phi, genWDaughters_eta, genWDaughters_phi):
+
+    matches = np.zeros(len(fatJetEta), dtype=int)
+
+    if len(genWDaughters_eta):
+
+        wEtaVals = np.array(np.meshgrid(fatJetEta, genWDaughters_eta)).T.reshape(-1,2)
+        wPhiVals = np.array(np.meshgrid(fatJetPhi, genWDaughters_phi)).T.reshape(-1,2)
+
+        ## Using ufunc for vector operation
+        deta = np.power(wEtaVals[:,0] - wEtaVals[:,1], 2)
+        dPhi = wPhiVals[:,0] - wPhiVals[:,1]
+        dR = np.sqrt((( abs(abs(dPhi)-np.pi)-np.pi )**2+(deta)**2)).reshape([-1,len(genWDaughters_eta)/2, 2])
+
+        matches[dR.max(axis=2).min(axis=1) < 0.6] = 2
+
+    if len(genTopDaughters_eta):
+
+        topEtaVals = np.array(np.meshgrid(fatJetEta, genTopDaughters_eta)).T.reshape(-1,2)
+        topPhiVals = np.array(np.meshgrid(fatJetPhi, genTopDaughters_phi)).T.reshape(-1,2)
+    
+        ## Using ufunc for vector operation
+        deta = np.power(topEtaVals[:,0] - topEtaVals[:,1], 2)
+        dPhi = topPhiVals[:,0] - topPhiVals[:,1]
+        dR = np.sqrt((( abs(abs(dPhi)-np.pi)-np.pi )**2+(deta)**2)).reshape([-1,len(genTopDaughters_eta)/3, 3])
+
+        matches[dR.max(axis=2).min(axis=1) < 0.6] = 1
+    
+    return matches
+
 class SoftBDeepAK8SFProducer(Module):
-    def __init__(self, era, isData = False, isFastSim=False):
+    def __init__(self, era, isData = False, isFastSim=False, sampleName=None):
         self.era = era
         self.isFastSim = isFastSim
         self.isData = isData
+
+        #get top eff histos
+        ROOT.TH1.AddDirectory(False)
+
+        def getRatioHist(name, sample, tTagEffFile):
+            h_den = tTagEffFile.Get("d_" + name.split("_as_")[0] + "_" + sample)
+            h_num = tTagEffFile.Get("n_" + name + "_" + sample)
+
+            h_num.Divide(h_den)
+
+            retval = {
+                "edges": np.fromiter(h_num.GetXaxis().GetXbins(), np.float),
+                "values": np.array([h_num.GetBinContent(iBin) for iBin in range(1, h_num.GetNbinsX() + 1)])
+                }
+            
+            return retval
+
+        tTagEffFileName = os.environ['CMSSW_BASE'] + "/src/PhysicsTools/NanoSUSYTools/data/topTagSF/tTagEff_%s.root"%self.era
+        sample = sampleName
+
+        tTagEffFile = ROOT.TFile.Open(tTagEffFileName)
+
+        self.topEffHists = {}
+        self.topEffHists["t_as_t"] = getRatioHist("merged_t_as_t", sample, tTagEffFile)
+        self.topEffHists["t_as_w"] = getRatioHist("merged_t_as_w", sample, tTagEffFile)
+        self.topEffHists["w_as_t"] = getRatioHist("merged_w_as_t", sample, tTagEffFile)
+        self.topEffHists["w_as_w"] = getRatioHist("merged_w_as_w", sample, tTagEffFile)
+        self.topEffHists["bg_as_t"] = getRatioHist("merged_bg_as_t", sample, tTagEffFile)
+        self.topEffHists["bg_as_w"] = getRatioHist("merged_bg_as_w", sample, tTagEffFile)
+
+        tTagEffFile.Close()
 
     def beginJob(self):
         pass
@@ -126,6 +233,9 @@ class SoftBDeepAK8SFProducer(Module):
         self.out.branch("FatJet_SFerr"     , "F", lenVar="nFatJet",       limitedPrecision=12)
         self.out.branch("FatJet_fastSF"    , "F", lenVar="nFatJet",       limitedPrecision=12)
         self.out.branch("FatJet_fastSFerr" , "F", lenVar="nFatJet",       limitedPrecision=12)
+        self.out.branch("DeepAK8_SFWeight" , "F")
+        self.out.branch("DeepAK8_SFWeight_up" , "F")
+        self.out.branch("DeepAK8_SFWeight_dn" , "F")
         self.out.branch("FatJet_nGenPart" , "I", lenVar="nFatJet")
 
     def endFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
@@ -222,6 +332,93 @@ class SoftBDeepAK8SFProducer(Module):
         else:
             return np.zeros(len(event.FatJet_pt)).astype(int)
 
+    def fatJetGenMatch(self, event, fatJetEta, fatJetPhi):
+        GenPart_eta              = np.fromiter(self.TTreeReaderArrayWrapper(event.GenPart_eta),              dtype=float)
+        GenPart_phi              = np.fromiter(self.TTreeReaderArrayWrapper(event.GenPart_phi),              dtype=float)
+
+        GenPart_genPartIdxMother = np.fromiter(self.TTreeReaderArrayWrapper(event.GenPart_genPartIdxMother), dtype=int)
+        GenPart_pdgId            = np.fromiter(self.TTreeReaderArrayWrapper(event.GenPart_pdgId),            dtype=int)
+        GenPart_statusFlags      = np.fromiter(self.TTreeReaderArrayWrapper(event.GenPart_statusFlags),      dtype=int)
+    
+        genTopDaughters_list, genWDaughters_list = genParticleAssociation(GenPart_genPartIdxMother, GenPart_pdgId, GenPart_statusFlags)
+    
+        genTopDaughters, genWDaughters = np.array(genTopDaughters_list), np.array(genWDaughters_list)
+    
+        if(len(genTopDaughters)):
+            genTopDaughters_eta = GenPart_eta[genTopDaughters]
+            genTopDaughters_phi = GenPart_phi[genTopDaughters]
+        else:
+            genTopDaughters_eta = np.array([])
+            genTopDaughters_phi = np.array([])
+    
+        if len(genWDaughters):
+            genWDaughters_eta = GenPart_eta[genWDaughters]
+            genWDaughters_phi = GenPart_phi[genWDaughters]
+        else:
+            genWDaughters_eta = np.array([])
+            genWDaughters_phi = np.array([])
+    
+        return deltaRMatch(fatJetEta, fatJetPhi, genTopDaughters_eta, genTopDaughters_phi, genWDaughters_eta, genWDaughters_phi)
+
+    def calculateTopSFWeight(self, event):
+        fatJetStop0l = np.fromiter(self.TTreeReaderArrayWrapper(event.FatJet_Stop0l), dtype=int)
+        fatJetPt = np.fromiter(self.TTreeReaderArrayWrapper(event.FatJet_pt), dtype=float)
+        fatJetEta = np.fromiter(self.TTreeReaderArrayWrapper(event.FatJet_eta), dtype=float)
+        fatJetPhi = np.fromiter(self.TTreeReaderArrayWrapper(event.FatJet_phi), dtype=float)
+
+        #gen match the fat jets
+        fatJetGenMatch = self.fatJetGenMatch(event, fatJetEta, fatJetPhi)
+
+        #Get efficiencies 
+        topEff = np.ones(self.top_sf.shape)
+        
+        def setEff(topPt, catName, topEff, filterArray):
+            if "_as_bg" in catName:
+                catAsT = catName.replace("_as_bg", "_as_t")
+                catAsW = catName.replace("_as_bg", "_as_w")
+                effBins_top = np.digitize(topPt[filterArray], self.topEffHists[catAsT]["edges"]) - 1
+                effBins_w   = np.digitize(topPt[filterArray], self.topEffHists[catAsW]["edges"]) - 1
+                topEff[filterArray] =  1 - self.topEffHists[catAsT]["values"][effBins_top] - self.topEffHists[catAsW]["values"][effBins_w]
+            else:
+                effBins_top = np.digitize(topPt[filterArray], self.topEffHists[catName]["edges"]) - 1
+                topEff[filterArray] =  self.topEffHists[catName]["values"][effBins_top]
+
+        setEff(fatJetPt, "t_as_t",   topEff, (fatJetGenMatch == 1) & (fatJetStop0l == 1))
+        setEff(fatJetPt, "t_as_w",   topEff, (fatJetGenMatch == 1) & (fatJetStop0l == 2))
+        setEff(fatJetPt, "t_as_bg",  topEff, (fatJetGenMatch == 1) & (fatJetStop0l == 0))
+        setEff(fatJetPt, "w_as_t",   topEff, (fatJetGenMatch == 2) & (fatJetStop0l == 1))
+        setEff(fatJetPt, "w_as_w",   topEff, (fatJetGenMatch == 2) & (fatJetStop0l == 2))
+        setEff(fatJetPt, "w_as_bg",  topEff, (fatJetGenMatch == 2) & (fatJetStop0l == 0))
+        setEff(fatJetPt, "bg_as_t",  topEff, (fatJetGenMatch == 0) & (fatJetStop0l == 1))
+        setEff(fatJetPt, "bg_as_w",  topEff, (fatJetGenMatch == 0) & (fatJetStop0l == 2))
+        setEff(fatJetPt, "bg_as_bg", topEff, (fatJetGenMatch == 0) & (fatJetStop0l == 0))
+
+        topSF_t_tagged  = self.top_sf[fatJetStop0l == 1]
+        topSF_w_tagged  = self.top_sf[fatJetStop0l == 2]
+        topSF_notTagged = self.top_sf[fatJetStop0l == 0]
+        
+        topEff_t_tagged  = topEff[fatJetStop0l == 1]
+        topEff_w_tagged  = topEff[fatJetStop0l == 2]
+        topEff_notTagged = topEff[fatJetStop0l == 0]
+
+        numerator = (topSF_t_tagged*topEff_t_tagged).prod() * (topSF_w_tagged*topEff_w_tagged).prod() * (1 - (topSF_notTagged*topEff_notTagged)).prod()
+        denominator = topEff_t_tagged.prod() * topEff_w_tagged.prod() * (1 - topEff_notTagged).prod()
+
+        #calculate uncertainty variations of weight
+        if not self.isData:
+            self.top_sferr
+            uncert_t = self.top_sferr[fatJetStop0l == 1]
+            uncert_w = self.top_sferr[fatJetStop0l == 2]
+            uncert_bg = self.top_sferr[fatJetStop0l == 0]
+        
+            numerator_up = ((topSF_t_tagged+uncert_t)*topEff_t_tagged).prod() * ((topSF_w_tagged+uncert_w)*topEff_w_tagged).prod() * (1 - ((topSF_notTagged+uncert_bg)*topEff_notTagged)).prod()
+            numerator_dn = ((topSF_t_tagged-uncert_t)*topEff_t_tagged).prod() * ((topSF_w_tagged-uncert_w)*topEff_w_tagged).prod() * (1 - ((topSF_notTagged-uncert_bg)*topEff_notTagged)).prod()
+        else:
+            numerator_up = 0.0
+            numerator_dn = 0.0
+        
+        return numerator/denominator, numerator_up/denominator, numerator_dn/denominator
+    
 
     def analyze(self, event):
         """process event, return True (go to next module) or False (fail, go to next event)"""
@@ -229,24 +426,29 @@ class SoftBDeepAK8SFProducer(Module):
         fatjets  = Collection(event, "FatJet")
 
         sb_sf, sb_sferr, sb_fastsf, sb_fastsferr = self.GetSoftBSF(isvs)
-        top_sf, top_sferr, top_fastsf, top_fastsferr = self.GetDeepAK8SF(fatjets)
+        self.top_sf, self.top_sferr, self.top_fastsf, self.top_fastsferr = self.GetDeepAK8SF(fatjets)
 
         #add additional uncertainty for tops with more than 3 gen particles matched 
         additionalUncertainty = 0.2
         nGenPart = self.nGenParts(event)
         fatJet_stop0l = np.fromiter(self.TTreeReaderArrayWrapper(event.FatJet_Stop0l), int)
         nGenPartCut = nGenPart[fatJet_stop0l == 1]
-        top_sferr[(fatJet_stop0l == 1) & (nGenPart >= 4)] = np.sqrt(np.power(top_sferr[(fatJet_stop0l == 1) & (nGenPart >= 4)], 2) + additionalUncertainty*additionalUncertainty)
+        self.top_sferr[(fatJet_stop0l == 1) & (nGenPart >= 4)] = np.sqrt(np.power(self.top_sferr[(fatJet_stop0l == 1) & (nGenPart >= 4)], 2) + additionalUncertainty*additionalUncertainty)
+
+        topWWeight, topWWeight_Up, topWWeight_Dn = self.calculateTopSFWeight(event)
 
         ### Store output
         self.out.fillBranch("SB_SF",        sb_sf)
         self.out.fillBranch("SB_SFerr",     sb_sferr)
         self.out.fillBranch("SB_fastSF",    sb_fastsf)
         self.out.fillBranch("SB_fastSFerr", sb_fastsferr)
-        self.out.fillBranch("FatJet_SF",        top_sf)
-        self.out.fillBranch("FatJet_SFerr",     top_sferr)
-        self.out.fillBranch("FatJet_fastSF",    top_fastsf)
-        self.out.fillBranch("FatJet_fastSFerr", top_fastsferr)
+        self.out.fillBranch("FatJet_SF",        self.top_sf)
+        self.out.fillBranch("FatJet_SFerr",     self.top_sferr)
+        self.out.fillBranch("FatJet_fastSF",    self.top_fastsf)
+        self.out.fillBranch("FatJet_fastSFerr", self.top_fastsferr)
         self.out.fillBranch("FatJet_nGenPart",  nGenPart)
+        self.out.fillBranch("DeepAK8_SFWeight" , topWWeight)
+        self.out.fillBranch("DeepAK8_SFWeight_up" , topWWeight_Up)
+        self.out.fillBranch("DeepAK8_SFWeight_dn" , topWWeight_Dn)
 
         return True

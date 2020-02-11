@@ -5,6 +5,7 @@ from collections import defaultdict
 from itertools import permutations
 import numpy as np
 import itertools
+import os
 
 from PhysicsTools.NanoAODTools.postprocessing.framework.datamodel import Collection, Object
 from PhysicsTools.NanoAODTools.postprocessing.framework.eventloop import Module
@@ -13,7 +14,7 @@ from PhysicsTools.NanoSUSYTools.modules.Stop0lObjectsProducer import DeepCSVMedi
 from PhysicsTools.NanoSUSYTools.modules.datamodelRemap import ObjectRemapped, CollectionRemapped
 
 class DeepTopProducer(Module):
-    def __init__(self, era, applyUncert=None):
+    def __init__(self, era, applyUncert=None, sampleName=None):
         ## WP from Hui's study https://indico.cern.ch/event/780000/contributions/3248659/attachments/1768782/2873013/Search_bin_study_with_combine_tools_v13.pdf
         ## Updated WP from https://indico.cern.ch/event/840827/contributions/3527925/attachments/1895214/3126510/DeepAK8_Top_W_SFs_2017_JMAR_PK.pdf
         self.minAK8TopMass = 105
@@ -45,12 +46,12 @@ class DeepTopProducer(Module):
         self.metBranchName = "MET"
 
         #get resolved top eff histos
-        tTagEffFileName = "tTagEff_2016.root"
-        sample = "ttHToNonbb_2016"
+        tTagEffFileName = os.environ['CMSSW_BASE'] + "/src/PhysicsTools/NanoSUSYTools/data/topTagSF/tTagEff_%s.root"%self.era
+        sample = sampleName
 
         ROOT.TH1.AddDirectory(False)
         tTagEffFile = ROOT.TFile.Open(tTagEffFileName)
-        
+
         h_res_sig_den = tTagEffFile.Get("d_res_sig_" + sample)
         h_res_sig = tTagEffFile.Get("n_res_sig_" + sample)
         h_res_bg_den = tTagEffFile.Get("d_res_bg_" + sample)

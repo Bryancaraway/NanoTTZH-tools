@@ -229,9 +229,9 @@ def main(args):
                                cfgWD=os.environ["CMSSW_BASE"] + "/src/PhysicsTools/NanoSUSYTools/python/processors/" + DataDepInputs[dataType][args.era if not isdata else (args.era + args.dataEra)]["taggerWD"],
                                saveSFAndSyst=not isdata, 
                                systToSave=["Btag_Up", "Btag_Down", "Pileup_Up", "Pileup_Down", "CSPur_Up", "CSPur_Down", "Stat_Up", "Stat_Down", "Closure_Up", "Closure_Down"]),
-             DeepTopProducer(args.era),
+             DeepTopProducer(args.era, sampleName=args.sampleName),
              Stop0lBaselineProducer(args.era, isData=isdata, isFastSim=isfastsim),
-             SoftBDeepAK8SFProducer(args.era, isData=isdata, isFastSim=isfastsim),
+             SoftBDeepAK8SFProducer(args.era, isData=isdata, isFastSim=isfastsim, sampleName=args.sampleName),
              Stop0l_trigger(args.era, isData=isdata),
              UpdateEvtWeight(isdata, args.crossSection, args.nEvents, args.sampleName)
             ]
@@ -260,8 +260,8 @@ def main(args):
                               topDiscCut=DeepResovledCandidateDiscCut, 
                               cfgWD=os.environ["CMSSW_BASE"] + "/src/PhysicsTools/NanoSUSYTools/python/processors/" + DataDepInputs[dataType][args.era if not isdata else (args.era + args.dataEra)]["taggerWD"],
                               saveSFAndSyst=not isdata),
-            DeepTopProducer(args.era, "JESUp"),
-            DeepTopProducer(args.era, "JESDown"),
+            DeepTopProducer(args.era, "JESUp", sampleName=args.sampleName),
+            DeepTopProducer(args.era, "JESDown", sampleName=args.sampleName),
             FastsimOtherVarProducer(isfastsim, "JESUp"),
             FastsimOtherVarProducer(isfastsim, "JESDown"),
             FastsimOtherVarProducer(isfastsim, "METUnClustUp"),
