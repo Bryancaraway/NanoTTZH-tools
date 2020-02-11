@@ -185,37 +185,9 @@ class SoftBDeepAK8SFProducer(Module):
         self.era = era
         self.isFastSim = isFastSim
         self.isData = isData
+        self.sampleName = sampleName
 
-        #get top eff histos
         ROOT.TH1.AddDirectory(False)
-
-        def getRatioHist(name, sample, tTagEffFile):
-            h_den = tTagEffFile.Get("d_" + name.split("_as_")[0] + "_" + sample)
-            h_num = tTagEffFile.Get("n_" + name + "_" + sample)
-
-            h_num.Divide(h_den)
-
-            retval = {
-                "edges": np.fromiter(h_num.GetXaxis().GetXbins(), np.float),
-                "values": np.array([h_num.GetBinContent(iBin) for iBin in range(1, h_num.GetNbinsX() + 1)])
-                }
-            
-            return retval
-
-        tTagEffFileName = os.environ['CMSSW_BASE'] + "/src/PhysicsTools/NanoSUSYTools/data/topTagSF/tTagEff_%s.root"%self.era
-        sample = sampleName
-
-        tTagEffFile = ROOT.TFile.Open(tTagEffFileName)
-
-        self.topEffHists = {}
-        self.topEffHists["t_as_t"] = getRatioHist("merged_t_as_t", sample, tTagEffFile)
-        self.topEffHists["t_as_w"] = getRatioHist("merged_t_as_w", sample, tTagEffFile)
-        self.topEffHists["w_as_t"] = getRatioHist("merged_w_as_t", sample, tTagEffFile)
-        self.topEffHists["w_as_w"] = getRatioHist("merged_w_as_w", sample, tTagEffFile)
-        self.topEffHists["bg_as_t"] = getRatioHist("merged_bg_as_t", sample, tTagEffFile)
-        self.topEffHists["bg_as_w"] = getRatioHist("merged_bg_as_w", sample, tTagEffFile)
-
-        tTagEffFile.Close()
 
     def beginJob(self):
         pass
@@ -225,18 +197,61 @@ class SoftBDeepAK8SFProducer(Module):
 
     def beginFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
         self.out = wrappedOutputTree
-        self.out.branch("SB_SF"        , "F", lenVar="nSB",       limitedPrecision=12)
-        self.out.branch("SB_SFerr"     , "F", lenVar="nSB",       limitedPrecision=12)
-        self.out.branch("SB_fastSF"    , "F", lenVar="nSB",       limitedPrecision=12)
-        self.out.branch("SB_fastSFerr" , "F", lenVar="nSB",       limitedPrecision=12)
-        self.out.branch("FatJet_SF"        , "F", lenVar="nFatJet",       limitedPrecision=12)
-        self.out.branch("FatJet_SFerr"     , "F", lenVar="nFatJet",       limitedPrecision=12)
-        self.out.branch("FatJet_fastSF"    , "F", lenVar="nFatJet",       limitedPrecision=12)
-        self.out.branch("FatJet_fastSFerr" , "F", lenVar="nFatJet",       limitedPrecision=12)
-        self.out.branch("DeepAK8_SFWeight" , "F")
-        self.out.branch("DeepAK8_SFWeight_up" , "F")
-        self.out.branch("DeepAK8_SFWeight_dn" , "F")
+        self.out.branch("SB_SF"        , "F", lenVar="nSB")
+        self.out.branch("SB_SFerr"     , "F", lenVar="nSB")
+        self.out.branch("SB_fastSF"    , "F", lenVar="nSB")
+        self.out.branch("SB_fastSFerr" , "F", lenVar="nSB")
+        self.out.branch("FatJet_SF"        , "F", lenVar="nFatJet")
+        self.out.branch("FatJet_SFerr"     , "F", lenVar="nFatJet")
+        self.out.branch("FatJet_fastSF"    , "F", lenVar="nFatJet")
+        self.out.branch("FatJet_fastSFerr" , "F", lenVar="nFatJet")
+        if not self.isData:
+            self.out.branch("Stop0l_DeepAK8_SFWeight" , "F")
+            self.out.branch("Stop0l_DeepAK8_SFWeight_up" , "F")
+            self.out.branch("Stop0l_DeepAK8_SFWeight_dn" , "F")
         self.out.branch("FatJet_nGenPart" , "I", lenVar="nFatJet")
+
+        if not self.isData:
+            if self.isFastSim:
+                sample = os.path.splitext(os.path.basename(inputFile.GetName()))[0]
+            else:
+                sample = self.sampleName
+    
+            #get top eff histos
+            def getRatioHist(name, sample, tTagEffFile):
+                h_den = tTagEffFile.Get(sample + "/d_" + name.split("_as_")[0] + "_" + sample)
+                h_num = tTagEffFile.Get(sample + "/n_" + name + "_" + sample)
+    
+                h_num.Divide(h_den)
+    
+                retval = {
+                    "edges": np.fromiter(h_num.GetXaxis().GetXbins(), np.float),
+                    "values": np.array([h_num.GetBinContent(iBin) for iBin in range(1, h_num.GetNbinsX() + 1)])
+                    }
+                
+                return retval
+    
+            #tTagEffFileName = os.environ['CMSSW_BASE'] + "/src/PhysicsTools/NanoSUSYTools/data/topTagSF/tTagEff_%s.root"%self.era
+            tarName = os.environ['CMSSW_BASE'] + "/src/PhysicsTools/NanoSUSYTools/data/topTagSF/tTagEff.tar.bz"
+            tTagEffFileName = "tTagEff_%s.root"%self.era
+            if not os.path.isfile(tTagEffFileName):
+                print(tarName)
+                with tarfile.open(tarName, "r") as tar:
+                    tar.extractall()
+    
+            tTagEffFile = ROOT.TFile.Open(tTagEffFileName)
+    
+            self.topEffHists = {}
+            self.topEffHists["t_as_t"] = getRatioHist("merged_t_as_t", sample, tTagEffFile)
+            self.topEffHists["t_as_w"] = getRatioHist("merged_t_as_w", sample, tTagEffFile)
+            self.topEffHists["w_as_t"] = getRatioHist("merged_w_as_t", sample, tTagEffFile)
+            self.topEffHists["w_as_w"] = getRatioHist("merged_w_as_w", sample, tTagEffFile)
+            self.topEffHists["bg_as_t"] = getRatioHist("merged_bg_as_t", sample, tTagEffFile)
+            self.topEffHists["bg_as_w"] = getRatioHist("merged_bg_as_w", sample, tTagEffFile)
+    
+            tTagEffFile.Close()
+
+
 
     def endFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
         pass
@@ -435,7 +450,8 @@ class SoftBDeepAK8SFProducer(Module):
         nGenPartCut = nGenPart[fatJet_stop0l == 1]
         self.top_sferr[(fatJet_stop0l == 1) & (nGenPart >= 4)] = np.sqrt(np.power(self.top_sferr[(fatJet_stop0l == 1) & (nGenPart >= 4)], 2) + additionalUncertainty*additionalUncertainty)
 
-        topWWeight, topWWeight_Up, topWWeight_Dn = self.calculateTopSFWeight(event)
+        if not self.isData:
+            topWWeight, topWWeight_Up, topWWeight_Dn = self.calculateTopSFWeight(event)
 
         ### Store output
         self.out.fillBranch("SB_SF",        sb_sf)
@@ -447,8 +463,9 @@ class SoftBDeepAK8SFProducer(Module):
         self.out.fillBranch("FatJet_fastSF",    self.top_fastsf)
         self.out.fillBranch("FatJet_fastSFerr", self.top_fastsferr)
         self.out.fillBranch("FatJet_nGenPart",  nGenPart)
-        self.out.fillBranch("DeepAK8_SFWeight" , topWWeight)
-        self.out.fillBranch("DeepAK8_SFWeight_up" , topWWeight_Up)
-        self.out.fillBranch("DeepAK8_SFWeight_dn" , topWWeight_Dn)
+        if not self.isData:
+            self.out.fillBranch("Stop0l_DeepAK8_SFWeight" , topWWeight)
+            self.out.fillBranch("Stop0l_DeepAK8_SFWeight_up" , topWWeight_Up)
+            self.out.fillBranch("Stop0l_DeepAK8_SFWeight_dn" , topWWeight_Dn)
 
         return True

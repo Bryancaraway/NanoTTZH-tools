@@ -6,6 +6,7 @@ from itertools import permutations
 import numpy as np
 import itertools
 import os
+import tarfile
 
 from PhysicsTools.NanoAODTools.postprocessing.framework.datamodel import Collection, Object
 from PhysicsTools.NanoAODTools.postprocessing.framework.eventloop import Module
@@ -14,7 +15,11 @@ from PhysicsTools.NanoSUSYTools.modules.Stop0lObjectsProducer import DeepCSVMedi
 from PhysicsTools.NanoSUSYTools.modules.datamodelRemap import ObjectRemapped, CollectionRemapped
 
 class DeepTopProducer(Module):
-    def __init__(self, era, applyUncert=None, sampleName=None):
+    def __init__(self, era, applyUncert=None, sampleName=None, isFastSim=False, isData=False):
+        self.isFastSim = isFastSim
+        self.isData = isData
+        self.sampleName = sampleName
+
         ## WP from Hui's study https://indico.cern.ch/event/780000/contributions/3248659/attachments/1768782/2873013/Search_bin_study_with_combine_tools_v13.pdf
         ## Updated WP from https://indico.cern.ch/event/840827/contributions/3527925/attachments/1895214/3126510/DeepAK8_Top_W_SFs_2017_JMAR_PK.pdf
         self.minAK8TopMass = 105
@@ -45,33 +50,7 @@ class DeepTopProducer(Module):
         self.era = era
         self.metBranchName = "MET"
 
-        #get resolved top eff histos
-        tTagEffFileName = os.environ['CMSSW_BASE'] + "/src/PhysicsTools/NanoSUSYTools/data/topTagSF/tTagEff_%s.root"%self.era
-        sample = sampleName
-
         ROOT.TH1.AddDirectory(False)
-        tTagEffFile = ROOT.TFile.Open(tTagEffFileName)
-
-        h_res_sig_den = tTagEffFile.Get("d_res_sig_" + sample)
-        h_res_sig = tTagEffFile.Get("n_res_sig_" + sample)
-        h_res_bg_den = tTagEffFile.Get("d_res_bg_" + sample)
-        h_res_bg = tTagEffFile.Get("n_res_bg_" + sample)
-
-        tTagEffFile.Close()
-
-        h_res_sig.Divide(h_res_sig_den)
-        h_res_bg.Divide(h_res_bg_den)
-
-        self.resEffHists = {
-            "res_sig_hist": {
-                "edges": np.fromiter(h_res_sig.GetXaxis().GetXbins(), np.float),
-                "values": np.array([h_res_sig.GetBinContent(iBin) for iBin in range(1, h_res_sig.GetNbinsX() + 1)])
-                },
-            "res_bg_hist": {
-                "edges": np.fromiter(h_res_bg.GetXaxis().GetXbins(), np.float),
-                "values": np.array([h_res_bg.GetBinContent(iBin) for iBin in range(1, h_res_bg.GetNbinsX() + 1)])
-                },
-            }
 
         self.applyUncert = applyUncert
 
@@ -96,15 +75,55 @@ class DeepTopProducer(Module):
         self.out.branch("Stop0l_nResolved" + self.suffix, "I")
         self.out.branch("Stop0l_ISRJetIdx" + self.suffix, "I")
         self.out.branch("Stop0l_ISRJetPt" + self.suffix, "F")
-        self.out.branch("Stop0l_ResTopWeight" + self.suffix, "F")
-        if not self.applyUncert:
-            self.out.branch("Stop0l_ResTopWeight_Up" + self.suffix, "F")
-            self.out.branch("Stop0l_ResTopWeight_Dn" + self.suffix, "F")
+        if not self.isData:
+            self.out.branch("Stop0l_ResTopWeight" + self.suffix, "F")
+            if not self.applyUncert:
+                self.out.branch("Stop0l_ResTopWeight_Up" + self.suffix, "F")
+                self.out.branch("Stop0l_ResTopWeight_Dn" + self.suffix, "F")
         self.out.branch("HOT_pt" + self.suffix,   "F", lenVar = "nHOT" + self.suffix)
         self.out.branch("HOT_eta" + self.suffix,  "F", lenVar = "nHOT" + self.suffix)
         self.out.branch("HOT_phi" + self.suffix,  "F", lenVar = "nHOT" + self.suffix)
         self.out.branch("HOT_mass" + self.suffix, "F", lenVar = "nHOT" + self.suffix)
         self.out.branch("HOT_type" + self.suffix, "I", lenVar = "nHOT" + self.suffix)
+
+        if not self.isData:
+            #get resolved top eff histos
+    #        tTagEffFileName = os.environ['CMSSW_BASE'] + "/src/PhysicsTools/NanoSUSYTools/data/topTagSF/tTagEff_%s.root"%self.era
+            tarName = os.environ['CMSSW_BASE'] + "/src/PhysicsTools/NanoSUSYTools/data/topTagSF/tTagEff.tar.bz"
+            tTagEffFileName = "tTagEff_%s.root"%self.era
+            if not os.path.isfile(tTagEffFileName):
+                print(tarName)
+                with tarfile.open(tarName, "r") as tar:
+                    tar.extractall()
+    
+            if self.isFastSim:
+                sample = os.path.splitext(os.path.basename(inputFile.GetName()))[0]
+            else:
+                sample = self.sampleName
+    
+            tTagEffFile = ROOT.TFile.Open(tTagEffFileName)
+    
+            h_res_sig_den = tTagEffFile.Get(sample + "/d_res_sig_" + sample)
+            h_res_sig = tTagEffFile.Get(sample + "/n_res_sig_" + sample)
+            h_res_bg_den = tTagEffFile.Get(sample + "/d_res_bg_" + sample)
+            h_res_bg = tTagEffFile.Get(sample + "/n_res_bg_" + sample)
+    
+            tTagEffFile.Close()
+    
+            h_res_sig.Divide(h_res_sig_den)
+            h_res_bg.Divide(h_res_bg_den)
+
+            self.resEffHists = {
+                "res_sig_hist": {
+                    "edges": np.fromiter(h_res_sig.GetXaxis().GetXbins(), np.float),
+                    "values": np.array([h_res_sig.GetBinContent(iBin) for iBin in range(1, h_res_sig.GetNbinsX() + 1)])
+                    },
+                "res_bg_hist": {
+                    "edges": np.fromiter(h_res_bg.GetXaxis().GetXbins(), np.float),
+                    "values": np.array([h_res_bg.GetBinContent(iBin) for iBin in range(1, h_res_bg.GetNbinsX() + 1)])
+                    },
+                }
+
 
     def endFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
         pass
@@ -346,7 +365,8 @@ class DeepTopProducer(Module):
         #resolve overlap between resolved top candidates and between resovled tops and merged top/W
         self.ResovleOverlapDeepAK8(resolves, fatjets, jets, subjets)
         #calcualte resolved top scaler factor (the merged top SF is calculated in SoftBDeepAK8SFProducer.py for ... reasons ...)
-        resolvedTopSF, resolvedTopSF_Up, resolvedTopSF_Dn = self.calculateResTopSFWeight(resolves)
+        if not self.isData:
+            resolvedTopSF, resolvedTopSF_Up, resolvedTopSF_Dn = self.calculateResTopSFWeight(resolves)
         #we need all the overlap resolved candidates in the step above, so the discriminator filter is moved here
         self.ResolvedTop_Stop0l = map(lambda x : self.DeepResolvedDiscCut(x), zip(resolves, self.ResolvedTop_Stop0l))
         self.nTop = sum( [ i for i in self.FatJet_Stop0l if i == 1 ])
@@ -364,10 +384,11 @@ class DeepTopProducer(Module):
         self.out.fillBranch("Stop0l_nResolved" + self.suffix, self.nResolved)
         self.out.fillBranch("Stop0l_ISRJetIdx" + self.suffix, self.ISRJetidx)
         self.out.fillBranch("Stop0l_ISRJetPt" + self.suffix, ISRJetPt)
-        self.out.fillBranch("Stop0l_ResTopWeight" + self.suffix, resolvedTopSF)
-        if not self.applyUncert:
-            self.out.fillBranch("Stop0l_ResTopWeight_Up" + self.suffix, resolvedTopSF_Up)
-            self.out.fillBranch("Stop0l_ResTopWeight_Dn" + self.suffix, resolvedTopSF_Dn)
+        if not self.isData:
+            self.out.fillBranch("Stop0l_ResTopWeight" + self.suffix, resolvedTopSF)
+            if not self.applyUncert:
+                self.out.fillBranch("Stop0l_ResTopWeight_Up" + self.suffix, resolvedTopSF_Up)
+                self.out.fillBranch("Stop0l_ResTopWeight_Dn" + self.suffix, resolvedTopSF_Dn)
         self.out.fillBranch("HOT_pt" + self.suffix, HOTpt)
         self.out.fillBranch("HOT_eta" + self.suffix, HOTeta)
         self.out.fillBranch("HOT_phi" + self.suffix, HOTphi)
