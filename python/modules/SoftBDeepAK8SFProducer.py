@@ -32,17 +32,17 @@ DeepTop_SF = {
     "2016" : {
         (400, 480)  : (1.01, 0.11),
         (480, 600)  : (1.05, 0.08),
-        (600, 1200) : (1.06, 0.05),
+        (600, 9999) : (1.06, 0.05),
     },
     "2017" : {
         (400, 480)  : (1.08, 0.10),
         (480, 600)  : (0.97, 0.07),
-        (600, 1200) : (1.02, 0.08),
+        (600, 9999) : (1.02, 0.08),
     },
     "2018" : {
         (400, 480)  : (0.95, 0.07),
         (480, 600)  : (1.06, 0.05),
-        (600, 1200) : (0.94, 0.05),
+        (600, 9999) : (0.94, 0.05),
     }
 }
 ## from Stop1lep AN2019_003_v11, Table 39
@@ -72,17 +72,17 @@ DeepW_SF = {
     "2016" : {
         (200, 300) : (0.875, 0.146),
         (300, 400) : (0.966, 0.132),
-        (400, 800) : (0.817, 0.112),
+        (400, 9999) : (0.817, 0.112),
     },
     "2017" : {
         (200, 300) : (0.857, 0.032),
         (300, 400) : (0.852, 0.033),
-        (400, 800) : (0.877, 0.045),
+        (400, 9999) : (0.877, 0.045),
     },
     "2018" : {
         (200, 300) : (0.857, 0.032),
         (300, 400) : (0.852, 0.033),
-        (400, 800) : (0.877, 0.045),
+        (400, 9999) : (0.877, 0.045),
     }
 }
 
@@ -92,17 +92,17 @@ DeepW_fastSF = {
     "2016" : {
         (200, 300) : (0.98, 0.02),
         (300, 400) : (1.04, 0.10),
-        (400, 800) : (1.16, 0.09),
+        (400, 9999) : (1.16, 0.09),
     },
     "2017" : {
         (200, 300) : (1.06, 0.17),
         (300, 400) : (1.20, 0.26),
-        (400, 800) : (1.27, 0.17),
+        (400, 9999) : (1.27, 0.17),
     },
     "2018" : {
         (200, 300) : (1.20, 0.12),
         (300, 400) : (1.17, 0.10),
-        (400, 800) : (1.20, 0.06),
+        (400, 9999) : (1.20, 0.06),
     }
 }
 
@@ -188,6 +188,22 @@ class SoftBDeepAK8SFProducer(Module):
         self.sampleName = sampleName
 
         ROOT.TH1.AddDirectory(False)
+
+        #create a numpy friendly version of the SF maps 
+
+        def createSFMap(inputData):
+            return {
+                "edges": np.unique([edge  for pair in inputData[self.era].keys() for edge in pair]),
+                "values": np.array([val[0] for val in inputData[self.era].values()]),
+                "errors": np.array([val[1] for val in inputData[self.era].values()]),
+                }
+            
+
+        self.topWSFMap = {}
+        self.topWSFMap["DeepTop_SF"] = createSFMap(DeepTop_SF)
+        self.topWSFMap["DeepTop_fastSF"] = createSFMap(DeepTop_fastSF)
+        self.topWSFMap["DeepW_SF"] = createSFMap(DeepW_SF)
+        self.topWSFMap["DeepW_fastSF"] = createSFMap(DeepW_fastSF)
 
     def beginJob(self):
         pass
@@ -322,6 +338,7 @@ class SoftBDeepAK8SFProducer(Module):
                         if fj.pt >= k[0] and fj.pt < k[1]:
                             top_fastsf[i] = v[0]
                             top_fastsferr[i] = v[1]
+                
         # print (top_sf, top_sferr, top_fastsf, top_fastsferr)
         return top_sf, top_sferr, top_fastsf, top_fastsferr
 
@@ -402,31 +419,64 @@ class SoftBDeepAK8SFProducer(Module):
         #Get efficiencies 
         topEff = np.ones(self.top_sf.shape)
         
-        def setEff(topPt, catName, topEff, filterArray):
+        def setEff(topPt, catName, topEff, filterArray, topSF, topSFerr, topSFfast, topSFfasterr):
             if "_as_bg" in catName:
                 catAsT = catName.replace("_as_bg", "_as_t")
                 catAsW = catName.replace("_as_bg", "_as_w")
                 effBins_top = np.digitize(topPt[filterArray], self.topEffHists[catAsT]["edges"]) - 1
                 effBins_w   = np.digitize(topPt[filterArray], self.topEffHists[catAsW]["edges"]) - 1
-                topEff[filterArray] =  1 - self.topEffHists[catAsT]["values"][effBins_top] - self.topEffHists[catAsW]["values"][effBins_w]
+                eff_top = self.topEffHists[catAsT]["values"][effBins_top]
+                eff_w = self.topEffHists[catAsW]["values"][effBins_w]
+                eff_sum = eff_top + eff_w
+                topEff[filterArray] =  eff_sum
+
+                #hack to get fake SF right
+                sfBins_top = np.digitize(topPt[filterArray], self.topWSFMap["DeepTop_SF"]["edges"]) - 1
+                sfBins_w   = np.digitize(topPt[filterArray], self.topWSFMap["DeepW_SF"]["edges"]) - 1
+                sf_top = self.topWSFMap["DeepTop_SF"]["values"][sfBins_top]
+                sf_topErr = self.topWSFMap["DeepTop_SF"]["errors"][sfBins_top]
+                sf_w = self.topWSFMap["DeepW_SF"]["values"][sfBins_w]
+                sf_wErr = self.topWSFMap["DeepW_SF"]["errors"][sfBins_w]
+
+                sfBinsFast_top = np.digitize(topPt[filterArray], self.topWSFMap["DeepTop_fastSF"]["edges"]) - 1
+                sfBinsFast_w   = np.digitize(topPt[filterArray], self.topWSFMap["DeepW_fastSF"]["edges"]) - 1
+                sfFast_top = self.topWSFMap["DeepTop_fastSF"]["values"][sfBinsFast_top]
+                sfFast_topErr = self.topWSFMap["DeepTop_fastSF"]["errors"][sfBinsFast_top]
+                sfFast_w = self.topWSFMap["DeepW_fastSF"]["values"][sfBinsFast_w]
+                sfFast_wErr = self.topWSFMap["DeepW_fastSF"]["errors"][sfBinsFast_w]
+
+                SF_effective = (sf_top*eff_top+sf_w*eff_w)/(eff_sum)
+                #small approximation here that up and down are the same
+                SF_Up_effective = ((sf_top+sf_topErr)*eff_top+(sf_w+sf_wErr)*eff_w)/(eff_sum)
+
+                SFFast_effective = (sf_top*sfFast_top*eff_top+sf_w*sfFast_w*eff_w)/(eff_sum)
+                #small approximation here that up and down are the same
+                SFFast_Up_effective = (sf_top*(sfFast_top+sfFast_topErr)*eff_top+sf_w*(sfFast_w+sfFast_wErr)*eff_w)/(eff_sum)
+
+                topSF[filterArray] = SF_effective
+                topSFerr[filterArray] = SF_Up_effective - SF_effective
+
+                topSFfast[filterArray] = SFFast_effective
+                topSFfasterr[filterArray] = SFFast_Up_effective - SFFast_effective
+
             else:
                 effBins_top = np.digitize(topPt[filterArray], self.topEffHists[catName]["edges"]) - 1
                 topEff[filterArray] =  self.topEffHists[catName]["values"][effBins_top]
 
-        setEff(fatJetPt, "t_as_t",   topEff, (fatJetGenMatch == 1) & (fatJetStop0l == 1))
-        setEff(fatJetPt, "t_as_w",   topEff, (fatJetGenMatch == 1) & (fatJetStop0l == 2))
-        setEff(fatJetPt, "t_as_bg",  topEff, (fatJetGenMatch == 1) & (fatJetStop0l == 0))
-        setEff(fatJetPt, "w_as_t",   topEff, (fatJetGenMatch == 2) & (fatJetStop0l == 1))
-        setEff(fatJetPt, "w_as_w",   topEff, (fatJetGenMatch == 2) & (fatJetStop0l == 2))
-        setEff(fatJetPt, "w_as_bg",  topEff, (fatJetGenMatch == 2) & (fatJetStop0l == 0))
-        setEff(fatJetPt, "bg_as_t",  topEff, (fatJetGenMatch == 0) & (fatJetStop0l == 1))
-        setEff(fatJetPt, "bg_as_w",  topEff, (fatJetGenMatch == 0) & (fatJetStop0l == 2))
-        setEff(fatJetPt, "bg_as_bg", topEff, (fatJetGenMatch == 0) & (fatJetStop0l == 0))
+        setEff(fatJetPt, "t_as_t",   topEff, (fatJetGenMatch == 1) & (fatJetStop0l == 1), self.top_sf, self.top_sferr, self.top_fastsf, self.top_fastsferr)
+        setEff(fatJetPt, "t_as_w",   topEff, (fatJetGenMatch == 1) & (fatJetStop0l == 2), self.top_sf, self.top_sferr, self.top_fastsf, self.top_fastsferr)
+        setEff(fatJetPt, "t_as_bg",  topEff, (fatJetGenMatch == 1) & (fatJetStop0l == 0), self.top_sf, self.top_sferr, self.top_fastsf, self.top_fastsferr)
+        setEff(fatJetPt, "w_as_t",   topEff, (fatJetGenMatch == 2) & (fatJetStop0l == 1), self.top_sf, self.top_sferr, self.top_fastsf, self.top_fastsferr)
+        setEff(fatJetPt, "w_as_w",   topEff, (fatJetGenMatch == 2) & (fatJetStop0l == 2), self.top_sf, self.top_sferr, self.top_fastsf, self.top_fastsferr)
+        setEff(fatJetPt, "w_as_bg",  topEff, (fatJetGenMatch == 2) & (fatJetStop0l == 0), self.top_sf, self.top_sferr, self.top_fastsf, self.top_fastsferr)
+        setEff(fatJetPt, "bg_as_t",  topEff, (fatJetGenMatch == 0) & (fatJetStop0l == 1), self.top_sf, self.top_sferr, self.top_fastsf, self.top_fastsferr)
+        setEff(fatJetPt, "bg_as_w",  topEff, (fatJetGenMatch == 0) & (fatJetStop0l == 2), self.top_sf, self.top_sferr, self.top_fastsf, self.top_fastsferr)
+        setEff(fatJetPt, "bg_as_bg", topEff, (fatJetGenMatch == 0) & (fatJetStop0l == 0), self.top_sf, self.top_sferr, self.top_fastsf, self.top_fastsferr)
 
         topSF_t_tagged  = self.top_sf[fatJetStop0l == 1]
         topSF_w_tagged  = self.top_sf[fatJetStop0l == 2]
         topSF_notTagged = self.top_sf[fatJetStop0l == 0]
-        
+
         topEff_t_tagged  = topEff[fatJetStop0l == 1]
         topEff_w_tagged  = topEff[fatJetStop0l == 2]
         topEff_notTagged = topEff[fatJetStop0l == 0]
@@ -483,27 +533,25 @@ class SoftBDeepAK8SFProducer(Module):
                 numerator_fast_v_up = 0.0
                 numerator_fast_v_dn = 0.0
 
-        else:
-            numerator_up = 0.0
-            numerator_dn = 0.0
-            numerator_fast_up = 0.0
-            numerator_fast_dn = 0.0
+            self.out.fillBranch("Stop0l_DeepAK8_SFWeight" , numerator/denominator)
+            self.out.fillBranch("Stop0l_DeepAK8_SFWeight_total_up" , numerator_up/denominator)
+            self.out.fillBranch("Stop0l_DeepAK8_SFWeight_total_dn" , numerator_dn/denominator)
+            self.out.fillBranch("Stop0l_DeepAK8_SFWeight_top_up" , numerator_t_up/denominator)
+            self.out.fillBranch("Stop0l_DeepAK8_SFWeight_top_dn" , numerator_t_dn/denominator)
+            self.out.fillBranch("Stop0l_DeepAK8_SFWeight_w_up" , numerator_w_up/denominator)
+            self.out.fillBranch("Stop0l_DeepAK8_SFWeight_w_dn" , numerator_w_dn/denominator)
+            self.out.fillBranch("Stop0l_DeepAK8_SFWeight_veto_up" , numerator_v_up/denominator)
+            self.out.fillBranch("Stop0l_DeepAK8_SFWeight_veto_dn" , numerator_v_dn/denominator)
+            if self.isFastSim:
+                self.out.fillBranch("Stop0l_DeepAK8_SFWeight_fast_total_up" , numerator_fast_up/denominator)
+                self.out.fillBranch("Stop0l_DeepAK8_SFWeight_fast_total_dn" , numerator_fast_dn/denominator)
+                self.out.fillBranch("Stop0l_DeepAK8_SFWeight_fast_top_up", numerator_fast_t_up/denominator)
+                self.out.fillBranch("Stop0l_DeepAK8_SFWeight_fast_top_dn", numerator_fast_t_dn/denominator)
+                self.out.fillBranch("Stop0l_DeepAK8_SFWeight_fast_w_up", numerator_fast_w_up/denominator)
+                self.out.fillBranch("Stop0l_DeepAK8_SFWeight_fast_w_dn", numerator_fast_w_dn/denominator)
+                self.out.fillBranch("Stop0l_DeepAK8_SFWeight_fast_veto_up", numerator_fast_v_up/denominator)
+                self.out.fillBranch("Stop0l_DeepAK8_SFWeight_fast_veto_dn", numerator_fast_v_dn/denominator)
 
-            numerator_t_up = 0.0
-            numerator_t_dn = 0.0
-            numerator_fast_t_up = 0.0
-            numerator_fast_t_dn = 0.0
-            numerator_w_up = 0.0
-            numerator_w_dn = 0.0
-            numerator_fast_w_up = 0.0
-            numerator_fast_w_dn = 0.0
-            numerator_v_up = 0.0
-            numerator_v_dn = 0.0
-            numerator_fast_v_up = 0.0
-            numerator_fast_v_dn = 0.0
-
-        return numerator/denominator, numerator_up/denominator, numerator_dn/denominator, numerator_fast_up/denominator, numerator_fast_dn/denominator, numerator_t_up/denominator, numerator_t_dn/denominator, numerator_fast_t_up/denominator, numerator_fast_t_dn/denominator, numerator_w_up/denominator, numerator_w_dn/denominator, numerator_fast_w_up/denominator, numerator_fast_w_dn/denominator, numerator_v_up/denominator, numerator_v_dn/denominator, numerator_fast_v_up/denominator, numerator_fast_v_dn/denominator
-    
 
     def analyze(self, event):
         """process event, return True (go to next module) or False (fail, go to next event)"""
@@ -520,9 +568,6 @@ class SoftBDeepAK8SFProducer(Module):
         nGenPartCut = nGenPart[fatJet_stop0l == 1]
         self.top_sferr[(fatJet_stop0l == 1) & (nGenPart >= 4)] = np.sqrt(np.power(self.top_sferr[(fatJet_stop0l == 1) & (nGenPart >= 4)], 2) + additionalUncertainty*additionalUncertainty)
 
-        if not self.isData:
-            topWWeight, topWWeight_Up, topWWeight_Dn, topWWeight_fast_Up, topWWeight_fast_Dn, topWWeight_t_Up, topWWeight_t_Dn, topWWeight_fast_t_Up, topWWeight_fast_t_Dn, topWWeight_w_Up, topWWeight_w_Dn, topWWeight_fast_w_Up, topWWeight_fast_w_Dn, topWWeight_v_Up, topWWeight_v_Dn, topWWeight_fast_v_Up, topWWeight_fast_v_Dn = self.calculateTopSFWeight(event)
-
         ### Store output
         self.out.fillBranch("SB_SF",        sb_sf)
         self.out.fillBranch("SB_SFerr",     sb_sferr)
@@ -533,25 +578,9 @@ class SoftBDeepAK8SFProducer(Module):
         self.out.fillBranch("FatJet_fastSF",    self.top_fastsf)
         self.out.fillBranch("FatJet_fastSFerr", self.top_fastsferr)
         self.out.fillBranch("FatJet_nGenPart",  nGenPart)
+
         if not self.isData:
-            self.out.fillBranch("Stop0l_DeepAK8_SFWeight" , topWWeight)
-            self.out.fillBranch("Stop0l_DeepAK8_SFWeight_total_up" , topWWeight_Up)
-            self.out.fillBranch("Stop0l_DeepAK8_SFWeight_total_dn" , topWWeight_Dn)
-            self.out.fillBranch("Stop0l_DeepAK8_SFWeight_top_up" , topWWeight_t_Up)
-            self.out.fillBranch("Stop0l_DeepAK8_SFWeight_top_dn" , topWWeight_t_Dn)
-            self.out.fillBranch("Stop0l_DeepAK8_SFWeight_w_up" , topWWeight_w_Up)
-            self.out.fillBranch("Stop0l_DeepAK8_SFWeight_w_dn" , topWWeight_w_Dn)
-            self.out.fillBranch("Stop0l_DeepAK8_SFWeight_veto_up" , topWWeight_v_Up)
-            self.out.fillBranch("Stop0l_DeepAK8_SFWeight_veto_dn" , topWWeight_v_Dn)
-            if self.isFastSim:
-                self.out.fillBranch("Stop0l_DeepAK8_SFWeight_fast_total_up" , topWWeight_fast_Up)
-                self.out.fillBranch("Stop0l_DeepAK8_SFWeight_fast_total_dn" , topWWeight_fast_Dn)
-                self.out.fillBranch("Stop0l_DeepAK8_SFWeight_fast_top_up", topWWeight_fast_t_Up)
-                self.out.fillBranch("Stop0l_DeepAK8_SFWeight_fast_top_dn", topWWeight_fast_t_Dn)
-                self.out.fillBranch("Stop0l_DeepAK8_SFWeight_fast_w_up", topWWeight_fast_w_Up)
-                self.out.fillBranch("Stop0l_DeepAK8_SFWeight_fast_w_dn", topWWeight_fast_w_Dn)
-                self.out.fillBranch("Stop0l_DeepAK8_SFWeight_fast_veto_up", topWWeight_fast_v_Up)
-                self.out.fillBranch("Stop0l_DeepAK8_SFWeight_fast_veto_dn", topWWeight_fast_v_Dn)
-                
+            ### store all event weights for merged top/W 
+            self.calculateTopSFWeight(event)                
 
         return True
