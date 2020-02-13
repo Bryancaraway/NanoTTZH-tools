@@ -207,11 +207,23 @@ class SoftBDeepAK8SFProducer(Module):
         self.out.branch("FatJet_fastSFerr" , "F", lenVar="nFatJet")
         if not self.isData:
             self.out.branch("Stop0l_DeepAK8_SFWeight" , "F")
-            self.out.branch("Stop0l_DeepAK8_SFWeight_up" , "F")
-            self.out.branch("Stop0l_DeepAK8_SFWeight_dn" , "F")
+            self.out.branch("Stop0l_DeepAK8_SFWeight_total_up" , "F")
+            self.out.branch("Stop0l_DeepAK8_SFWeight_total_dn" , "F")
+            self.out.branch("Stop0l_DeepAK8_SFWeight_top_up" , "F")
+            self.out.branch("Stop0l_DeepAK8_SFWeight_top_dn" , "F")
+            self.out.branch("Stop0l_DeepAK8_SFWeight_w_up" , "F")
+            self.out.branch("Stop0l_DeepAK8_SFWeight_w_dn" , "F")
+            self.out.branch("Stop0l_DeepAK8_SFWeight_veto_up" , "F")
+            self.out.branch("Stop0l_DeepAK8_SFWeight_veto_dn" , "F")
             if self.isFastSim:
-                self.out.branch("Stop0l_DeepAK8_SFWeight_fast_up", "F")
-                self.out.branch("Stop0l_DeepAK8_SFWeight_fast_dn", "F")
+                self.out.branch("Stop0l_DeepAK8_SFWeight_fast_total_up", "F")
+                self.out.branch("Stop0l_DeepAK8_SFWeight_fast_total_dn", "F")
+                self.out.branch("Stop0l_DeepAK8_SFWeight_fast_top_up", "F")
+                self.out.branch("Stop0l_DeepAK8_SFWeight_fast_top_dn", "F")
+                self.out.branch("Stop0l_DeepAK8_SFWeight_fast_w_up", "F")
+                self.out.branch("Stop0l_DeepAK8_SFWeight_fast_w_dn", "F")
+                self.out.branch("Stop0l_DeepAK8_SFWeight_fast_veto_up", "F")
+                self.out.branch("Stop0l_DeepAK8_SFWeight_fast_veto_dn", "F")
         self.out.branch("FatJet_nGenPart" , "I", lenVar="nFatJet")
 
         if not self.isData:
@@ -440,23 +452,57 @@ class SoftBDeepAK8SFProducer(Module):
             numerator_up = ((topSF_t_tagged+uncert_t)*topEff_t_tagged).prod() * ((topSF_w_tagged+uncert_w)*topEff_w_tagged).prod() * (1 - ((topSF_notTagged+uncert_bg)*topEff_notTagged)).prod()
             numerator_dn = ((topSF_t_tagged-uncert_t)*topEff_t_tagged).prod() * ((topSF_w_tagged-uncert_w)*topEff_w_tagged).prod() * (1 - ((topSF_notTagged-uncert_bg)*topEff_notTagged)).prod()
 
+            numerator_t_up = ((topSF_t_tagged+uncert_t)*topEff_t_tagged).prod() * ((topSF_w_tagged)*topEff_w_tagged).prod() * (1 - ((topSF_notTagged)*topEff_notTagged)).prod()
+            numerator_t_dn = ((topSF_t_tagged-uncert_t)*topEff_t_tagged).prod() * ((topSF_w_tagged)*topEff_w_tagged).prod() * (1 - ((topSF_notTagged)*topEff_notTagged)).prod()
+            numerator_w_up = ((topSF_t_tagged)*topEff_t_tagged).prod() * ((topSF_w_tagged+uncert_w)*topEff_w_tagged).prod() * (1 - ((topSF_notTagged)*topEff_notTagged)).prod()
+            numerator_w_dn = ((topSF_t_tagged)*topEff_t_tagged).prod() * ((topSF_w_tagged-uncert_w)*topEff_w_tagged).prod() * (1 - ((topSF_notTagged)*topEff_notTagged)).prod()
+            numerator_v_up = ((topSF_t_tagged)*topEff_t_tagged).prod() * ((topSF_w_tagged)*topEff_w_tagged).prod() * (1 - ((topSF_notTagged+uncert_bg)*topEff_notTagged)).prod()
+            numerator_v_dn = ((topSF_t_tagged)*topEff_t_tagged).prod() * ((topSF_w_tagged)*topEff_w_tagged).prod() * (1 - ((topSF_notTagged-uncert_bg)*topEff_notTagged)).prod()
+
             if self.isFastSim:
                 uncert_fast_t  = self.top_fastsferr[fatJetStop0l == 1]
                 uncert_fast_w  = self.top_fastsferr[fatJetStop0l == 2]
                 uncert_fast_bg = self.top_fastsferr[fatJetStop0l == 0]
                 numerator_fast_up = ((topSF_t_tagged+uncert_fast_t)*topEff_t_tagged).prod() * ((topSF_w_tagged+uncert_fast_w)*topEff_w_tagged).prod() * (1 - ((topSF_notTagged+uncert_fast_bg)*topEff_notTagged)).prod()
                 numerator_fast_dn = ((topSF_t_tagged-uncert_fast_t)*topEff_t_tagged).prod() * ((topSF_w_tagged-uncert_fast_w)*topEff_w_tagged).prod() * (1 - ((topSF_notTagged-uncert_fast_bg)*topEff_notTagged)).prod()
+
+                numerator_fast_t_up = ((topSF_t_tagged+uncert_fast_t)*topEff_t_tagged).prod() * ((topSF_w_tagged)*topEff_w_tagged).prod() * (1 - ((topSF_notTagged)*topEff_notTagged)).prod()
+                numerator_fast_t_dn = ((topSF_t_tagged-uncert_fast_t)*topEff_t_tagged).prod() * ((topSF_w_tagged)*topEff_w_tagged).prod() * (1 - ((topSF_notTagged)*topEff_notTagged)).prod()
+                numerator_fast_w_up = ((topSF_t_tagged)*topEff_t_tagged).prod() * ((topSF_w_tagged+uncert_fast_w)*topEff_w_tagged).prod() * (1 - ((topSF_notTagged)*topEff_notTagged)).prod()
+                numerator_fast_w_dn = ((topSF_t_tagged)*topEff_t_tagged).prod() * ((topSF_w_tagged-uncert_fast_w)*topEff_w_tagged).prod() * (1 - ((topSF_notTagged)*topEff_notTagged)).prod()
+                numerator_fast_v_up = ((topSF_t_tagged)*topEff_t_tagged).prod() * ((topSF_w_tagged)*topEff_w_tagged).prod() * (1 - ((topSF_notTagged+uncert_fast_bg)*topEff_notTagged)).prod()
+                numerator_fast_v_dn = ((topSF_t_tagged)*topEff_t_tagged).prod() * ((topSF_w_tagged)*topEff_w_tagged).prod() * (1 - ((topSF_notTagged-uncert_fast_bg)*topEff_notTagged)).prod()
             else:
                 numerator_fast_up = 0.0
                 numerator_fast_dn = 0.0
+
+                numerator_fast_t_up = 0.0
+                numerator_fast_t_dn = 0.0
+                numerator_fast_w_up = 0.0
+                numerator_fast_w_dn = 0.0
+                numerator_fast_v_up = 0.0
+                numerator_fast_v_dn = 0.0
 
         else:
             numerator_up = 0.0
             numerator_dn = 0.0
             numerator_fast_up = 0.0
             numerator_fast_dn = 0.0
-        
-        return numerator/denominator, numerator_up/denominator, numerator_dn/denominator, numerator_fast_up/denominator, numerator_fast_dn/denominator
+
+            numerator_t_up = 0.0
+            numerator_t_dn = 0.0
+            numerator_fast_t_up = 0.0
+            numerator_fast_t_dn = 0.0
+            numerator_w_up = 0.0
+            numerator_w_dn = 0.0
+            numerator_fast_w_up = 0.0
+            numerator_fast_w_dn = 0.0
+            numerator_v_up = 0.0
+            numerator_v_dn = 0.0
+            numerator_fast_v_up = 0.0
+            numerator_fast_v_dn = 0.0
+
+        return numerator/denominator, numerator_up/denominator, numerator_dn/denominator, numerator_fast_up/denominator, numerator_fast_dn/denominator, numerator_t_up/denominator, numerator_t_dn/denominator, numerator_fast_t_up/denominator, numerator_fast_t_dn/denominator, numerator_w_up/denominator, numerator_w_dn/denominator, numerator_fast_w_up/denominator, numerator_fast_w_dn/denominator, numerator_v_up/denominator, numerator_v_dn/denominator, numerator_fast_v_up/denominator, numerator_fast_v_dn/denominator
     
 
     def analyze(self, event):
@@ -475,7 +521,7 @@ class SoftBDeepAK8SFProducer(Module):
         self.top_sferr[(fatJet_stop0l == 1) & (nGenPart >= 4)] = np.sqrt(np.power(self.top_sferr[(fatJet_stop0l == 1) & (nGenPart >= 4)], 2) + additionalUncertainty*additionalUncertainty)
 
         if not self.isData:
-            topWWeight, topWWeight_Up, topWWeight_Dn, topWWeight_fast_Up, topWWeight_fast_Dn = self.calculateTopSFWeight(event)
+            topWWeight, topWWeight_Up, topWWeight_Dn, topWWeight_fast_Up, topWWeight_fast_Dn, topWWeight_t_Up, topWWeight_t_Dn, topWWeight_fast_t_Up, topWWeight_fast_t_Dn, topWWeight_w_Up, topWWeight_w_Dn, topWWeight_fast_w_Up, topWWeight_fast_w_Dn, topWWeight_v_Up, topWWeight_v_Dn, topWWeight_fast_v_Up, topWWeight_fast_v_Dn = self.calculateTopSFWeight(event)
 
         ### Store output
         self.out.fillBranch("SB_SF",        sb_sf)
@@ -489,11 +535,23 @@ class SoftBDeepAK8SFProducer(Module):
         self.out.fillBranch("FatJet_nGenPart",  nGenPart)
         if not self.isData:
             self.out.fillBranch("Stop0l_DeepAK8_SFWeight" , topWWeight)
-            self.out.fillBranch("Stop0l_DeepAK8_SFWeight_up" , topWWeight_Up)
-            self.out.fillBranch("Stop0l_DeepAK8_SFWeight_dn" , topWWeight_Dn)
+            self.out.fillBranch("Stop0l_DeepAK8_SFWeight_total_up" , topWWeight_Up)
+            self.out.fillBranch("Stop0l_DeepAK8_SFWeight_total_dn" , topWWeight_Dn)
+            self.out.fillBranch("Stop0l_DeepAK8_SFWeight_top_up" , topWWeight_t_Up)
+            self.out.fillBranch("Stop0l_DeepAK8_SFWeight_top_dn" , topWWeight_t_Dn)
+            self.out.fillBranch("Stop0l_DeepAK8_SFWeight_w_up" , topWWeight_w_Up)
+            self.out.fillBranch("Stop0l_DeepAK8_SFWeight_w_dn" , topWWeight_w_Dn)
+            self.out.fillBranch("Stop0l_DeepAK8_SFWeight_veto_up" , topWWeight_v_Up)
+            self.out.fillBranch("Stop0l_DeepAK8_SFWeight_veto_dn" , topWWeight_v_Dn)
             if self.isFastSim:
-                self.out.fillBranch("Stop0l_DeepAK8_SFWeight_fast_up" , topWWeight_fast_Up)
-                self.out.fillBranch("Stop0l_DeepAK8_SFWeight_fast_dn" , topWWeight_fast_Dn)
+                self.out.fillBranch("Stop0l_DeepAK8_SFWeight_fast_total_up" , topWWeight_fast_Up)
+                self.out.fillBranch("Stop0l_DeepAK8_SFWeight_fast_total_dn" , topWWeight_fast_Dn)
+                self.out.fillBranch("Stop0l_DeepAK8_SFWeight_fast_top_up", topWWeight_fast_t_Up)
+                self.out.fillBranch("Stop0l_DeepAK8_SFWeight_fast_top_dn", topWWeight_fast_t_Dn)
+                self.out.fillBranch("Stop0l_DeepAK8_SFWeight_fast_w_up", topWWeight_fast_w_Up)
+                self.out.fillBranch("Stop0l_DeepAK8_SFWeight_fast_w_dn", topWWeight_fast_w_Dn)
+                self.out.fillBranch("Stop0l_DeepAK8_SFWeight_fast_veto_up", topWWeight_fast_v_Up)
+                self.out.fillBranch("Stop0l_DeepAK8_SFWeight_fast_veto_dn", topWWeight_fast_v_Dn)
                 
 
         return True
