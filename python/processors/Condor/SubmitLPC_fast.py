@@ -17,12 +17,10 @@ from collections import defaultdict
 from multiprocessing import Pool
 from itertools import izip_longest
 
-# DelExe    = '../Stop0l_splitHEM.py'
-DelExe    = '../Stop0l_fastsim.py'
-tempdir = "/uscmst1b_scratch/lpc1/3DayLifetime/ahenckel/TestCondor/"
-ShortProjectName = 'PreProcess17'
-# VersionNumber = '_splitHEM'
-VersionNumber = '_fastsimv4'
+DelExe    = '../Stop0l_postproc.py'
+tempdir = '/uscmst1b_scratch/lpc1/3DayLifetime/%s/TestCondor/'  % getpass.getuser()
+ShortProjectName = 'PreProcess'
+VersionNumber = '_v5'
 argument = "--inputFiles=%s.$(Process).list "
 sendfiles = ["/uscms/home/benwu/python-packages.tgz", "../keep_and_drop.txt"]
 TTreeName = "Events"
@@ -115,7 +113,7 @@ def Condor_Sub(condor_file):
 def GetNEvent(file):
     return (file, uproot.numentries(file, TTreeName))
 
-def SplitPro(key, file, lineperfile=20, eventsplit=2**18, TreeName=None):
+def SplitPro(key, file, lineperfile=2, eventsplit=2**18, TreeName=None):
     # Default to 20 file per job, or 2**20 ~ 1M event per job
     # At 26Hz processing time in postv2, 1M event runs ~11 hours
     splitedfiles = []
@@ -161,7 +159,7 @@ def SplitPro(key, file, lineperfile=20, eventsplit=2**18, TreeName=None):
 
     for k,v in filemap.items():
         outf = open("%s/%s.%d.list" % (filelistdir, key, k), 'w')
-        outf.write("\n".join(v))
+        outf.write("\n".join(filter(None, v)))
         splitedfiles.append(os.path.abspath("%s/%s.%d.list" % (filelistdir, key, k)))
         outf.close()
 
@@ -236,7 +234,7 @@ def my_process(args):
         ## Prepare the condor file
         condorfile = tempdir + "/" + "condor_" + ProjectName + "_" + name
         with open(condorfile, "wt") as outfile:
-            for line in open("condor_fastsim", "r"):
+            for line in open("condor_template", "r"):
                 line = line.replace("EXECUTABLE", os.path.abspath(RunHTFile))
                 line = line.replace("TARFILES", tarballname)
                 line = line.replace("TEMPDIR", tempdir)

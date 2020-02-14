@@ -28,8 +28,6 @@ class FastsimOtherVarProducer(Module):
         pass
 
     def beginFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
-        if not self.isFastsim:
-            return True
         self.out = wrappedOutputTree
         if self.applyUncert == "JESUp":
             self.out.branch("MET_pt_jesTotalUp", "F")

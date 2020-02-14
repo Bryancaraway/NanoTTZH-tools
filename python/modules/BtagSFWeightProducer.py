@@ -8,7 +8,7 @@ from PhysicsTools.NanoAODTools.postprocessing.framework.eventloop import Module
 
 class BtagSFWeightProducer(Module):
 
-    def __init__(self, bTagEffFile, sampleName, bDiscCut, jetPtMin = 20, jetEtaMax = 2.4, fileDirectory = os.environ['CMSSW_BASE'] + "/src/PhysicsTools/NanoSUSYTools/data/btagSF/"):
+    def __init__(self, bTagEffFile, sampleName, bDiscCut, jetPtMin = 20, jetEtaMax = 2.4, fileDirectory = os.environ['CMSSW_BASE'] + "/src/PhysicsTools/NanoSUSYTools/data/btagSF/", isfastsim=False):
         self.jetPtMin = jetPtMin
         self.jetEtaMax = jetEtaMax
         self.bDiscCut = bDiscCut
@@ -17,34 +17,17 @@ class BtagSFWeightProducer(Module):
         self.sampleName = sampleName
         self.fileDirectory = fileDirectory
 
+        self.FastSim = isfastsim
+
+        self.h_eff_b          = None
+        self.h_eff_c          = None
+        self.h_eff_udsg       = None
+
+
     def beginJob(self):
         ROOT.TH1.AddDirectory(False)
         
-        fin = ROOT.TFile.Open(self.fileDirectory + "/" + self.bTagEffFile)
-
-        self.h_eff_b          = fin.Get(("n_eff_b_" + self.sampleName));
-        self.h_eff_c          = fin.Get(("n_eff_c_" + self.sampleName));
-        self.h_eff_udsg       = fin.Get(("n_eff_udsg_" + self.sampleName));
-        d_eff_b          = fin.Get(("d_eff_b_" + self.sampleName));
-        d_eff_c          = fin.Get(("d_eff_c_" + self.sampleName));
-        d_eff_udsg       = fin.Get(("d_eff_udsg_" + self.sampleName));
-
-        if not self.h_eff_b or not self.h_eff_c or not self.h_eff_udsg:
-            print "B-tag efficiency histograms for sample \"%s\" are not found in file \"%s\".  Using TTBar_2016 inclusive numbers as default setting!!!!"%( self.sampleName, self.bTagEffFile)
-
-            self.sampleName = "TTbarInc_2016"
-
-            self.h_eff_b          = fin.Get(("n_eff_b_" + self.sampleName));
-            self.h_eff_c          = fin.Get(("n_eff_c_" + self.sampleName));
-            self.h_eff_udsg       = fin.Get(("n_eff_udsg_" + self.sampleName));
-            d_eff_b          = fin.Get(("d_eff_b_" + self.sampleName));
-            d_eff_c          = fin.Get(("d_eff_c_" + self.sampleName));
-            d_eff_udsg       = fin.Get(("d_eff_udsg_" + self.sampleName));
-        
-        self.h_eff_b.Divide(d_eff_b);
-        self.h_eff_c.Divide(d_eff_c);
-        self.h_eff_udsg.Divide(d_eff_udsg);
-
+        self.fin = ROOT.TFile.Open(self.fileDirectory + "/" + self.bTagEffFile)
         
     def endJob(self):
         pass
@@ -60,6 +43,42 @@ class BtagSFWeightProducer(Module):
         self.out.branch("BTagWeightLight",      "F", title="BTag event light weight following method 1a")
         self.out.branch("BTagWeightLight_Up",   "F", title="BTag event light weight up uncertainty")
         self.out.branch("BTagWeightLight_Down", "F", title="BTag event light weight down uncertainty")
+
+        if self.h_eff_b:
+            del self.h_eff_b
+        if self.h_eff_c:
+            del self.h_eff_c
+        if self.h_eff_udsg:
+            del self.h_eff_udsg
+
+        if self.FastSim:
+            sampleName = os.path.splitext(os.path.basename(inputFile.GetName()))[0]
+        else:
+            sampleName = self.sampleName
+
+        self.h_eff_b          = self.fin.Get(("n_eff_b_" + sampleName));
+        self.h_eff_c          = self.fin.Get(("n_eff_c_" + sampleName));
+        self.h_eff_udsg       = self.fin.Get(("n_eff_udsg_" + sampleName));
+        d_eff_b          = self.fin.Get(("d_eff_b_" + sampleName));
+        d_eff_c          = self.fin.Get(("d_eff_c_" + sampleName));
+        d_eff_udsg       = self.fin.Get(("d_eff_udsg_" + sampleName));
+
+        if not self.h_eff_b or not self.h_eff_c or not self.h_eff_udsg:
+            print "B-tag efficiency histograms for sample \"%s\" are not found in file \"%s\".  Using TTBar_2016 inclusive numbers as default setting!!!!"%( sampleName, self.bTagEffFile)
+
+            sampleName = "TTbarInc_2016"
+
+            self.h_eff_b          = self.fin.Get(("n_eff_b_" + sampleName));
+            self.h_eff_c          = self.fin.Get(("n_eff_c_" + sampleName));
+            self.h_eff_udsg       = self.fin.Get(("n_eff_udsg_" + sampleName));
+            d_eff_b          = self.fin.Get(("d_eff_b_" + sampleName));
+            d_eff_c          = self.fin.Get(("d_eff_c_" + sampleName));
+            d_eff_udsg       = self.fin.Get(("d_eff_udsg_" + sampleName));
+        
+        self.h_eff_b.Divide(d_eff_b);
+        self.h_eff_c.Divide(d_eff_c);
+        self.h_eff_udsg.Divide(d_eff_udsg);
+
 
     def endFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
         pass
@@ -117,25 +136,34 @@ class BtagSFWeightProducer(Module):
                     eta_bin = self.h_eff_udsg.GetYaxis().GetNbins();
 
                 eff = self.h_eff_udsg.GetBinContent(pt_bin, eta_bin);
-
+            
+            if self.FastSim:
+                btagSF = jet.btagSF*jet.btagSF_FS
+                btagSF_up = jet.btagSF_up*jet.btagSF_FS_up
+                btagSF_down = jet.btagSF_down*jet.btagSF_FS_down
+            else:
+                btagSF = jet.btagSF
+                btagSF_up = jet.btagSF_up
+                btagSF_down = jet.btagSF_down
+            
             if jet.btagDeepB > self.bDiscCut:
                 #check if eff is zero
                 if eff < 0.001:
                     eff = 0.001
-
-                BTagWeightN      *= jet.btagSF * eff
-                BTagWeightN_up   *= jet.btagSF_up * eff
-                BTagWeightN_down *= jet.btagSF_down * eff
+            
+                BTagWeightN      *= btagSF * eff
+                BTagWeightN_up   *= btagSF_up * eff
+                BTagWeightN_down *= btagSF_down * eff
 
 		if abs(flavor) == 5:
-                	BTagWeightNHeavy      *= jet.btagSF * eff
-                	BTagWeightNHeavy_up   *= jet.btagSF_up * eff
-                	BTagWeightNHeavy_down *= jet.btagSF_down * eff
+                	BTagWeightNHeavy      *= btagSF * eff
+                	BTagWeightNHeavy_up   *= btagSF_up * eff
+                	BTagWeightNHeavy_down *= btagSF_down * eff
 			BTagWeightDHeavy      *= eff
 		else:
-                	BTagWeightNLight      *= jet.btagSF * eff
-                	BTagWeightNLight_up   *= jet.btagSF_up * eff
-                	BTagWeightNLight_down *= jet.btagSF_down * eff
+                	BTagWeightNLight      *= btagSF * eff
+                	BTagWeightNLight_up   *= btagSF_up * eff
+                	BTagWeightNLight_down *= btagSF_down * eff
 			BTagWeightDLight      *= eff
 
                 BTagWeightD      *= eff
@@ -144,19 +172,19 @@ class BtagSFWeightProducer(Module):
                 if eff > 0.999:
                     eff = 0.999
 
-                BTagWeightN      *= 1 - jet.btagSF * eff
-                BTagWeightN_up   *= 1 - jet.btagSF_up * eff
-                BTagWeightN_down *= 1 - jet.btagSF_down * eff
+                BTagWeightN      *= 1 - btagSF * eff
+                BTagWeightN_up   *= 1 - btagSF_up * eff
+                BTagWeightN_down *= 1 - btagSF_down * eff
 
 		if abs(flavor) == 5:
-                	BTagWeightNHeavy      *= 1 - jet.btagSF * eff
-                	BTagWeightNHeavy_up   *= 1 - jet.btagSF_up * eff
-                	BTagWeightNHeavy_down *= 1 - jet.btagSF_down * eff
+                	BTagWeightNHeavy      *= 1 - btagSF * eff
+                	BTagWeightNHeavy_up   *= 1 - btagSF_up * eff
+                	BTagWeightNHeavy_down *= 1 - btagSF_down * eff
 			BTagWeightDHeavy      *= 1 - eff
 		else:
-                	BTagWeightNLight      *= 1 - jet.btagSF * eff
-                	BTagWeightNLight_up   *= 1 - jet.btagSF_up * eff
-                	BTagWeightNLight_down *= 1 - jet.btagSF_down * eff
+                	BTagWeightNLight      *= 1 - btagSF * eff
+                	BTagWeightNLight_up   *= 1 - btagSF_up * eff
+                	BTagWeightNLight_down *= 1 - btagSF_down * eff
 			BTagWeightDLight      *= 1 - eff
 
                 BTagWeightD      *= 1 - eff

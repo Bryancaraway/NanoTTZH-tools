@@ -29,6 +29,7 @@ from PhysicsTools.NanoSUSYTools.modules.PrefireCorr import PrefCorr
 from PhysicsTools.NanoSUSYTools.modules.ISRWeightProducer import ISRSFWeightProducer
 from PhysicsTools.NanoSUSYTools.modules.Stop0l_trigger import Stop0l_trigger
 from PhysicsTools.NanoSUSYTools.modules.SoftBDeepAK8SFProducer import SoftBDeepAK8SFProducer
+from PhysicsTools.NanoSUSYTools.processors.FastsimISR import *
 
 # JEC files are those recomended here (as of Mar 1, 2019)
 # https://twiki.cern.ch/twiki/bin/view/CMS/JECDataMC#Recommended_for_MC
@@ -37,50 +38,62 @@ from PhysicsTools.NanoSUSYTools.modules.SoftBDeepAK8SFProducer import SoftBDeepA
 # JER: https://github.com/cms-jet/JRDatabase/tree/master/textFiles
 DataDepInputs = {
     "MC": {
-        "2016" : {"pileup_Data": "Cert271036_284044_23Sep2016ReReco_Collisions16.root",
+        "2016" : {"bTagEff": "allInOne_bTagEff_deepCSVb_med.root",
+                  "pileup_Data": "Cert271036_284044_23Sep2016ReReco_Collisions16.root",
                   "pileup_MC": "pileup_profile_2016.root",
                   "JERMC": "Summer16_25nsV1_MC",
                   "JECMC": "Summer16_07Aug2017_V11_MC",
                   "redoJEC": False,
                   "taggerWD": "TopTaggerCfg-DeepResolved_DeepCSV_GR_nanoAOD_2016_v1.0.3",
+                  "nISRjets": "allInOne_ISRWeight.root",
                  },
-        "2017" : {"pileup_Data": "Cert294927_306462_EOY2017ReReco_Collisions17.root",
+        "2017" : {"bTagEff": "allInOne_bTagEff_deepCSVb_med.root",
+                  "pileup_Data": "Cert294927_306462_EOY2017ReReco_Collisions17.root",
                   "pileup_MC": "pileup_profile_2017.root",
                   "JERMC": "Fall17_V3_MC",
                   "JECMC": "Fall17_17Nov2017_V32_MC",
                   "redoJEC": False,
                   "taggerWD": "TopTaggerCfg-DeepResolved_DeepCSV_GR_nanoAOD_2017_v1.0.3",
+                  "nISRjets": "allInOne_ISRWeight.root",
                  },
-        "2018" : {"pileup_Data": "ReReco2018ABC_PromptEraD_Collisions18.root",
+        "2018" : {"bTagEff": "allInOne_bTagEff_deepCSVb_med.root",
+                  "pileup_Data": "ReReco2018ABC_PromptEraD_Collisions18.root",
                   "pileup_MC": "pileup_profile_2018.root",
                   "JERMC": "Autumn18_V7_MC",
                   "JECMC": "Autumn18_V19_MC",
                   "redoJEC": True,
                   "taggerWD": "TopTaggerCfg-DeepResolved_DeepCSV_GR_nanoAOD_2018_v1.0.3",
+                  "nISRjets": "allInOne_ISRWeight.root",
                  }
     },
 
     "FASTSIM": {
-        "2016" : {"pileup_Data": "Cert271036_284044_23Sep2016ReReco_Collisions16.root",
+        "2016" : {"bTagEff": "FastSim2016AllSamples.root",
+                  "pileup_Data": "Cert271036_284044_23Sep2016ReReco_Collisions16.root",
                   "pileup_MC": "pileup_profile_2016.root",
                   "JERMC": "Summer16_25nsV1_MC",
                   "JECMC": "Spring16_25nsFastSimV1_MC",
                   "redoJEC": False,
                   "taggerWD": "TopTaggerCfg-DeepResolved_DeepCSV_GR_nanoAOD_2016_v1.0.3",
+                  "nISRjets": "fastsim_2016.root",
                  },
-        "2017" : {"pileup_Data": "Cert294927_306462_EOY2017ReReco_Collisions17.root",
+        "2017" : {"bTagEff": "FastSim2017AllSamples.root",
+                  "pileup_Data": "Cert294927_306462_EOY2017ReReco_Collisions17.root",
                   "pileup_MC": "pileup_profile_2017.root",
                   "JERMC": "Fall17_V3_MC",
                   "JECMC": "Fall17_FastsimV1_MC",
                   "redoJEC": True,
                   "taggerWD": "TopTaggerCfg-DeepResolved_DeepCSV_GR_nanoAOD_2017_v1.0.3",
+                  "nISRjets": "fastsim_2017.root",
                  },
-        "2018" : {"pileup_Data": "ReReco2018ABC_PromptEraD_Collisions18.root",
+        "2018" : {"bTagEff": "FastSim2018AllSamples.root",
+                  "pileup_Data": "ReReco2018ABC_PromptEraD_Collisions18.root",
                   "pileup_MC": "pileup_profile_2018.root",
                   "JERMC": "Autumn18_V1_MC",
                   "JECMC": "Autumn18_FastSimV1_MC",
                   "redoJEC": True,
                   "taggerWD": "TopTaggerCfg-DeepResolved_DeepCSV_GR_nanoAOD_2018_v1.0.3",
+                  "nISRjets": "fastsim_2018.root",
                  }
     },
 
@@ -223,7 +236,7 @@ def main(args):
              UpdateEvtWeight(isdata, args.crossSection, args.nEvents, args.sampleName)
             ]
 
-    #~~~~~ Modules for MC Only ~~~~~
+    #~~~~~ Modules for MC Only ~~~~
     if not isdata:
         pufile_data = "%s/src/PhysicsTools/NanoSUSYTools/data/pileup/%s" % (os.environ['CMSSW_BASE'], DataDepInputs[dataType][args.era]["pileup_Data"])
         pufile_mc = "%s/src/PhysicsTools/NanoSUSYTools/data/pileup/%s" % (os.environ['CMSSW_BASE'], DataDepInputs[dataType][args.era]["pileup_MC"])
@@ -233,6 +246,10 @@ def main(args):
             mods += [
                 jecUncertProducer(DataDepInputs[dataType][args.era]["JECMC"]),
                 ]
+        if isfastsim:
+            mods += [
+                    btagSFProducer(args.era+"FastSim", algo="deepcsv"),
+                    ]
         ## Major modules for MC
         mods += [
             TopTaggerProducer(recalculateFromRawInputs=True, suffix="JESUp", AK4JetInputs=("Jet_pt_jesTotalUp",   "Jet_eta", "Jet_phi", "Jet_mass_jesTotalUp"),
@@ -262,13 +279,14 @@ def main(args):
                           photonSelectionTag="Medium", 
                           tauSelectionTag="Tight"),
             puWeightProducer(pufile_mc, pufile_data, args.sampleName,"pileup"),
-            btagSFProducer(era=args.era, algo="deepcsv"),
-            BtagSFWeightProducer("allInOne_bTagEff_deepCSVb_med.root", args.sampleName, DeepCSVMediumWP[args.era]),
+            btagSFProducer(args.era, algo="deepcsv"),
+            #BtagSFWeightProducer("allInOne_bTagEff_deepCSVb_med.root", args.sampleName, DeepCSVMediumWP[args.era]),
+            BtagSFWeightProducer(DataDepInputs[dataType][args.era]["bTagEff"], args.sampleName, DeepCSVMediumWP[args.era], isfastsim=isfastsim),
             # statusFlag 0x2100 corresponds to "isLastCopy and fromHardProcess"
             # statusFlag 0x2080 corresponds to "IsLastCopy and isHardProcess"
             GenPartFilter(statusFlags = [0x2100, 0x2080, 0x2000, 0], pdgIds = [0, 0, 22, 0], statuses = [0, 0, 1, 23]),
             # TODO: first implemtation, need double check
-            ISRSFWeightProducer(args.era, isSUSY, "allInOne_ISRWeight.root", args.sampleName), 
+            ISRSFWeightProducer(args.era, isSUSY, isfastsim, DataDepInputs[dataType][args.era]["nISRjets"], args.sampleName), 
             ]
         # Special PU reweighting for 2017 separately
         if args.era == "2017":
@@ -294,6 +312,8 @@ def main(args):
         with open(args.inputfile) as f:
             files = [line.strip() for line in f]
 
+    if isfastsim:
+        GetNISRJetDist(files, DataDepInputs[dataType][args.era]["nISRjets"])
     p=PostProcessor(args.outputfile,files,cut=None, branchsel=None, outputbranchsel="keep_and_drop.txt", modules=mods,provenance=False,maxEvents=args.maxEvents)
     p.run()
 
