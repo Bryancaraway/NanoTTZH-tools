@@ -262,13 +262,7 @@ class SoftBDeepAK8SFProducer(Module):
                 
                 return retval
     
-            #tTagEffFileName = os.environ['CMSSW_BASE'] + "/src/PhysicsTools/NanoSUSYTools/data/topTagSF/tTagEff_%s.root"%self.era
-            tarName = os.environ['CMSSW_BASE'] + "/src/PhysicsTools/NanoSUSYTools/data/topTagSF/tTagEff.tar.bz"
-            tTagEffFileName = "tTagEff_%s.root"%self.era
-            if not os.path.isfile(tTagEffFileName):
-                print(tarName)
-                with tarfile.open(tarName, "r") as tar:
-                    tar.extractall()
+            tTagEffFileName = os.environ['CMSSW_BASE'] + "/src/PhysicsTools/NanoSUSYTools/data/topTagSF/tTagEff_%s.root"%self.era
     
             tTagEffFile = ROOT.TFile.Open(tTagEffFileName)
     
