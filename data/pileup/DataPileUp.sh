@@ -10,8 +10,12 @@
 
 # Suggested minBiasXsec is set as 68.6+- 1.7 mb
 # https://hypernews.cern.ch/HyperNews/CMS/get/luminosity/613/2/1/1/1/1/1/1.html
-declare -A sys=( [pileup]=68600 [pileup_plus]=70300 [pileup_minus]=66900 )
+# declare -A sys=( [pileup]=68600 [pileup_plus]=70300 [pileup_minus]=66900 )
 
+# Updated to the offical recommendation from LUMI POG
+# https://twiki.cern.ch/twiki/bin/view/CMS/PileupJSONFileforData#Recommended_cross_section
+# The recommended cross-section for Run 2 is 69.2 mb; The uncertainty in this measurement is 4.6%
+declare -A sys=( [pileup]=69200 [pileup_plus]=72383 [pileup_minus]=66017 )
 
 
 GeneratorPileUp()
@@ -37,7 +41,21 @@ PileUpJSON=/afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions17/13Te
 OUTPUTFILE=Cert294927_306462_EOY2017ReReco_Collisions17
 GeneratorPileUp
 
+JSONFILE=./Collisions17_BtoE_JSON.txt
+PileUpJSON=/afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions17/13TeV/PileUp/pileup_latest.txt
+OUTPUTFILE=Collisions17_BtoE
+GeneratorPileUp
+
+JSONFILE=./Collisions17_F_JSON.txt
+PileUpJSON=/afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions17/13TeV/PileUp/pileup_latest.txt
+OUTPUTFILE=Collisions17_F
+GeneratorPileUp
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ 2018 ~~~~~
+JSONFILE=/afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions18/13TeV/ReReco/Cert_314472-325175_13TeV_17SeptEarlyReReco2018ABC_PromptEraD_Collisions18_JSON.txt
+PileUpJSON=/afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions18/13TeV/PileUp/pileup_latest.txt
+OUTPUTFILE=ReReco2018ABC_PromptEraD_Collisions18
+GeneratorPileUp
+
 JSONFILE=/afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions18/13TeV/PromptReco/Cert_314472-325175_13TeV_PromptReco_Collisions18_JSON.txt 
 PileUpJSON=/afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions18/13TeV/PileUp/pileup_latest.txt
 OUTPUTFILE=Cert314472_325175_PromptReco_Collisions18
