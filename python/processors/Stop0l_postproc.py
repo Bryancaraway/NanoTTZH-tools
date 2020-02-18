@@ -239,7 +239,7 @@ def main(args):
     #~~~~~ Modules for MC Only ~~~~
     if not isdata:
         pufile_data = "%s/src/PhysicsTools/NanoSUSYTools/data/pileup/%s" % (os.environ['CMSSW_BASE'], DataDepInputs[dataType][args.era]["pileup_Data"])
-        pufile_mc = "%s/src/PhysicsTools/NanoSUSYTools/data/pileup/%s" % (os.environ['CMSSW_BASE'], DataDepInputs[dataType][args.era]["pileup_MC"])
+        pufile_mc = "%s/src/PhysicsTools/NanoSUSYTools/data/pileup/%s" % (os.environ['CMSSW_BASE'], DataDepInputs[dataType][args.era]["pileup_MC"]) if not isfastsim else "auto" 
         ## TODO: ZW don't understand this part, So this is for fullsim? 
         ## Isn't jetmetUncertaintiesProducer included jecUncertProducer
         if not isfastsim:
