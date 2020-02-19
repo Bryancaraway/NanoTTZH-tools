@@ -262,7 +262,7 @@ class SoftBDeepAK8SFProducer(Module):
                 
                 return retval
     
-            tTagEffFileName = os.environ['CMSSW_BASE'] + "/src/PhysicsTools/NanoSUSYTools/data/topTagSF/tTagEff_%s.root"%self.era
+            tTagEffFileName = os.environ['CMSSW_BASE'] + "/src/PhysicsTools/NanoSUSYTools/python/processors/TopTaggerCfg-DeepResolved_DeepCSV_GR_nanoAOD_%(era)s_v1.0.5/tTagEff_%(era)s.root"%{"era":self.era}
     
             tTagEffFile = ROOT.TFile.Open(tTagEffFileName)
     
