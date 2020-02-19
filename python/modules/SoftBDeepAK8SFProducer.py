@@ -439,6 +439,8 @@ class SoftBDeepAK8SFProducer(Module):
                 sfFast_w = self.topWSFMap["DeepW_fastSF"]["values"][sfBinsFast_w]
                 sfFast_wErr = self.topWSFMap["DeepW_fastSF"]["errors"][sfBinsFast_w]
 
+                eff_sum[eff_sum <= 0] = 0.0001
+
                 SF_effective = (sf_top*eff_top+sf_w*eff_w)/(eff_sum)
                 #small approximation here that up and down are the same
                 SF_Up_effective = ((sf_top+sf_topErr)*eff_top+(sf_w+sf_wErr)*eff_w)/(eff_sum)
@@ -466,6 +468,9 @@ class SoftBDeepAK8SFProducer(Module):
         setEff(fatJetPt, "bg_as_t",  topEff, (fatJetGenMatch == 0) & (fatJetStop0l == 1), self.top_sf, self.top_sferr, self.top_fastsf, self.top_fastsferr)
         setEff(fatJetPt, "bg_as_w",  topEff, (fatJetGenMatch == 0) & (fatJetStop0l == 2), self.top_sf, self.top_sferr, self.top_fastsf, self.top_fastsferr)
         setEff(fatJetPt, "bg_as_bg", topEff, (fatJetGenMatch == 0) & (fatJetStop0l == 0), self.top_sf, self.top_sferr, self.top_fastsf, self.top_fastsferr)
+
+        #safety against very rare cases where eff = 0
+        topEff[topEff <= 0] = 0.0001
 
         topSF_t_tagged  = self.top_sf[fatJetStop0l == 1]
         topSF_w_tagged  = self.top_sf[fatJetStop0l == 2]
