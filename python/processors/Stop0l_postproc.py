@@ -70,7 +70,7 @@ DataDepInputs = {
     "FASTSIM": {
         "2016" : {"bTagEff": "FastSim2016AllSamples.root",
                   "pileup_Data": "Cert271036_284044_23Sep2016ReReco_Collisions16.root",
-                  "pileup_MC": "pileup_profile_2016.root",
+                  "pileup_MC": "pileup_fastsim_2016.root",
                   "JERMC": "Summer16_25nsV1_MC",
                   "JECMC": "Spring16_25nsFastSimV1_MC",
                   "redoJEC": False,
@@ -79,7 +79,7 @@ DataDepInputs = {
                  },
         "2017" : {"bTagEff": "FastSim2017AllSamples.root",
                   "pileup_Data": "Cert294927_306462_EOY2017ReReco_Collisions17.root",
-                  "pileup_MC": "pileup_profile_2017.root",
+                  "pileup_MC": "pileup_fastsim_2017.root",
                   "JERMC": "Fall17_V3_MC",
                   "JECMC": "Fall17_FastsimV1_MC",
                   "redoJEC": True,
@@ -88,7 +88,7 @@ DataDepInputs = {
                  },
         "2018" : {"bTagEff": "FastSim2018AllSamples.root",
                   "pileup_Data": "ReReco2018ABC_PromptEraD_Collisions18.root",
-                  "pileup_MC": "pileup_profile_2018.root",
+                  "pileup_MC": "pileup_fastsim_2018.root",
                   "JERMC": "Autumn18_V1_MC",
                   "JECMC": "Autumn18_FastSimV1_MC",
                   "redoJEC": True,
@@ -239,7 +239,7 @@ def main(args):
     #~~~~~ Modules for MC Only ~~~~
     if not isdata:
         pufile_data = "%s/src/PhysicsTools/NanoSUSYTools/data/pileup/%s" % (os.environ['CMSSW_BASE'], DataDepInputs[dataType][args.era]["pileup_Data"])
-        pufile_mc = "%s/src/PhysicsTools/NanoSUSYTools/data/pileup/%s" % (os.environ['CMSSW_BASE'], DataDepInputs[dataType][args.era]["pileup_MC"]) if not isfastsim else "auto" 
+        pufile_mc = "%s/src/PhysicsTools/NanoSUSYTools/data/pileup/%s" % (os.environ['CMSSW_BASE'], DataDepInputs[dataType][args.era]["pileup_MC"])
         ## TODO: ZW don't understand this part, So this is for fullsim? 
         ## Isn't jetmetUncertaintiesProducer included jecUncertProducer
         if not isfastsim:
