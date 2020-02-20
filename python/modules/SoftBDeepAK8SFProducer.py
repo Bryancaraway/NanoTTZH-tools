@@ -422,6 +422,7 @@ class SoftBDeepAK8SFProducer(Module):
                 eff_top = self.topEffHists[catAsT]["values"][effBins_top]
                 eff_w = self.topEffHists[catAsW]["values"][effBins_w]
                 eff_sum = eff_top + eff_w
+                eff_sum[eff_sum <= 0] = 0.0001
                 topEff[filterArray] =  eff_sum
 
                 #hack to get fake SF right
@@ -438,8 +439,6 @@ class SoftBDeepAK8SFProducer(Module):
                 sfFast_topErr = self.topWSFMap["DeepTop_fastSF"]["errors"][sfBinsFast_top]
                 sfFast_w = self.topWSFMap["DeepW_fastSF"]["values"][sfBinsFast_w]
                 sfFast_wErr = self.topWSFMap["DeepW_fastSF"]["errors"][sfBinsFast_w]
-
-                eff_sum[eff_sum <= 0] = 0.0001
 
                 SF_effective = (sf_top*eff_top+sf_w*eff_w)/(eff_sum)
                 #small approximation here that up and down are the same
