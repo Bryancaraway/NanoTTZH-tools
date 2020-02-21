@@ -37,18 +37,19 @@ class BtagSFWeightProducer(Module):
         self.out.branch("BTagWeight",           "F", title="BTag event weight following method 1a")
         self.out.branch("BTagWeight_Up",        "F", title="BTag event weight up uncertainty")
         self.out.branch("BTagWeight_Down",      "F", title="BTag event weight down uncertainty")
-        self.out.branch("BTagWeight_Up_FS",        "F", title="BTag event weight up uncertainty")
-        self.out.branch("BTagWeight_Down_FS",      "F", title="BTag event weight down uncertainty")
         self.out.branch("BTagWeightHeavy",      "F", title="BTag event heavy weight following method 1a")
         self.out.branch("BTagWeightHeavy_Up",   "F", title="BTag event heavy weight up uncertainty")
         self.out.branch("BTagWeightHeavy_Down", "F", title="BTag event heavy weight down uncertainty")
-        self.out.branch("BTagWeightHeavy_Up_FS",   "F", title="BTag event heavy weight up uncertainty")
-        self.out.branch("BTagWeightHeavy_Down_FS", "F", title="BTag event heavy weight down uncertainty")
         self.out.branch("BTagWeightLight",      "F", title="BTag event light weight following method 1a")
         self.out.branch("BTagWeightLight_Up",   "F", title="BTag event light weight up uncertainty")
-        self.out.branch("BTagWeightLight_Up_FS",   "F", title="BTag event light weight up uncertainty")
         self.out.branch("BTagWeightLight_Down", "F", title="BTag event light weight down uncertainty")
-        self.out.branch("BTagWeightLight_Down_FS", "F", title="BTag event light weight down uncertainty")
+        if self.FastSim:
+            self.out.branch("BTagWeight_Up_FS",        "F", title="BTag event weight up uncertainty")
+            self.out.branch("BTagWeight_Down_FS",      "F", title="BTag event weight down uncertainty")
+            self.out.branch("BTagWeightHeavy_Up_FS",   "F", title="BTag event heavy weight up uncertainty")
+            self.out.branch("BTagWeightHeavy_Down_FS", "F", title="BTag event heavy weight down uncertainty")
+            self.out.branch("BTagWeightLight_Up_FS",   "F", title="BTag event light weight up uncertainty")
+            self.out.branch("BTagWeightLight_Down_FS", "F", title="BTag event light weight down uncertainty")
 
         if self.h_eff_b:
             del self.h_eff_b
