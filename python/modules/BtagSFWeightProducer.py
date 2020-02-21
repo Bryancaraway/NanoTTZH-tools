@@ -215,9 +215,13 @@ class BtagSFWeightProducer(Module):
 
                 BTagWeightD      *= 1 - eff
          
-        print BTagWeightN_up, BTagWeightN_up_FS
         if self.FastSim:
             self.out.fillBranch("BTagWeight_Up_FS",  1 )
+            self.out.fillBranch("BTagWeight_Down_FS",  1 )
+            self.out.fillBranch("BTagWeightHeavy_Up_FS",  1 )
+            self.out.fillBranch("BTagWeightLight_Up_FS",  1 )
+            self.out.fillBranch("BTagWeightHeavy_Down_FS",  1 )
+            self.out.fillBranch("BTagWeightLight_Down_FS",  1 )
         self.out.fillBranch("BTagWeight",      BTagWeightN / BTagWeightD)
         self.out.fillBranch("BTagWeight_Up",   BTagWeightN_up / BTagWeightD)
         self.out.fillBranch("BTagWeight_Down", BTagWeightN_down / BTagWeightD)
