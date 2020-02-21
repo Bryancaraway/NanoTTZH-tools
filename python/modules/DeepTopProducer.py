@@ -5,6 +5,8 @@ from collections import defaultdict
 from itertools import permutations
 import numpy as np
 import itertools
+import os
+import tarfile
 
 from PhysicsTools.NanoAODTools.postprocessing.framework.datamodel import Collection, Object
 from PhysicsTools.NanoAODTools.postprocessing.framework.eventloop import Module
@@ -13,7 +15,11 @@ from PhysicsTools.NanoSUSYTools.modules.Stop0lObjectsProducer import DeepCSVMedi
 from PhysicsTools.NanoSUSYTools.modules.datamodelRemap import ObjectRemapped, CollectionRemapped
 
 class DeepTopProducer(Module):
-    def __init__(self, era, applyUncert=None):
+    def __init__(self, era, applyUncert=None, sampleName=None, isFastSim=False, isData=False):
+        self.isFastSim = isFastSim
+        self.isData = isData
+        self.sampleName = sampleName
+
         ## WP from Hui's study https://indico.cern.ch/event/780000/contributions/3248659/attachments/1768782/2873013/Search_bin_study_with_combine_tools_v13.pdf
         ## Updated WP from https://indico.cern.ch/event/840827/contributions/3527925/attachments/1895214/3126510/DeepAK8_Top_W_SFs_2017_JMAR_PK.pdf
         self.minAK8TopMass = 105
@@ -44,6 +50,8 @@ class DeepTopProducer(Module):
         self.era = era
         self.metBranchName = "MET"
 
+        ROOT.TH1.AddDirectory(False)
+
         self.applyUncert = applyUncert
 
         self.suffix = ""
@@ -67,11 +75,52 @@ class DeepTopProducer(Module):
         self.out.branch("Stop0l_nResolved" + self.suffix, "I")
         self.out.branch("Stop0l_ISRJetIdx" + self.suffix, "I")
         self.out.branch("Stop0l_ISRJetPt" + self.suffix, "F")
+        if not self.isData:
+            self.out.branch("Stop0l_ResTopWeight" + self.suffix, "F")
+            if not self.applyUncert:
+                self.out.branch("Stop0l_ResTopWeight_Up" + self.suffix, "F")
+                self.out.branch("Stop0l_ResTopWeight_Dn" + self.suffix, "F")
+                if self.isFastSim:
+                    self.out.branch("Stop0l_ResTopWeight_fast_Up" + self.suffix, "F")
+                    self.out.branch("Stop0l_ResTopWeight_fast_Dn" + self.suffix, "F")
         self.out.branch("HOT_pt" + self.suffix,   "F", lenVar = "nHOT" + self.suffix)
         self.out.branch("HOT_eta" + self.suffix,  "F", lenVar = "nHOT" + self.suffix)
         self.out.branch("HOT_phi" + self.suffix,  "F", lenVar = "nHOT" + self.suffix)
         self.out.branch("HOT_mass" + self.suffix, "F", lenVar = "nHOT" + self.suffix)
         self.out.branch("HOT_type" + self.suffix, "I", lenVar = "nHOT" + self.suffix)
+
+        if not self.isData:
+            #get resolved top eff histos
+            tTagEffFileName = os.environ['CMSSW_BASE'] + "/src/PhysicsTools/NanoSUSYTools/python/processors/TopTaggerCfg-DeepResolved_DeepCSV_GR_nanoAOD_%(era)s_v1.0.5/tTagEff_%(era)s.root"%{"era":self.era}
+    
+            if self.isFastSim:
+                sample = os.path.splitext(os.path.basename(inputFile.GetName()))[0]
+            else:
+                sample = self.sampleName
+    
+            tTagEffFile = ROOT.TFile.Open(tTagEffFileName)
+    
+            h_res_sig_den = tTagEffFile.Get(sample + "/d_res_sig_" + sample)
+            h_res_sig = tTagEffFile.Get(sample + "/n_res_sig_" + sample)
+            h_res_bg_den = tTagEffFile.Get(sample + "/d_res_bg_" + sample)
+            h_res_bg = tTagEffFile.Get(sample + "/n_res_bg_" + sample)
+    
+            tTagEffFile.Close()
+    
+            h_res_sig.Divide(h_res_sig_den)
+            h_res_bg.Divide(h_res_bg_den)
+
+            self.resEffHists = {
+                "res_sig_hist": {
+                    "edges": np.fromiter(h_res_sig.GetXaxis().GetXbins(), np.float),
+                    "values": np.array([h_res_sig.GetBinContent(iBin) for iBin in range(1, h_res_sig.GetNbinsX() + 1)])
+                    },
+                "res_bg_hist": {
+                    "edges": np.fromiter(h_res_bg.GetXaxis().GetXbins(), np.float),
+                    "values": np.array([h_res_bg.GetBinContent(iBin) for iBin in range(1, h_res_bg.GetNbinsX() + 1)])
+                    },
+                }
+
 
     def endFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
         pass
@@ -89,12 +138,17 @@ class DeepTopProducer(Module):
     def SelDeepResolved(self, res, jets):
         if math.fabs(res.eta) >= self.etaMax:
             return False
-        if res.discriminator <= self.DeepResolveWP:
-            return False
+        #Moved elsewhere 
+        #if res.discriminator <= self.DeepResolveWP:
+        #    return False
 
         if ((abs(jets[res.j1Idx].eta) < self.bJetEtaMax and jets[res.j1Idx].btagDeepB > self.resAK4bTagWP) + (abs(jets[res.j2Idx].eta) < self.bJetEtaMax and jets[res.j2Idx].btagDeepB > self.resAK4bTagWP) + (abs(jets[res.j3Idx].eta) < self.bJetEtaMax and jets[res.j3Idx].btagDeepB > self.resAK4bTagWP)) >= 2 :
             return False
         return True
+
+    def DeepResolvedDiscCut(self, res):
+        #res here is a list with the resolved top and the existing Stop0l var
+        return res[1] and (res[0].discriminator > self.DeepResolveWP)
 
     def ResovleOverlapDeepAK8(self, res, fatj, jets, subjets):
         ## Counting number of tops
@@ -214,6 +268,81 @@ class DeepTopProducer(Module):
                 HOTtype.append(Type)
         return (HOTpt, HOTeta, HOTphi, HOTmass, HOTtype)
 
+    def calculateResTopSFWeight(self, res):
+        #res here is all resolved tops which survive the overlap removal procedure and final cuts, except the final discriminator cut
+        resTopStop0l = np.array(self.ResolvedTop_Stop0l, dtype=bool)
+        resTopPt = np.array([topCand.pt for topCand in res])[resTopStop0l]
+        resTopSF = np.array([topCand.sf for topCand in res])[resTopStop0l]
+        resTopGM = np.array([topCand.genMatch for topCand in res], dtype=bool)[resTopStop0l]
+        resTopDisc = np.array([topCand.discriminator for topCand in res], dtype=float)[resTopStop0l]
+
+        #calculate uncertainties 
+        if not self.applyUncert:
+            systNames=["Btag", "Pileup", "CSPur", "Stat", "Closure"]
+            uncert_up = np.zeros(len(resTopPt))
+            uncert_dn = np.zeros(len(resTopPt))
+            for syst in systNames:
+                var_up = np.array([getattr(topCand, "syst_"+syst+"_Up") for topCand in res])[resTopStop0l]
+                var_dn = np.array([getattr(topCand, "syst_"+syst+"_Down") for topCand in res])[resTopStop0l]
+                # hack
+                if syst == "Closure":
+                    # closure is only applied to fakes 
+                    filt = (~resTopGM).astype(float)
+                    uncert_up += (var_up*filt)**2
+                    uncert_dn += (var_dn*filt)**2
+                else:
+                    uncert_up += var_up**2
+                    uncert_dn += var_dn**2
+        
+            uncert_up = np.sqrt(uncert_up)
+            uncert_dn = np.sqrt(uncert_dn)
+
+        #Get efficiencies 
+        resTopEff = np.ones(resTopSF.shape)
+
+        resTopPt_top = resTopPt[resTopGM]
+        effBins_top = np.digitize(resTopPt_top, self.resEffHists["res_sig_hist"]["edges"]) - 1
+        resTopEff[resTopGM] = self.resEffHists["res_sig_hist"]["values"][effBins_top]
+
+        resTopPt_notTop = resTopPt[~resTopGM]
+        effBins_notTop = np.digitize(resTopPt_notTop, self.resEffHists["res_bg_hist"]["edges"]) - 1
+        resTopEff[~resTopGM] = self.resEffHists["res_bg_hist"]["values"][effBins_notTop]
+
+        discCut = resTopDisc > self.DeepResolveWP
+
+        resTopSF_tagged = resTopSF[discCut]
+        resTopSF_notTagged = resTopSF[~discCut]
+
+        resTopEff_tagged = resTopEff[discCut]
+        resTopEff_notTagged = resTopEff[~discCut]
+
+        numerator = (resTopSF_tagged*resTopEff_tagged).prod() * (1 - (resTopSF_notTagged*resTopEff_notTagged)).prod()
+        denominator = resTopEff_tagged.prod() * (1 - resTopEff_notTagged).prod()
+
+        #calculate uncertainty variations of weight
+        if not self.applyUncert:
+            uncert_up_tagged = uncert_up[discCut]
+            uncert_up_notTagged = uncert_up[~discCut]
+
+            uncert_dn_tagged = uncert_dn[discCut]
+            uncert_dn_notTagged = uncert_dn[~discCut]
+
+            numerator_up = ((1 + uncert_up_tagged)*resTopSF_tagged*resTopEff_tagged).prod() * (1 - ((1 + uncert_up_notTagged)*resTopSF_notTagged*resTopEff_notTagged)).prod()
+            numerator_dn = ((1 - uncert_dn_tagged)*resTopSF_tagged*resTopEff_tagged).prod() * (1 - ((1 - uncert_dn_notTagged)*resTopSF_notTagged*resTopEff_notTagged)).prod()
+
+            fastSimErr = 0.05
+            numerator_fast_up = ((1 + fastSimErr)*resTopSF_tagged*resTopEff_tagged).prod() * (1 - ((1 + fastSimErr)*resTopSF_notTagged*resTopEff_notTagged)).prod()
+            numerator_fast_dn = ((1 - fastSimErr)*resTopSF_tagged*resTopEff_tagged).prod() * (1 - ((1 - fastSimErr)*resTopSF_notTagged*resTopEff_notTagged)).prod()
+        else:
+            numerator_up = 0.0
+            numerator_dn = 0.0
+
+            numerator_fast_up = 0.0
+            numerator_fast_dn = 0.0
+
+
+        return numerator/denominator, numerator_up/denominator, numerator_dn/denominator, numerator_fast_up/denominator, numerator_fast_dn/denominator
+
     def analyze(self, event):
         """process event, return True (go to next module) or False (fail, go to next event)"""
         ## Getting objects
@@ -236,8 +365,15 @@ class DeepTopProducer(Module):
 
         ## Selecting objects
         self.FatJet_Stop0l = map(self.SelDeepAK8, fatjets)
+        #apply initial selection to reduce combinatorics, discriminator cut moved later for SF calculation
         self.ResolvedTop_Stop0l = map(lambda x : self.SelDeepResolved(x, jets), resolves)
+        #resolve overlap between resolved top candidates and between resovled tops and merged top/W
         self.ResovleOverlapDeepAK8(resolves, fatjets, jets, subjets)
+        #calcualte resolved top scaler factor (the merged top SF is calculated in SoftBDeepAK8SFProducer.py for ... reasons ...)
+        if not self.isData:
+            resolvedTopSF, resolvedTopSF_Up, resolvedTopSF_Dn, resolvedTopSF_fast_Up, resolvedTopSF_fast_Dn = self.calculateResTopSFWeight(resolves)
+        #we need all the overlap resolved candidates in the step above, so the discriminator filter is moved here
+        self.ResolvedTop_Stop0l = map(lambda x : self.DeepResolvedDiscCut(x), zip(resolves, self.ResolvedTop_Stop0l))
         self.nTop = sum( [ i for i in self.FatJet_Stop0l if i == 1 ])
         self.nW = sum( [ 1 for i in self.FatJet_Stop0l if i == 2 ])
         self.nResolved = sum(self.ResolvedTop_Stop0l)
@@ -253,6 +389,15 @@ class DeepTopProducer(Module):
         self.out.fillBranch("Stop0l_nResolved" + self.suffix, self.nResolved)
         self.out.fillBranch("Stop0l_ISRJetIdx" + self.suffix, self.ISRJetidx)
         self.out.fillBranch("Stop0l_ISRJetPt" + self.suffix, ISRJetPt)
+        if not self.isData:
+            self.out.fillBranch("Stop0l_ResTopWeight" + self.suffix, resolvedTopSF)
+            if not self.applyUncert:
+                self.out.fillBranch("Stop0l_ResTopWeight_Up" + self.suffix, resolvedTopSF_Up)
+                self.out.fillBranch("Stop0l_ResTopWeight_Dn" + self.suffix, resolvedTopSF_Dn)
+                if self.isFastSim:
+                    self.out.fillBranch("Stop0l_ResTopWeight_fast_Up" + self.suffix, resolvedTopSF_fast_Up)
+                    self.out.fillBranch("Stop0l_ResTopWeight_fast_Dn" + self.suffix, resolvedTopSF_fast_Dn)
+                
         self.out.fillBranch("HOT_pt" + self.suffix, HOTpt)
         self.out.fillBranch("HOT_eta" + self.suffix, HOTeta)
         self.out.fillBranch("HOT_phi" + self.suffix, HOTphi)
