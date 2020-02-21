@@ -216,27 +216,21 @@ class BtagSFWeightProducer(Module):
                 BTagWeightD      *= 1 - eff
          
         if self.FastSim:
-            self.out.fillBranch("BTagWeight_Up_FS",  1 )
-            self.out.fillBranch("BTagWeight_Down_FS",  1 )
-            self.out.fillBranch("BTagWeightHeavy_Up_FS",  1 )
-            self.out.fillBranch("BTagWeightLight_Up_FS",  1 )
-            self.out.fillBranch("BTagWeightHeavy_Down_FS",  1 )
-            self.out.fillBranch("BTagWeightLight_Down_FS",  1 )
+            self.out.fillBranch("BTagWeight_Up_FS",   BTagWeightN_up_FS / BTagWeightD)
+            self.out.fillBranch("BTagWeight_Down_FS", BTagWeightN_down_FS / BTagWeightD)
+            self.out.fillBranch("BTagWeightHeavy_Up_FS",   BTagWeightNHeavy_up_FS / BTagWeightDHeavy)
+            self.out.fillBranch("BTagWeightHeavy_Down_FS", BTagWeightNHeavy_down_FS / BTagWeightDHeavy)
+            self.out.fillBranch("BTagWeightLight_Up_FS",   BTagWeightNLight_up_FS / BTagWeightDLight)
+            self.out.fillBranch("BTagWeightLight_Down_FS", BTagWeightNLight_down_FS / BTagWeightDLight)
         self.out.fillBranch("BTagWeight",      BTagWeightN / BTagWeightD)
         self.out.fillBranch("BTagWeight_Up",   BTagWeightN_up / BTagWeightD)
         self.out.fillBranch("BTagWeight_Down", BTagWeightN_down / BTagWeightD)
-        self.out.fillBranch("BTagWeight_Up_FS",   BTagWeightN_up_FS / BTagWeightD)
-        self.out.fillBranch("BTagWeight_Down_FS", BTagWeightN_down_FS / BTagWeightD)
         self.out.fillBranch("BTagWeightHeavy",      BTagWeightNHeavy / BTagWeightDHeavy)
         self.out.fillBranch("BTagWeightHeavy_Up",   BTagWeightNHeavy_up / BTagWeightDHeavy)
         self.out.fillBranch("BTagWeightHeavy_Down", BTagWeightNHeavy_down / BTagWeightDHeavy)
-        self.out.fillBranch("BTagWeightHeavy_Up_FS",   BTagWeightNHeavy_up_FS / BTagWeightDHeavy)
-        self.out.fillBranch("BTagWeightHeavy_Down_FS", BTagWeightNHeavy_down_FS / BTagWeightDHeavy)
         self.out.fillBranch("BTagWeightLight",      BTagWeightNLight / BTagWeightDLight)
         self.out.fillBranch("BTagWeightLight_Up",   BTagWeightNLight_up / BTagWeightDLight)
-        self.out.fillBranch("BTagWeightLight_Up_FS",   BTagWeightNLight_up_FS / BTagWeightDLight)
         self.out.fillBranch("BTagWeightLight_Down", BTagWeightNLight_down / BTagWeightDLight)
-        self.out.fillBranch("BTagWeightLight_Down_FS", BTagWeightNLight_down_FS / BTagWeightDLight)
         return True
 
 # define modules using the syntax 'name = lambda : constructor' to avoid having them loaded when not needed
