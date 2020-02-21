@@ -19,11 +19,11 @@ from multiprocessing import Pool
 DelExe    = '../Stop0l_postproc.py'
 tempdir = '/uscmst1b_scratch/lpc1/3DayLifetime/%s/TestCondor/'  % getpass.getuser()
 ShortProjectName = 'PostProcess'
-VersionNumber = '_v5'
+VersionNumber = '_v5p2p1'
 argument = "--inputFiles=%s.$(Process).list "
 sendfiles = ["../keep_and_drop.txt"]
 TTreeName = "Events"
-NProcess = 10
+NProcess = 1
 
 def tar_cmssw():
     print("Tarring up CMSSW, ignoring file larger than 100MB")
@@ -122,7 +122,7 @@ def Condor_Sub(condor_file):
 def GetNEvent(file):
     return (file, uproot.numentries(file, TTreeName))
 
-def SplitPro(key, file, lineperfile=20, eventsplit=2**20, TreeName=None):
+def SplitPro(key, file, lineperfile=20, eventsplit=2**19, TreeName=None):
     # Default to 20 file per job, or 2**20 ~ 1M event per job
     # At 26Hz processing time in postv2, 1M event runs ~11 hours
     splitedfiles = []
@@ -211,9 +211,9 @@ def my_process(args):
         else: outdir = args.outputdir + "/" + name + "/"
 
         #Update RunExe.csh
-        RunHTFile = tempdir + "/" + name + "_RunExe.csh"
+        RunHTFile = tempdir + "/" + name + "_RunExe_FastSim.csh"
         with open(RunHTFile, "wt") as outfile:
-            for line in open("RunExe.csh","r"):
+            for line in open("RunExe_FastSim.csh","r"):
                 line = line.replace("DELSCR", os.environ['SCRAM_ARCH'])
                 line = line.replace("DELDIR", os.environ['CMSSW_VERSION'])
                 line = line.replace("DELEXE", DelExe.split('/')[-1])
