@@ -262,7 +262,7 @@ class SoftBDeepAK8SFProducer(Module):
                 
                 return retval
     
-            tTagEffFileName = os.environ['CMSSW_BASE'] + "/src/PhysicsTools/NanoSUSYTools/data/topTagSF/tTagEff_%s.root"%self.era
+            tTagEffFileName = os.environ['CMSSW_BASE'] + "/src/PhysicsTools/NanoSUSYTools/python/processors/TopTaggerCfg-DeepResolved_DeepCSV_GR_nanoAOD_%(era)s_v1.0.5/tTagEff_%(era)s.root"%{"era":self.era}
     
             tTagEffFile = ROOT.TFile.Open(tTagEffFileName)
     
@@ -422,6 +422,7 @@ class SoftBDeepAK8SFProducer(Module):
                 eff_top = self.topEffHists[catAsT]["values"][effBins_top]
                 eff_w = self.topEffHists[catAsW]["values"][effBins_w]
                 eff_sum = eff_top + eff_w
+                eff_sum[eff_sum <= 0] = 0.0001
                 topEff[filterArray] =  eff_sum
 
                 #hack to get fake SF right
@@ -466,6 +467,9 @@ class SoftBDeepAK8SFProducer(Module):
         setEff(fatJetPt, "bg_as_t",  topEff, (fatJetGenMatch == 0) & (fatJetStop0l == 1), self.top_sf, self.top_sferr, self.top_fastsf, self.top_fastsferr)
         setEff(fatJetPt, "bg_as_w",  topEff, (fatJetGenMatch == 0) & (fatJetStop0l == 2), self.top_sf, self.top_sferr, self.top_fastsf, self.top_fastsferr)
         setEff(fatJetPt, "bg_as_bg", topEff, (fatJetGenMatch == 0) & (fatJetStop0l == 0), self.top_sf, self.top_sferr, self.top_fastsf, self.top_fastsferr)
+
+        #safety against very rare cases where eff = 0
+        topEff[topEff <= 0] = 0.0001
 
         topSF_t_tagged  = self.top_sf[fatJetStop0l == 1]
         topSF_w_tagged  = self.top_sf[fatJetStop0l == 2]

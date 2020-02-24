@@ -91,7 +91,7 @@ class DeepTopProducer(Module):
 
         if not self.isData:
             #get resolved top eff histos
-            tTagEffFileName = os.environ['CMSSW_BASE'] + "/src/PhysicsTools/NanoSUSYTools/data/topTagSF/tTagEff_%s.root"%self.era
+            tTagEffFileName = os.environ['CMSSW_BASE'] + "/src/PhysicsTools/NanoSUSYTools/python/processors/TopTaggerCfg-DeepResolved_DeepCSV_GR_nanoAOD_%(era)s_v1.0.5/tTagEff_%(era)s.root"%{"era":self.era}
     
             if self.isFastSim:
                 sample = os.path.splitext(os.path.basename(inputFile.GetName()))[0]
