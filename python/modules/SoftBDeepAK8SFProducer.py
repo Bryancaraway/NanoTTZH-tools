@@ -273,7 +273,8 @@ class SoftBDeepAK8SFProducer(Module):
                 self.out.branch("Stop0l_DeepAK8_SFWeight_fast_w_dn", "F")
                 self.out.branch("Stop0l_DeepAK8_SFWeight_fast_veto_up", "F")
                 self.out.branch("Stop0l_DeepAK8_SFWeight_fast_veto_dn", "F")
-        self.out.branch("FatJet_nGenPart" , "I", lenVar="nFatJet")
+        self.out.branch("FatJet_nGenPart" , "I", lenVar="nFatJet", title="NO. of quarks and hard gluons matched to FatJet")
+        self.out.branch("FatJet_GenMatch" , "I", lenVar="nFatJet", title="Type of Gen Match of FatJet: 1 match to top, 2 match to W")
 
         if not self.isData:
             if self.isFastSim:
@@ -612,6 +613,7 @@ class SoftBDeepAK8SFProducer(Module):
         self.out.fillBranch("FatJet_fastSF",    self.top_fastsf)
         self.out.fillBranch("FatJet_fastSFerr", self.top_fastsferr)
         self.out.fillBranch("FatJet_nGenPart",  nGenPart)
+        self.out.fillBranch("FatJet_GenMatch",  fatJetGenMatch)
 
         if not self.isData:
             ### store all event weights for merged top/W 
