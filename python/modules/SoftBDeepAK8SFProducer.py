@@ -64,6 +64,18 @@ DeepTop_fastSF = {
     }
 }
 
+DeepTop_Fake_SF = {
+    "2016": {
+        (400, 9999) : (0.921, 0.066)
+    },
+    "2017": {
+        (400, 9999) : (1.213, 0.073)
+    },
+    "2018": {
+        (400, 9999) : (1.086, 0.062)
+    },
+}
+
 # Get it from https://indico.cern.ch/event/840827/contributions/3527925/attachments/1895214/3126510/DeepAK8_Top_W_SFs_2017_JMAR_PK.pdf
 # No direct value, get it from the png using http://www.graphreader.com/
 # Take it with a grain of salt
@@ -104,6 +116,24 @@ DeepW_fastSF = {
         (200, 300) : (1.20, 0.12),
         (300, 400) : (1.17, 0.10),
         (400, 9999) : (1.20, 0.06),
+    }
+}
+
+DeepW_Fake_SF = {
+    "2016" : {
+        (200, 300) :  (1.161, 0.032),
+        (300, 400) :  (1.178, 0.034),
+        (400, 9999) : (1.314, 0.041),
+    },
+    "2017" : {
+        (200, 300) :  (1.072, 0.054),
+        (300, 400) :  (1.132, 0.042),
+        (400, 9999) : (1.159, 0.041),
+    },
+    "2018" : {
+        (200, 300) :  (1.087, 0.042),
+        (300, 400) :  (1.058, 0.045),
+        (400, 9999) : (1.139, 0.051),
     }
 }
 
@@ -202,8 +232,10 @@ class SoftBDeepAK8SFProducer(Module):
 
         self.topWSFMap = {}
         self.topWSFMap["DeepTop_SF"] = createSFMap(DeepTop_SF)
+        self.topWSFMap["DeepTop_Fake_SF"] = createSFMap(DeepTop_Fake_SF)
         self.topWSFMap["DeepTop_fastSF"] = createSFMap(DeepTop_fastSF)
         self.topWSFMap["DeepW_SF"] = createSFMap(DeepW_SF)
+        self.topWSFMap["DeepW_Fake_SF"] = createSFMap(DeepW_Fake_SF)
         self.topWSFMap["DeepW_fastSF"] = createSFMap(DeepW_fastSF)
 
     def beginJob(self):
@@ -301,8 +333,7 @@ class SoftBDeepAK8SFProducer(Module):
 
         return sb_sf, sb_sferr, sb_fastsf, sb_fastsferr
 
-    def GetDeepAK8SF(self, fjets):
-        stop0l        = np.fromiter([fj.Stop0l for fj in fjets ], int)
+    def GetDeepAK8SF(self, fjets, fatJetGenMatch, jetPt, stop0l):
         ntop          = len(stop0l)
         top_sf        = np.ones(ntop)
         top_sferr     = np.zeros(ntop)
@@ -312,29 +343,21 @@ class SoftBDeepAK8SFProducer(Module):
         if self.isData:
             return top_sf, top_sferr, top_fastsf, top_fastsferr
 
-        for i,  fj in enumerate(fjets):
-            if fj.Stop0l == 1:
-                for k, v in DeepTop_SF[self.era].items():
-                    if fj.pt >= k[0] and fj.pt < k[1]:
-                        top_sf[i] = v[0]
-                        top_sferr[i]= v[1]
-                if self.isFastSim:
-                    for k, v in DeepTop_fastSF[self.era].items():
-                        if fj.pt >= k[0] and fj.pt < k[1]:
-                            top_fastsf[i]= v[0]
-                            top_fastsferr[i] = v[1]
-            elif fj.Stop0l == 2:
-                for k, v in DeepW_SF[self.era].items():
-                    if fj.pt >= k[0] and fj.pt < k[1]:
-                        top_sf[i] = v[0]
-                        top_sferr[i] = v[1]
-                if self.isFastSim:
-                    for k, v in DeepW_fastSF[self.era].items():
-                        if fj.pt >= k[0] and fj.pt < k[1]:
-                            top_fastsf[i] = v[0]
-                            top_fastsferr[i] = v[1]
-                
-        # print (top_sf, top_sferr, top_fastsf, top_fastsferr)
+        
+        def setSF(jetPt, filt, SFMap, sf_top, sf_topErr):
+            sfBins = np.digitize(jetPt[filt], SFMap["edges"]) - 1
+            sf_top[filt] = SFMap["values"][sfBins]
+            sf_topErr[filt] = SFMap["errors"][sfBins]
+       
+        #veto SF for non-tagged jets in computed below because it needs to be weighted by efficiency 
+        setSF(jetPt, (fatJetGenMatch == 1) & (stop0l == 1), self.topWSFMap["DeepTop_SF"],      top_sf, top_sferr)
+        setSF(jetPt, (fatJetGenMatch == 2) & (stop0l == 2), self.topWSFMap["DeepW_SF"],        top_sf, top_sferr)
+        setSF(jetPt, (fatJetGenMatch != 1) & (stop0l == 1), self.topWSFMap["DeepTop_Fake_SF"], top_sf, top_sferr)
+        setSF(jetPt, (fatJetGenMatch != 2) & (stop0l == 2), self.topWSFMap["DeepW_Fake_SF"],   top_sf, top_sferr)
+
+        setSF(jetPt,                          stop0l == 1 , self.topWSFMap["DeepTop_fastSF"],  top_fastsf, top_fastsferr)
+        setSF(jetPt,                          stop0l == 2 , self.topWSFMap["DeepW_fastSF"],    top_fastsf, top_fastsferr)
+
         return top_sf, top_sferr, top_fastsf, top_fastsferr
 
     class TTreeReaderArrayWrapper:
@@ -402,14 +425,7 @@ class SoftBDeepAK8SFProducer(Module):
     
         return deltaRMatch(fatJetEta, fatJetPhi, genTopDaughters_eta, genTopDaughters_phi, genWDaughters_eta, genWDaughters_phi)
 
-    def calculateTopSFWeight(self, event):
-        fatJetStop0l = np.fromiter(self.TTreeReaderArrayWrapper(event.FatJet_Stop0l), dtype=int)
-        fatJetPt = np.fromiter(self.TTreeReaderArrayWrapper(event.FatJet_pt), dtype=float)
-        fatJetEta = np.fromiter(self.TTreeReaderArrayWrapper(event.FatJet_eta), dtype=float)
-        fatJetPhi = np.fromiter(self.TTreeReaderArrayWrapper(event.FatJet_phi), dtype=float)
-
-        #gen match the fat jets
-        fatJetGenMatch = self.fatJetGenMatch(event, fatJetEta, fatJetPhi)
+    def calculateTopSFWeight(self, fatJetStop0l, fatJetPt, fatJetGenMatch):
 
         #Get efficiencies 
         topEff = np.ones(self.top_sf.shape)
@@ -426,7 +442,7 @@ class SoftBDeepAK8SFProducer(Module):
                 eff_sum[eff_sum <= 0] = 0.0001
                 topEff[filterArray] =  eff_sum
 
-                #hack to get fake SF right
+                #hack to get veto SF right
                 sfBins_top = np.digitize(topPt[filterArray], self.topWSFMap["DeepTop_SF"]["edges"]) - 1
                 sfBins_w   = np.digitize(topPt[filterArray], self.topWSFMap["DeepW_SF"]["edges"]) - 1
                 sf_top = self.topWSFMap["DeepTop_SF"]["values"][sfBins_top]
@@ -557,8 +573,16 @@ class SoftBDeepAK8SFProducer(Module):
         isvs    = Collection(event, "SB")
         fatjets  = Collection(event, "FatJet")
 
+        fatJetStop0l = np.fromiter(self.TTreeReaderArrayWrapper(event.FatJet_Stop0l), dtype=int)
+        fatJetPt = np.fromiter(self.TTreeReaderArrayWrapper(event.FatJet_pt), dtype=float)
+        fatJetEta = np.fromiter(self.TTreeReaderArrayWrapper(event.FatJet_eta), dtype=float)
+        fatJetPhi = np.fromiter(self.TTreeReaderArrayWrapper(event.FatJet_phi), dtype=float)
+
+        #gen match the fat jets
+        fatJetGenMatch = self.fatJetGenMatch(event, fatJetEta, fatJetPhi)
+
         sb_sf, sb_sferr, sb_fastsf, sb_fastsferr = self.GetSoftBSF(isvs)
-        self.top_sf, self.top_sferr, self.top_fastsf, self.top_fastsferr = self.GetDeepAK8SF(fatjets)
+        self.top_sf, self.top_sferr, self.top_fastsf, self.top_fastsferr = self.GetDeepAK8SF(fatjets, fatJetGenMatch, fatJetPt, fatJetStop0l)
 
         #add additional uncertainty for tops with more than 3 gen particles matched 
         additionalUncertainty = 0.2
@@ -580,6 +604,5 @@ class SoftBDeepAK8SFProducer(Module):
 
         if not self.isData:
             ### store all event weights for merged top/W 
-            self.calculateTopSFWeight(event)                
-
+            self.calculateTopSFWeight(fatJetStop0l, fatJetPt, fatJetGenMatch)
         return True
