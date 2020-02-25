@@ -32,14 +32,16 @@ class DeepTopProducer(Module):
             "2018" : 0.895
         }
 
-        ## Mistag 0.5% WP, using 2017 WP as 2018
+        ## Mistag 1% WP, using 2017 WP as 2018
+        ## The table of 2016 from JMAR talk shifted by one bin.
+        ## So 1% mistag WP should be 0.973
         self.minAK8WMass   = 65
         self.maxAK8WMass   = 105
         self.DeepAK8WPt    = 200.0
         self.DeepAK8WWP    = {
             "2016" : 0.973,
-            "2017" : 0.991,
-            "2018" : 0.991
+            "2017" : 0.981,
+            "2018" : 0.981
         }
 
         self.DeepResolveWP = 0.92

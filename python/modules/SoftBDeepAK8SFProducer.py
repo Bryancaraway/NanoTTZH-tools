@@ -66,23 +66,24 @@ DeepTop_fastSF = {
 
 # Get it from https://indico.cern.ch/event/840827/contributions/3527925/attachments/1895214/3126510/DeepAK8_Top_W_SFs_2017_JMAR_PK.pdf
 # No direct value, get it from the png using http://www.graphreader.com/
-# NOTE: Take it with a grain of salt
-# No 2018 yet, using 2017 value as 2018
+# Take it with a grain of salt
+# Use 1% mistag rate plots, taking the large side of asymmetric systematic as symmetric uncertainty
+# Using 2017 SF and uncertainty for 2018 
 DeepW_SF = {
     "2016" : {
-        (200, 300) : (0.875, 0.146),
-        (300, 400) : (0.966, 0.132),
-        (400, 9999) : (0.817, 0.112),
+        (200, 300) : (0.946, 0.132),
+        (300, 400) : (0.88, 0.107),
+        (400, 9999) : (0.901, 0.103),
     },
     "2017" : {
-        (200, 300) : (0.857, 0.032),
-        (300, 400) : (0.852, 0.033),
-        (400, 9999) : (0.877, 0.045),
+        (200, 300) : (0.941, 0.037),
+        (300, 400) : (0.937, 0.078),
+        (400, 9999) : (0.908, 0.115),
     },
     "2018" : {
-        (200, 300) : (0.857, 0.032),
-        (300, 400) : (0.852, 0.033),
-        (400, 9999) : (0.877, 0.045),
+        (200, 300) : (0.941, 0.037),
+        (300, 400) : (0.937, 0.078),
+        (400, 9999) : (0.908, 0.115),
     }
 }
 
