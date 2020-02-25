@@ -280,13 +280,24 @@ class SoftBDeepAK8SFProducer(Module):
                 sample = os.path.splitext(os.path.basename(inputFile.GetName()))[0]
             else:
                 sample = self.sampleName
+
+            defaultSampleName = "TTbarInc_%s"%self.era
     
             #get top eff histos
             def getRatioHist(name, sample, tTagEffFile):
                 h_den = tTagEffFile.Get(sample + "/d_" + name.split("_as_")[0] + "_" + sample)
                 h_num = tTagEffFile.Get(sample + "/n_" + name + "_" + sample)
     
-                h_num.Divide(h_den)
+    
+                try:
+                    h_num.Divide(h_den)
+                except AttributeError:
+                    print("SoftBDeepAK8Producer: Sample '%s' NOT found in '%s'!!! Instead trying default sample '%s'"%(sample, tTagEffFileName, defaultSampleName))  
+                    sample = defaultSampleName
+                    h_den = tTagEffFile.Get(sample + "/d_" + name.split("_as_")[0] + "_" + sample)
+                    h_num = tTagEffFile.Get(sample + "/n_" + name + "_" + sample)
+                    h_num.Divide(h_den)
+    
     
                 retval = {
                     "edges": np.fromiter(h_num.GetXaxis().GetXbins(), np.float),

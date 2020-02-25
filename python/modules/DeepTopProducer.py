@@ -101,16 +101,31 @@ class DeepTopProducer(Module):
                 sample = self.sampleName
     
             tTagEffFile = ROOT.TFile.Open(tTagEffFileName)
+
+            defaultSampleName = "TTbarInc_%s"%self.era
     
             h_res_sig_den = tTagEffFile.Get(sample + "/d_res_sig_" + sample)
             h_res_sig = tTagEffFile.Get(sample + "/n_res_sig_" + sample)
             h_res_bg_den = tTagEffFile.Get(sample + "/d_res_bg_" + sample)
             h_res_bg = tTagEffFile.Get(sample + "/n_res_bg_" + sample)
     
-            tTagEffFile.Close()
     
-            h_res_sig.Divide(h_res_sig_den)
-            h_res_bg.Divide(h_res_bg_den)
+            try:
+                h_res_sig.Divide(h_res_sig_den)
+                h_res_bg.Divide(h_res_bg_den)
+            except AttributeError:
+                print("DeepTopProducer: Sample '%s' NOT found in '%s'!!! Instead trying default sample '%s'"%(sample, tTagEffFileName, defaultSampleName))  
+                sample = defaultSampleName
+
+                h_res_sig_den = tTagEffFile.Get(sample + "/d_res_sig_" + sample)
+                h_res_sig = tTagEffFile.Get(sample + "/n_res_sig_" + sample)
+                h_res_bg_den = tTagEffFile.Get(sample + "/d_res_bg_" + sample)
+                h_res_bg = tTagEffFile.Get(sample + "/n_res_bg_" + sample)
+
+                h_res_sig.Divide(h_res_sig_den)
+                h_res_bg.Divide(h_res_bg_den)
+
+            tTagEffFile.Close()
 
             self.resEffHists = {
                 "res_sig_hist": {
