@@ -282,7 +282,6 @@ def main(args):
                           tauSelectionTag="Tight"),
             puWeightProducer(pufile_mc, pufile_data, args.sampleName,"pileup"),
             btagSFProducer(args.era, algo="deepcsv"),
-            #BtagSFWeightProducer("allInOne_bTagEff_deepCSVb_med.root", args.sampleName, DeepCSVMediumWP[args.era]),
             BtagSFWeightProducer(DataDepInputs[dataType][args.era]["bTagEff"], args.sampleName, DeepCSVMediumWP[args.era], isfastsim=isfastsim),
             # statusFlag 0x2100 corresponds to "isLastCopy and fromHardProcess"
             # statusFlag 0x2080 corresponds to "IsLastCopy and isHardProcess"
