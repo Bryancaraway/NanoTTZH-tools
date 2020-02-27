@@ -15,10 +15,11 @@ from PhysicsTools.NanoSUSYTools.modules.Stop0lObjectsProducer import DeepCSVMedi
 from PhysicsTools.NanoSUSYTools.modules.datamodelRemap import ObjectRemapped, CollectionRemapped
 
 class DeepTopProducer(Module):
-    def __init__(self, era, applyUncert=None, sampleName=None, isFastSim=False, isData=False):
+    def __init__(self, era, taggerWD, applyUncert=None, sampleName=None, isFastSim=False, isData=False):
         self.isFastSim = isFastSim
         self.isData = isData
         self.sampleName = sampleName
+        self.taggerWD = taggerWD
 
         ## WP from Hui's study https://indico.cern.ch/event/780000/contributions/3248659/attachments/1768782/2873013/Search_bin_study_with_combine_tools_v13.pdf
         ## Updated WP from https://indico.cern.ch/event/840827/contributions/3527925/attachments/1895214/3126510/DeepAK8_Top_W_SFs_2017_JMAR_PK.pdf
@@ -93,7 +94,7 @@ class DeepTopProducer(Module):
 
         if not self.isData:
             #get resolved top eff histos
-            tTagEffFileName = os.environ['CMSSW_BASE'] + "/src/PhysicsTools/NanoSUSYTools/python/processors/TopTaggerCfg-DeepResolved_DeepCSV_GR_nanoAOD_%(era)s_v1.0.5/tTagEff_%(era)s.root"%{"era":self.era}
+            tTagEffFileName = self.taggerWD + "/tTagEff_%(era)s.root"%{"era":self.era}
     
             if self.isFastSim:
                 sample = os.path.splitext(os.path.basename(inputFile.GetName()))[0]
