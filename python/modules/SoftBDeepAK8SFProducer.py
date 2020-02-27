@@ -212,8 +212,9 @@ def deltaRMatch(fatJetEta, fatJetPhi, genTopDaughters_eta, genTopDaughters_phi, 
     return matches
 
 class SoftBDeepAK8SFProducer(Module):
-    def __init__(self, era, isData = False, isFastSim=False, sampleName=None):
+    def __init__(self, era, taggerWD, isData = False, isFastSim=False, sampleName=None):
         self.era = era
+        self.taggerWD = taggerWD
         self.isFastSim = isFastSim
         self.isData = isData
         self.sampleName = sampleName
@@ -307,7 +308,7 @@ class SoftBDeepAK8SFProducer(Module):
                 
                 return retval
     
-            tTagEffFileName = os.environ['CMSSW_BASE'] + "/src/PhysicsTools/NanoSUSYTools/python/processors/TopTaggerCfg-DeepResolved_DeepCSV_GR_nanoAOD_%(era)s_v1.0.5/tTagEff_%(era)s.root"%{"era":self.era}
+            tTagEffFileName = self.taggerWD + "/tTagEff_%(era)s.root"%{"era":self.era}
     
             tTagEffFile = ROOT.TFile.Open(tTagEffFileName)
     

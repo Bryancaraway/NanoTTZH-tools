@@ -222,16 +222,17 @@ def main(args):
                 ]
 
     #~~~~~ Common modules for Data and MC ~~~~~
+    taggerWorkingDirectory = os.environ["CMSSW_BASE"] + "/src/PhysicsTools/NanoSUSYTools/python/processors/" + DataDepInputs[dataType][args.era if not isdata else (args.era + args.dataEra)]["taggerWD"]
     mods += [ eleMiniCutID(),
              FastsimOtherVarProducer(isfastsim),
              Stop0lObjectsProducer(args.era),
              TopTaggerProducer(recalculateFromRawInputs=True, topDiscCut=DeepResovledCandidateDiscCut, 
-                               cfgWD=os.environ["CMSSW_BASE"] + "/src/PhysicsTools/NanoSUSYTools/python/processors/" + DataDepInputs[dataType][args.era if not isdata else (args.era + args.dataEra)]["taggerWD"],
+                               cfgWD=taggerWorkingDirectory,
                                saveSFAndSyst=not isdata, 
                                systToSave=["Btag_Up", "Btag_Down", "Pileup_Up", "Pileup_Down", "CSPur_Up", "CSPur_Down", "Stat_Up", "Stat_Down", "Closure_Up", "Closure_Down"]),
-             DeepTopProducer(args.era, sampleName=args.sampleName, isFastSim=isfastsim, isData=isdata),
+             DeepTopProducer(args.era, taggerWorkingDirectory, sampleName=args.sampleName, isFastSim=isfastsim, isData=isdata),
              Stop0lBaselineProducer(args.era, isData=isdata, isFastSim=isfastsim),
-             SoftBDeepAK8SFProducer(args.era, isData=isdata, isFastSim=isfastsim, sampleName=args.sampleName),
+             SoftBDeepAK8SFProducer(args.era, taggerWorkingDirectory, isData=isdata, isFastSim=isfastsim, sampleName=args.sampleName),
              Stop0l_trigger(args.era, isData=isdata),
              UpdateEvtWeight(isdata, args.crossSection, args.nEvents, args.sampleName)
             ]
@@ -254,14 +255,14 @@ def main(args):
         mods += [
             TopTaggerProducer(recalculateFromRawInputs=True, suffix="JESUp", AK4JetInputs=("Jet_pt_jesTotalUp",   "Jet_eta", "Jet_phi", "Jet_mass_jesTotalUp"),
                               topDiscCut=DeepResovledCandidateDiscCut, 
-                              cfgWD=os.environ["CMSSW_BASE"] + "/src/PhysicsTools/NanoSUSYTools/python/processors/" + DataDepInputs[dataType][args.era if not isdata else (args.era + args.dataEra)]["taggerWD"],
+                              cfgWD=taggerWorkingDirectory,
                                saveSFAndSyst=not isdata),
             TopTaggerProducer(recalculateFromRawInputs=True, suffix="JESDown", AK4JetInputs=("Jet_pt_jesTotalDown", "Jet_eta", "Jet_phi", "Jet_mass_jesTotalDown"), 
                               topDiscCut=DeepResovledCandidateDiscCut, 
-                              cfgWD=os.environ["CMSSW_BASE"] + "/src/PhysicsTools/NanoSUSYTools/python/processors/" + DataDepInputs[dataType][args.era if not isdata else (args.era + args.dataEra)]["taggerWD"],
+                              cfgWD=taggerWorkingDirectory,
                               saveSFAndSyst=not isdata),
-            DeepTopProducer(args.era, "JESUp", sampleName=args.sampleName, isFastSim=isfastsim, isData=isdata),
-            DeepTopProducer(args.era, "JESDown", sampleName=args.sampleName, isFastSim=isfastsim, isData=isdata),
+            DeepTopProducer(args.era, taggerWorkingDirectory, "JESUp", sampleName=args.sampleName, isFastSim=isfastsim, isData=isdata),
+            DeepTopProducer(args.era, taggerWorkingDirectory, "JESDown", sampleName=args.sampleName, isFastSim=isfastsim, isData=isdata),
             FastsimOtherVarProducer(isfastsim, "JESUp"),
             FastsimOtherVarProducer(isfastsim, "JESDown"),
             FastsimOtherVarProducer(isfastsim, "METUnClustUp"),
