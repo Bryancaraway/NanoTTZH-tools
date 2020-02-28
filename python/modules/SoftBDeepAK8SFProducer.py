@@ -411,6 +411,10 @@ class SoftBDeepAK8SFProducer(Module):
             return np.zeros(len(event.FatJet_pt)).astype(int)
 
     def fatJetGenMatch(self, event, fatJetEta, fatJetPhi):
+        
+        if self.isData:
+            return np.zeros(fatJetEta.shape).astype(int)
+
         GenPart_eta              = np.fromiter(self.TTreeReaderArrayWrapper(event.GenPart_eta),              dtype=float)
         GenPart_phi              = np.fromiter(self.TTreeReaderArrayWrapper(event.GenPart_phi),              dtype=float)
 
