@@ -319,11 +319,11 @@ class DeepTopProducer(Module):
         resTopEff = np.ones(resTopSF.shape)
 
         resTopPt_top = resTopPt[resTopGM]
-        effBins_top = np.digitize(resTopPt_top, self.resEffHists["res_sig_hist"]["edges"]) - 1
+        effBins_top = np.digitize(resTopPt_top, self.resEffHists["res_sig_hist"]["edges"][:-1]) - 1
         resTopEff[resTopGM] = self.resEffHists["res_sig_hist"]["values"][effBins_top]
 
         resTopPt_notTop = resTopPt[~resTopGM]
-        effBins_notTop = np.digitize(resTopPt_notTop, self.resEffHists["res_bg_hist"]["edges"]) - 1
+        effBins_notTop = np.digitize(resTopPt_notTop, self.resEffHists["res_bg_hist"]["edges"][:-1]) - 1
         resTopEff[~resTopGM] = self.resEffHists["res_bg_hist"]["values"][effBins_notTop]
 
         discCut = resTopDisc > self.DeepResolveWP

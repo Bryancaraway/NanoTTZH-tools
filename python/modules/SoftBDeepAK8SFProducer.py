@@ -358,7 +358,7 @@ class SoftBDeepAK8SFProducer(Module):
 
         
         def setSF(jetPt, filt, SFMap, sf_top, sf_topErr):
-            sfBins = np.digitize(jetPt[filt], SFMap["edges"]) - 1
+            sfBins = np.digitize(jetPt[filt], SFMap["edges"][:-1]) - 1
             sf_top[filt] = SFMap["values"][sfBins]
             sf_topErr[filt] = SFMap["errors"][sfBins]
        
@@ -451,8 +451,8 @@ class SoftBDeepAK8SFProducer(Module):
             if "_as_bg" in catName:
                 catAsT = catName.replace("_as_bg", "_as_t")
                 catAsW = catName.replace("_as_bg", "_as_w")
-                effBins_top = np.digitize(topPt[filterArray], self.topEffHists[catAsT]["edges"]) - 1
-                effBins_w   = np.digitize(topPt[filterArray], self.topEffHists[catAsW]["edges"]) - 1
+                effBins_top = np.digitize(topPt[filterArray], self.topEffHists[catAsT]["edges"][:-1]) - 1
+                effBins_w   = np.digitize(topPt[filterArray], self.topEffHists[catAsW]["edges"][:-1]) - 1
                 eff_top = self.topEffHists[catAsT]["values"][effBins_top]
                 eff_w = self.topEffHists[catAsW]["values"][effBins_w]
                 eff_sum = eff_top + eff_w
@@ -460,15 +460,15 @@ class SoftBDeepAK8SFProducer(Module):
                 topEff[filterArray] =  eff_sum
 
                 #hack to get veto SF right
-                sfBins_top = np.digitize(topPt[filterArray], self.topWSFMap["DeepTop_SF"]["edges"]) - 1
-                sfBins_w   = np.digitize(topPt[filterArray], self.topWSFMap["DeepW_SF"]["edges"]) - 1
+                sfBins_top = np.digitize(topPt[filterArray], self.topWSFMap["DeepTop_SF"]["edges"][:-1]) - 1
+                sfBins_w   = np.digitize(topPt[filterArray], self.topWSFMap["DeepW_SF"]["edges"][:-1]) - 1
                 sf_top = self.topWSFMap["DeepTop_SF"]["values"][sfBins_top]
                 sf_topErr = self.topWSFMap["DeepTop_SF"]["errors"][sfBins_top]
                 sf_w = self.topWSFMap["DeepW_SF"]["values"][sfBins_w]
                 sf_wErr = self.topWSFMap["DeepW_SF"]["errors"][sfBins_w]
 
-                sfBinsFast_top = np.digitize(topPt[filterArray], self.topWSFMap["DeepTop_fastSF"]["edges"]) - 1
-                sfBinsFast_w   = np.digitize(topPt[filterArray], self.topWSFMap["DeepW_fastSF"]["edges"]) - 1
+                sfBinsFast_top = np.digitize(topPt[filterArray], self.topWSFMap["DeepTop_fastSF"]["edges"][:-1]) - 1
+                sfBinsFast_w   = np.digitize(topPt[filterArray], self.topWSFMap["DeepW_fastSF"]["edges"][:-1]) - 1
                 sfFast_top = self.topWSFMap["DeepTop_fastSF"]["values"][sfBinsFast_top]
                 sfFast_topErr = self.topWSFMap["DeepTop_fastSF"]["errors"][sfBinsFast_top]
                 sfFast_w = self.topWSFMap["DeepW_fastSF"]["values"][sfBinsFast_w]
@@ -489,7 +489,7 @@ class SoftBDeepAK8SFProducer(Module):
                 topSFfasterr[filterArray] = SFFast_Up_effective - SFFast_effective
 
             else:
-                effBins_top = np.digitize(topPt[filterArray], self.topEffHists[catName]["edges"]) - 1
+                effBins_top = np.digitize(topPt[filterArray], self.topEffHists[catName]["edges"][:-1]) - 1
                 topEff[filterArray] =  self.topEffHists[catName]["values"][effBins_top]
 
         setEff(fatJetPt, "t_as_t",   topEff, (fatJetGenMatch == 1) & (fatJetStop0l == 1), self.top_sf, self.top_sferr, self.top_fastsf, self.top_fastsferr)
