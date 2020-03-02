@@ -281,7 +281,8 @@ class SoftBDeepAK8SFProducer(Module):
             if self.isFastSim:
                 sample = os.path.splitext(os.path.basename(inputFile.GetName()))[0]
             else:
-                sample = self.sampleName
+                # For QCD smear, using the orignal QCD
+                sample = self.sampleName.replace("Smear_", "")
 
             defaultSampleName = "TTbarInc_%s"%self.era
     
