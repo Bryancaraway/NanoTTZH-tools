@@ -99,7 +99,8 @@ class DeepTopProducer(Module):
             if self.isFastSim:
                 sample = os.path.splitext(os.path.basename(inputFile.GetName()))[0]
             else:
-                sample = self.sampleName
+                # For QCD smear, using the orignal QCD
+                sample = self.sampleName.replace("Smear_", "")
     
             tTagEffFile = ROOT.TFile.Open(tTagEffFileName)
 
