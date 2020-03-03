@@ -45,6 +45,7 @@ python $EXE $argv[2-]
 
 if ($? != 0) then
     echo "Error in processing! Please double check"
+    exit 1
 endif
 
 if ($argv[2] =~ *fastsim* ) then
