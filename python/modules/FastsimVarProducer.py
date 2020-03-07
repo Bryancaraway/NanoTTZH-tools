@@ -28,22 +28,21 @@ class FastsimVarProducer(Module):
         pass
 
     def beginFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
-        if not self.isFastsim:
-            return True
-        self.out = wrappedOutputTree
-        if self.applyUncert == "JESUp":
-            self.out.branch("MET_pt_jesTotalUp", "F")
-        elif self.applyUncert == "JESDown":
-            self.out.branch("MET_pt_jesTotalDown", "F")
-        elif self.applyUncert == "METUnClustUp":
-            self.out.branch("MET_pt_unclustEnUp", "F")
-        elif self.applyUncert == "METUnClustDown":
-            self.out.branch("MET_pt_unclustEnDown", "F")
-        else:
-            self.out.branch("MET_pt",            "F")
-            self.out.branch("MET_pt_fasterr",    "F")
-        self.out.branch("Stop0l_MotherMass", "F")
-        self.out.branch("Stop0l_LSPMass",    "F")
+        if self.isFastsim:
+            self.out = wrappedOutputTree
+            if self.applyUncert == "JESUp":
+                self.out.branch("MET_pt_jesTotalUp", "F")
+            elif self.applyUncert == "JESDown":
+                self.out.branch("MET_pt_jesTotalDown", "F")
+            elif self.applyUncert == "METUnClustUp":
+                self.out.branch("MET_pt_unclustEnUp", "F")
+            elif self.applyUncert == "METUnClustDown":
+                self.out.branch("MET_pt_unclustEnDown", "F")
+            else:
+                self.out.branch("MET_pt",            "F")
+                self.out.branch("MET_pt_fasterr",    "F")
+            self.out.branch("Stop0l_MotherMass", "F")
+            self.out.branch("Stop0l_LSPMass",    "F")
 
     def endFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
         pass
