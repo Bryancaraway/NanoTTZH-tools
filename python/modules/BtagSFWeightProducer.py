@@ -44,10 +44,13 @@ class BtagSFWeightProducer(Module):
         self.out.branch("BTagWeightLight_Up",   "F", title="BTag event light weight up uncertainty")
         self.out.branch("BTagWeightLight_Down", "F", title="BTag event light weight down uncertainty")
         if self.FastSim:
+            self.out.branch("BTagWeight_FS",           "F", title="BTag event weight following method 1a")
             self.out.branch("BTagWeight_Up_FS",        "F", title="BTag event weight up uncertainty")
             self.out.branch("BTagWeight_Down_FS",      "F", title="BTag event weight down uncertainty")
+            self.out.branch("BTagWeightHeavy_FS",      "F", title="BTag event heavy weight following method 1a")
             self.out.branch("BTagWeightHeavy_Up_FS",   "F", title="BTag event heavy weight up uncertainty")
             self.out.branch("BTagWeightHeavy_Down_FS", "F", title="BTag event heavy weight down uncertainty")
+            self.out.branch("BTagWeightLight_FS",      "F", title="BTag event light weight following method 1a")
             self.out.branch("BTagWeightLight_Up_FS",   "F", title="BTag event light weight up uncertainty")
             self.out.branch("BTagWeightLight_Down_FS", "F", title="BTag event light weight down uncertainty")
 
@@ -97,16 +100,19 @@ class BtagSFWeightProducer(Module):
         BTagWeightN = 1.0
         BTagWeightN_up = 1.0
         BTagWeightN_down = 1.0
+        BTagWeightN_FS = 1.0
         BTagWeightN_up_FS = 1.0
         BTagWeightN_down_FS = 1.0
         BTagWeightD = 1.0
         BTagWeightNHeavy = 1.0
         BTagWeightNHeavy_up = 1.0
         BTagWeightNHeavy_down = 1.0
+        BTagWeightNHeavy_FS = 1.0
         BTagWeightNHeavy_up_FS = 1.0
         BTagWeightNHeavy_down_FS = 1.0
         BTagWeightDHeavy = 1.0
         BTagWeightNLight = 1.0
+        BTagWeightNLight_FS = 1.0
         BTagWeightNLight_up = 1.0
         BTagWeightNLight_up_FS= 1.0
         BTagWeightNLight_down = 1.0
@@ -151,7 +157,8 @@ class BtagSFWeightProducer(Module):
                 eff = self.h_eff_udsg.GetBinContent(pt_bin, eta_bin);
             
             if self.FastSim:
-                btagSF = jet.btagSF*jet.btagSF_FS
+                btagSF = jet.btagSF
+                btagSF_FS=jet.btagSF_FS
                 btagSF_up_FS = jet.btagSF_FS_up
                 btagSF_down_FS = jet.btagSF_FS_down
                 btagSF_down = jet.btagSF_down
@@ -169,6 +176,7 @@ class BtagSFWeightProducer(Module):
                     eff = 0.001
             
                 BTagWeightN      *= btagSF * eff
+                BTagWeightN_FS      *= btagSF_FS * eff
                 BTagWeightN_up   *= btagSF_up * eff
                 BTagWeightN_down *= btagSF_down * eff
                 BTagWeightN_up_FS   *= btagSF_up_FS * eff
@@ -176,6 +184,7 @@ class BtagSFWeightProducer(Module):
 
                 if abs(flavor) == 5:
                     BTagWeightNHeavy      *= btagSF * eff
+                    BTagWeightNHeavy_FS      *= btagSF_FS * eff
                     BTagWeightNHeavy_up   *= btagSF_up * eff
                     BTagWeightNHeavy_down *= btagSF_down * eff
                     BTagWeightNHeavy_up_FS   *= btagSF_up_FS * eff
@@ -183,7 +192,9 @@ class BtagSFWeightProducer(Module):
                     BTagWeightDHeavy      *= eff
                 else:
                     BTagWeightNLight      *= btagSF * eff
+                    BTagWeightNLight_FS      *= btagSF_FS * eff
                     BTagWeightNLight_up   *= btagSF_up * eff
+                    BTagWeightNLight_down   *= btagSF_down * eff
                     BTagWeightNLight_up_FS   *= btagSF_up_FS * eff
                     BTagWeightNLight_down_FS *= btagSF_down_FS * eff
                     BTagWeightDLight      *= eff
@@ -195,6 +206,7 @@ class BtagSFWeightProducer(Module):
                     eff = 0.999
 
                 BTagWeightN      *= 1 - btagSF * eff
+                BTagWeightN_FS      *= 1 - btagSF_FS * eff
                 BTagWeightN_up   *= 1 - btagSF_up * eff
                 BTagWeightN_down *= 1 - btagSF_down * eff
                 BTagWeightN_up_FS   *= 1 - btagSF_up_FS * eff
@@ -202,12 +214,15 @@ class BtagSFWeightProducer(Module):
 
                 if abs(flavor) == 5:
                         BTagWeightNHeavy      *= 1 - btagSF * eff
+                        BTagWeightNHeavy_FS      *= 1 - btagSF_FS * eff
                         BTagWeightNHeavy_up   *= 1 - btagSF_up * eff
+                        BTagWeightNHeavy_down *= 1 - btagSF_down * eff
                         BTagWeightNHeavy_up_FS   *= 1 - btagSF_up_FS * eff
                         BTagWeightNHeavy_down_FS *= 1 - btagSF_down_FS * eff
                         BTagWeightDHeavy      *= 1 - eff
                 else:
                     BTagWeightNLight       *= 1 - btagSF * eff
+                    BTagWeightNLight_FS       *= 1 - btagSF_FS * eff
                     BTagWeightNLight_up    *= 1 - btagSF_up * eff
                     BTagWeightNLight_up_FS *= 1 - btagSF_up_FS * eff
                     BTagWeightNLight_down  *= 1 - btagSF_down * eff
@@ -217,10 +232,13 @@ class BtagSFWeightProducer(Module):
                 BTagWeightD      *= 1 - eff
          
         if self.FastSim:
+            self.out.fillBranch("BTagWeight_FS",      BTagWeightN_FS / BTagWeightD)
             self.out.fillBranch("BTagWeight_Up_FS",   BTagWeightN_up_FS / BTagWeightD)
             self.out.fillBranch("BTagWeight_Down_FS", BTagWeightN_down_FS / BTagWeightD)
+            self.out.fillBranch("BTagWeightHeavy_FS",      BTagWeightNHeavy_FS / BTagWeightDHeavy)
             self.out.fillBranch("BTagWeightHeavy_Up_FS",   BTagWeightNHeavy_up_FS / BTagWeightDHeavy)
             self.out.fillBranch("BTagWeightHeavy_Down_FS", BTagWeightNHeavy_down_FS / BTagWeightDHeavy)
+            self.out.fillBranch("BTagWeightLight_FS",      BTagWeightNLight_FS / BTagWeightDLight)
             self.out.fillBranch("BTagWeightLight_Up_FS",   BTagWeightNLight_up_FS / BTagWeightDLight)
             self.out.fillBranch("BTagWeightLight_Down_FS", BTagWeightNLight_down_FS / BTagWeightDLight)
         self.out.fillBranch("BTagWeight",      BTagWeightN / BTagWeightD)
