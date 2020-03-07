@@ -223,8 +223,9 @@ def main(args):
 
     #~~~~~ Common modules for Data and MC ~~~~~
     taggerWorkingDirectory = os.environ["CMSSW_BASE"] + "/src/PhysicsTools/NanoSUSYTools/python/processors/" + DataDepInputs[dataType][args.era if not isdata else (args.era + args.dataEra)]["taggerWD"]
+    if isfastsim:
+        mods.append(FastsimOtherVarProducer(isfastsim))
     mods += [ eleMiniCutID(),
-             FastsimOtherVarProducer(isfastsim),
              Stop0lObjectsProducer(args.era),
              TopTaggerProducer(recalculateFromRawInputs=True, topDiscCut=DeepResovledCandidateDiscCut, 
                                cfgWD=taggerWorkingDirectory,
@@ -241,16 +242,16 @@ def main(args):
     if not isdata:
         pufile_data = "%s/src/PhysicsTools/NanoSUSYTools/data/pileup/%s" % (os.environ['CMSSW_BASE'], DataDepInputs[dataType][args.era]["pileup_Data"])
         pufile_mc = "%s/src/PhysicsTools/NanoSUSYTools/data/pileup/%s" % (os.environ['CMSSW_BASE'], DataDepInputs[dataType][args.era]["pileup_MC"])
-        ## TODO: ZW don't understand this part, So this is for fullsim? 
-        ## Isn't jetmetUncertaintiesProducer included jecUncertProducer
-        if not isfastsim:
-            mods += [
-                jecUncertProducer(DataDepInputs[dataType][args.era]["JECMC"]),
-                ]
         if isfastsim:
             mods += [
                     btagSFProducer(args.era+"FastSim", algo="deepcsv"),
+                    FastsimOtherVarProducer(isfastsim, "JESUp"),
+                    FastsimOtherVarProducer(isfastsim, "JESDown"),
+                    FastsimOtherVarProducer(isfastsim, "METUnClustUp"),
+                    FastsimOtherVarProducer(isfastsim, "METUnClustDown"),
                     ]
+        else:
+            mods.append(jecUncertProducer(DataDepInputs[dataType][args.era]["JECMC"]))
         ## Major modules for MC
         mods += [
             TopTaggerProducer(recalculateFromRawInputs=True, suffix="JESUp", AK4JetInputs=("Jet_pt_jesTotalUp",   "Jet_eta", "Jet_phi", "Jet_mass_jesTotalUp"),
@@ -263,10 +264,6 @@ def main(args):
                               saveSFAndSyst=not isdata),
             DeepTopProducer(args.era, taggerWorkingDirectory, "JESUp", sampleName=args.sampleName, isFastSim=isfastsim, isData=isdata),
             DeepTopProducer(args.era, taggerWorkingDirectory, "JESDown", sampleName=args.sampleName, isFastSim=isfastsim, isData=isdata),
-            FastsimOtherVarProducer(isfastsim, "JESUp"),
-            FastsimOtherVarProducer(isfastsim, "JESDown"),
-            FastsimOtherVarProducer(isfastsim, "METUnClustUp"),
-            FastsimOtherVarProducer(isfastsim, "METUnClustDown"),
             Stop0lObjectsProducer(args.era, "JESUp"),
             Stop0lObjectsProducer(args.era, "JESDown"),
             Stop0lObjectsProducer(args.era, "METUnClustUp"),
