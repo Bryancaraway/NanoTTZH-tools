@@ -165,6 +165,7 @@ class BtagSFWeightProducer(Module):
                 btagSF_up = jet.btagSF_up
             else:
                 btagSF = jet.btagSF
+                btagSF_FS= 1.0
                 btagSF_up = jet.btagSF_up
                 btagSF_down = jet.btagSF_down
                 btagSF_up_FS = 1.0
