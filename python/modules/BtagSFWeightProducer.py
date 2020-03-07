@@ -192,7 +192,9 @@ class BtagSFWeightProducer(Module):
                     BTagWeightDHeavy      *= eff
                 else:
                     BTagWeightNLight      *= btagSF * eff
+                    BTagWeightNLight_FS      *= btagSF_FS * eff
                     BTagWeightNLight_up   *= btagSF_up * eff
+                    BTagWeightNLight_down   *= btagSF_down * eff
                     BTagWeightNLight_up_FS   *= btagSF_up_FS * eff
                     BTagWeightNLight_down_FS *= btagSF_down_FS * eff
                     BTagWeightDLight      *= eff
@@ -214,6 +216,7 @@ class BtagSFWeightProducer(Module):
                         BTagWeightNHeavy      *= 1 - btagSF * eff
                         BTagWeightNHeavy_FS      *= 1 - btagSF_FS * eff
                         BTagWeightNHeavy_up   *= 1 - btagSF_up * eff
+                        BTagWeightNHeavy_down *= 1 - btagSF_down * eff
                         BTagWeightNHeavy_up_FS   *= 1 - btagSF_up_FS * eff
                         BTagWeightNHeavy_down_FS *= 1 - btagSF_down_FS * eff
                         BTagWeightDHeavy      *= 1 - eff
