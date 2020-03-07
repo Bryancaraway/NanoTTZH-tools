@@ -45,7 +45,10 @@ python $EXE $argv[2-]
 
 if ($? != 0) then
     echo "Error in processing! Please double check"
-    exit 1
+    if (! $argv[2] =~ *fastsim* ) then
+        echo "Not running fastsim sample, exiting this job. Please resumbit"
+        exit 1
+    endif
 endif
 
 if ($argv[2] =~ *fastsim* ) then

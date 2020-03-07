@@ -5,9 +5,11 @@ import uproot
 from collections import defaultdict
 import glob
 import uproot
+import argparse
 from multiprocessing import Pool
 import subprocess 
 import os
+import time
 
 TreeName = "Events"
 NProcess = 8
@@ -126,8 +128,69 @@ def GetNEventFromList(inputlist):
     dfdict = dict(r)
     return dfdict
 
+## Only work for fastsim samples. Will create a dummy file for resubmit
+def ParseStopCfg(file, prodversion):
+    f = open(file, 'r')
+    for l in f.readlines():
+        if l[0] == "#" or len(l) == 1 or "fastsim" not in l:
+            continue
+        else:
+            pa = l.strip().split(",")
+            print("+++++++++++ Processing %s " % pa[0].strip())
+            out = GetNEventFromList(pa[1].strip()+"/"+pa[2].strip())
+            prestopdf = {k.split("/")[-1].split(".")[0]:v for k, v in out.items()} 
+            filemap =  {k.split("/")[-1].split(".")[0]:k for k, v in out.items()} 
+
+            postfolder = pa[1].strip().replace("Pre", "Post") + "_"+prodversion + "/" + pa[0].strip()
+            p = subprocess.Popen("eos root://cmseos.fnal.gov ls %s" % postfolder, shell=True, stdout=subprocess.PIPE)
+            outfile = p.communicate()
+
+            out = GetNEvent(postfolder, outfile[0].split())
+            poststopdf = {k.split("/")[-1].split("_Skim")[0]:v for k, v in out.items()} 
+
+            if len(out) != len(poststopdf):
+                print("Found Duplicates outputs!")
+                duplicates = defaultdict(list)
+                for k, v in out.items():
+                    duplicates[k.split("/")[-1].split("_Skim")[0] ].append(k)
+
+                for k, v in duplicates.items():
+                    if len(v) > 1:
+                        for i in v:
+                            print("%s :%s" %(out[i], i))
+
+            resub = []
+
+            for pk, pv in prestopdf.items():
+                if pk not in poststopdf:
+                    # print("Missing", filemap[pk])
+                    resub.append(filemap[pk])
+                    continue
+                if pv != poststopdf[pk]:
+                    # print("Mis match", filemap[pk])
+                    resub.append(filemap[pk])
+            if len(resub) !=  0:
+                outname = pa[2].strip().replace(".txt", "_resubmit_%s.txt" % time.strftime('%d%H%M'))
+                newfilename = pa[1].strip() + "/" + outname
+                pa[2] = outname
+                print(", ".join(pa))
+                with open(newfilename, "w") as f:
+                    f.write("\n".join(resub))
+
+
 if __name__ == "__main__":
-    files = glob.glob("condor*")
-    for f in files:
-        CheckProcess(f)
-        # break
+    parser = argparse.ArgumentParser(description='NanoAOD postprocessing.')
+    parser.add_argument('-c', '--config',
+        default = None,
+        help = 'Path to the input config file. Without cfg, it will check the current condor folder' )
+    parser.add_argument('-p', '--prod',
+        default = "v6",
+        help = 'Postprocess version')
+    args = parser.parse_args()
+
+    if args.config is not None:
+        ParseStopCfg(os.path.abspath(args.config), args.prod)
+    else:
+        files = glob.glob("condor*")
+        for f in files:
+            CheckProcess(f)
