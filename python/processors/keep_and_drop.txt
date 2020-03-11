@@ -12,7 +12,7 @@ drop fixedGridRho*
 drop Electron_mva*
 # drop *btagCSVV2*
 drop *btagCMVA*
-drop FatJet_deepTagMD_*
+#drop FatJet_deepTagMD_*
 drop OtherPV_*
 ## Input for Track TauMVA
 drop PFcand_*

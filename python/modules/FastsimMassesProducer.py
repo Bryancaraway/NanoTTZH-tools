@@ -17,9 +17,10 @@ class FastsimMassesProducer(Module):
         pass
 
     def beginFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
-        self.out = wrappedOutputTree
-        self.out.branch("Stop0l_MotherMass", "F")
-        self.out.branch("Stop0l_LSPMass",    "F")
+        if self.isFastsim:
+            self.out = wrappedOutputTree
+            self.out.branch("Stop0l_MotherMass", "F")
+            self.out.branch("Stop0l_LSPMass",    "F")
 
     def endFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
         pass
