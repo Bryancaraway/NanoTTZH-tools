@@ -238,8 +238,6 @@ class SoftBDeepAK8SFProducer(Module):
         self.topWSFMap["DeepW_Fake_SF"] = createSFMap(DeepW_Fake_SF)
         self.topWSFMap["DeepW_fastSF"] = createSFMap(DeepW_fastSF)
 
-        print self.topWSFMap
-
     def beginJob(self):
         pass
 
@@ -373,7 +371,6 @@ class SoftBDeepAK8SFProducer(Module):
         def setSF(jetPt, filt, SFMap, sf_top, sf_topErr):
             sfBins = np.digitize(jetPt[filt], SFMap["edges"][:-1]) - 1
             sf_top[filt] = SFMap["values"][sfBins]
-            #print SFMap["edges"], SFMap["values"], jetPt[filt], sfBins, sf_top[filt]
             sf_topErr[filt] = SFMap["errors"][sfBins]
        
         #veto SF for non-tagged jets in computed below because it needs to be weighted by efficiency 
