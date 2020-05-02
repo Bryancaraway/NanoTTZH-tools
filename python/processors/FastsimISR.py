@@ -19,7 +19,7 @@ def GetNISRJetDist(files, isrEffFile, fileDirectory = os.environ['CMSSW_BASE'] +
     outfile = ROOT.TFile(fileDirectory + "/" + isrEffFile, "RECREATE")
     for i, filename in enumerate(files):
         f = uproot.open(filename)["Events"]
-        procname=os.path.splitext(os.path.basename(filename))[0]
+        procname=os.path.splitext(os.path.basename(filename))[0].split("_split")[0]
         hist, binedges = np.histogram(f.array("nISRJets"), bins=10, range=(0, 10))
         histogram = ROOT.TH1F("NJetsISR_"+procname, procname, 10, 0, 10)
         for i in range(0, 10):

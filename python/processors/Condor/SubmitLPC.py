@@ -135,7 +135,7 @@ def SplitPro(key, file, lineperfile=20, eventsplit=2**20, TreeName=None):
         pass
 
     if "/store/" in file:
-        subprocess.call("xrdcp root://cmseos.fnal.gov/%s %s/%s_all.list" % (file, filelistdir, key), shell=True)
+        subprocess.call("xrdcp -f root://cmseos.fnal.gov/%s %s/%s_all.list" % (file, filelistdir, key), shell=True)
         filename = os.path.abspath( "%s/%s_all.list" % (filelistdir, key))
     else:
         filename = os.path.abspath(file)

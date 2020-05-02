@@ -43,22 +43,45 @@ endif
 echo $EXE $argv[2-]
 python $EXE $argv[2-]
 
-if ($? == 0) then
-  echo "Process finished. Listing current files: "
-  echo "Hadd file will be named: " $argv[1]
-  python $CMSSW_BASE/src/PhysicsTools/NanoAODTools/scripts/haddnano.py $argv[1] `ls *_Skim*.root`
-  ## Remove skim files once they are merged
-  if ($? == 0) then
-    foreach outfile (`ls *_Skim*.root`)
-      rm $outfile
-    end
-  endif
-  foreach i (1 2 3)
-    xrdcp -f $argv[1] "root://cmseos.fnal.gov/${OUTPUT}/$argv[1]"
-    ## Remove output file once it is copied
-    if ($? == 0) then
-      rm $argv[1] 
-      break
+if ($? != 0) then
+    echo "Error in processing! Please double check"
+    if (! $argv[2] =~ *fastsim* ) then
+        echo "Not running fastsim sample, exiting this job. Please resumbit"
+        exit 1
     endif
-  end
+endif
+
+if ($argv[2] =~ *fastsim* ) then
+
+    echo "Fastsim Process finished." 
+    set newpost = `echo $argv[1] | rev | cut -f 1 -d _ | rev`
+
+    foreach outfile (`ls SMS_*_mLSP*.root`)
+        #Cut off ".root" and append "_{ProcessNum}.root", passed as first argument
+        set pre = `echo $outfile | cut -f 1 -d .`
+        echo "Copying " $outfile " to root://cmseos.fnal.gov/${OUTPUT}/${pre}_${newpost}"
+        xrdcp -f $outfile "root://cmseos.fnal.gov/${OUTPUT}/${pre}_${newpost}"
+        ## Remove output file once it is copied
+        if ($? == 0) then
+            rm $outfile
+        endif
+    end
+else
+    echo "Process finished. Listing current files: "
+    echo "Hadd file will be named: " $argv[1]
+    python $CMSSW_BASE/src/PhysicsTools/NanoAODTools/scripts/haddnano.py $argv[1] `ls *_Skim*.root`
+    ## Remove skim files once they are merged
+    if ($? == 0) then
+        foreach outfile (`ls *_Skim*.root`)
+            rm $outfile
+        end
+    endif
+    foreach i (1 2 3)
+        xrdcp -f $argv[1] "root://cmseos.fnal.gov/${OUTPUT}/$argv[1]"
+        ## Remove output file once it is copied
+        if ($? == 0) then
+            rm $argv[1] 
+            break
+        endif
+    end
 endif
