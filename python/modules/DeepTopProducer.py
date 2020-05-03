@@ -97,9 +97,10 @@ class DeepTopProducer(Module):
             tTagEffFileName = self.taggerWD + "/tTagEff_%(era)s.root"%{"era":self.era}
     
             if self.isFastSim:
-                sample = os.path.splitext(os.path.basename(inputFile.GetName()))[0]
+                sample = os.path.splitext(os.path.basename(inputFile.GetName()))[0].split("_split")[0]
             else:
-                sample = self.sampleName
+                # For QCD smear, using the orignal QCD
+                sample = self.sampleName.replace("Smear_", "")
     
             tTagEffFile = ROOT.TFile.Open(tTagEffFileName)
 

@@ -77,7 +77,7 @@ class ISRSFWeightProducer(Module):
         self.out.branch("ISRWeight_Down", "F", title="ISR event weight down uncertainty")
         self.out.branch("nISRJets",       "F", title="The number of jets that contain a unmatched jet to a gen particle")
         if self.isFastsim and self.isSUSY:
-            self.sampleName = os.path.splitext(os.path.basename(inputFile.GetName()))[0]
+            self.sampleName = os.path.splitext(os.path.basename(inputFile.GetName()))[0].split("_split")[0]
             self.h_eff         =self.fin.Get(("NJetsISR_" + self.sampleName));
             self.PropISRWeightUnc()
 

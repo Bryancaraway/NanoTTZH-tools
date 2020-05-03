@@ -62,7 +62,7 @@ class BtagSFWeightProducer(Module):
             del self.h_eff_udsg
 
         if self.FastSim:
-            sampleName = os.path.splitext(os.path.basename(inputFile.GetName()))[0]
+            sampleName = os.path.splitext(os.path.basename(inputFile.GetName()))[0].split("_split")[0]
         else:
             sampleName = self.sampleName
 
@@ -165,6 +165,7 @@ class BtagSFWeightProducer(Module):
                 btagSF_up = jet.btagSF_up
             else:
                 btagSF = jet.btagSF
+                btagSF_FS= 1.0
                 btagSF_up = jet.btagSF_up
                 btagSF_down = jet.btagSF_down
                 btagSF_up_FS = 1.0
