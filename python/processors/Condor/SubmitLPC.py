@@ -26,6 +26,7 @@ sendfiles = ["../keep_and_drop.txt"]
 TTreeName = "Events"
 NProcess = 10
 splitbyNevent = True
+haddfiles = True
 
 def tar_cmssw():
     print("Tarring up CMSSW, ignoring file larger than 100MB")
@@ -225,6 +226,7 @@ def my_process(args):
                 line = line.replace("DELDIR", os.environ['CMSSW_VERSION'])
                 line = line.replace("DELEXE", DelExe.split('/')[-1])
                 line = line.replace("OUTDIR", outdir)
+                line = line.replace("HADDFILES", str(haddfiles).lower())
                 outfile.write(line)
 
         #Update condor file

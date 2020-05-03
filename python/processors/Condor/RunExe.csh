@@ -4,6 +4,7 @@ set SCRAM  = DELSCR
 set CMSSW  = DELDIR
 set EXE    = DELEXE
 set OUTPUT = OUTDIR
+set Hadd   = HADDFILES
 
 #============================================================================#
 #-----------------------------   Setup the env   ----------------------------#
@@ -51,12 +52,11 @@ if ($? != 0) then
     endif
 endif
 
-if ($argv[2] =~ *fastsim* ) then
-
+## Special treat me
+if ($argv[2] =~ *fastsim*  || $Hadd != true ) then
     echo "Fastsim Process finished." 
     set newpost = `echo $argv[1] | rev | cut -f 1 -d _ | rev`
-
-    foreach outfile (`ls SMS_*_mLSP*.root`)
+    foreach outfile (`ls *.root`)
         #Cut off ".root" and append "_{ProcessNum}.root", passed as first argument
         set pre = `echo $outfile | cut -f 1 -d .`
         echo "Copying " $outfile " to root://cmseos.fnal.gov/${OUTPUT}/${pre}_${newpost}"
