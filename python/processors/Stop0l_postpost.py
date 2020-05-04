@@ -5,31 +5,13 @@ import ROOT
 ROOT.PyConfig.IgnoreCommandLineOptions = True
 
 from PhysicsTools.NanoAODTools.postprocessing.framework.postprocessor import PostProcessor
-from PhysicsTools.NanoAODTools.postprocessing.modules.common.puWeightProducer import *
-from PhysicsTools.NanoAODTools.postprocessing.modules.jme.jecUncertainties import jecUncertProducer
-from PhysicsTools.NanoAODTools.postprocessing.modules.jme.jetmetUncertainties import jetmetUncertaintiesProducer
-from PhysicsTools.NanoAODTools.postprocessing.modules.jme.jetRecalib import jetRecalib
-from PhysicsTools.NanoAODTools.postprocessing.modules.btv.btagSFProducer import btagSFProducer
 from TopTagger.TopTagger.TopTaggerProducer import TopTaggerProducer
 
 # NanoSUSY Tools modules
-from PhysicsTools.NanoSUSYTools.modules.eleMiniCutIDProducer import *
 from PhysicsTools.NanoSUSYTools.modules.Stop0lObjectsProducer import *
 from PhysicsTools.NanoSUSYTools.modules.Stop0lBaselineProducer import *
 from PhysicsTools.NanoSUSYTools.modules.DeepTopProducer import *
-from PhysicsTools.NanoSUSYTools.modules.updateEvtWeight import *
-from PhysicsTools.NanoSUSYTools.modules.lepSFProducer import *
-from PhysicsTools.NanoSUSYTools.modules.updateJetIDProducer import UpdateJetID
-from PhysicsTools.NanoSUSYTools.modules.PDFUncertaintyProducer import PDFUncertiantyProducer
-from PhysicsTools.NanoSUSYTools.modules.GenPartFilter import GenPartFilter
-from PhysicsTools.NanoSUSYTools.modules.BtagSFWeightProducer import BtagSFWeightProducer
-from PhysicsTools.NanoSUSYTools.modules.UpdateMETProducer import UpdateMETProducer
-from PhysicsTools.NanoSUSYTools.modules.FastsimOtherVarProducer import FastsimOtherVarProducer
-from PhysicsTools.NanoSUSYTools.modules.PrefireCorr import PrefCorr
-from PhysicsTools.NanoSUSYTools.modules.ISRWeightProducer import ISRSFWeightProducer
-from PhysicsTools.NanoSUSYTools.modules.Stop0l_trigger import Stop0l_trigger
 from PhysicsTools.NanoSUSYTools.modules.SoftBDeepAK8SFProducer import SoftBDeepAK8SFProducer
-from PhysicsTools.NanoSUSYTools.processors.FastsimISR import *
 
 # JEC files are those recomended here (as of Mar 1, 2019)
 # https://twiki.cern.ch/twiki/bin/view/CMS/JECDataMC#Recommended_for_MC
