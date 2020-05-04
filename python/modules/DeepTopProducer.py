@@ -294,23 +294,19 @@ class DeepTopProducer(Module):
         resTopGM = np.array([topCand.genMatch for topCand in res], dtype=bool)[resTopStop0l]
         resTopDisc = np.array([topCand.discriminator for topCand in res], dtype=float)[resTopStop0l]
 
+        discCut = resTopDisc > self.DeepResolveWP
+
         #calculate uncertainties 
         if not self.applyUncert:
-            systNames=["Btag", "Pileup", "CSPur", "Stat", "Closure"]
+            systNames=["Btag", "Pileup", "CSPur", "Stat"]
             uncert_up = np.zeros(len(resTopPt))
             uncert_dn = np.zeros(len(resTopPt))
             for syst in systNames:
                 var_up = np.array([getattr(topCand, "syst_"+syst+"_Up") for topCand in res])[resTopStop0l]
                 var_dn = np.array([getattr(topCand, "syst_"+syst+"_Down") for topCand in res])[resTopStop0l]
                 # hack
-                if syst == "Closure":
-                    # closure is only applied to fakes 
-                    filt = (~resTopGM).astype(float)
-                    uncert_up += (var_up*filt)**2
-                    uncert_dn += (var_dn*filt)**2
-                else:
-                    uncert_up += var_up**2
-                    uncert_dn += var_dn**2
+                uncert_up += var_up**2
+                uncert_dn += var_dn**2
         
             uncert_up = np.sqrt(uncert_up)
             uncert_dn = np.sqrt(uncert_dn)
@@ -325,8 +321,6 @@ class DeepTopProducer(Module):
         resTopPt_notTop = resTopPt[~resTopGM]
         effBins_notTop = np.digitize(resTopPt_notTop, self.resEffHists["res_bg_hist"]["edges"][:-1]) - 1
         resTopEff[~resTopGM] = self.resEffHists["res_bg_hist"]["values"][effBins_notTop]
-
-        discCut = resTopDisc > self.DeepResolveWP
 
         resTopSF_tagged = resTopSF[discCut]
         resTopSF_notTagged = resTopSF[~discCut]
@@ -347,6 +341,30 @@ class DeepTopProducer(Module):
 
             numerator_up = ((1 + uncert_up_tagged)*resTopSF_tagged*resTopEff_tagged).prod() * (1 - ((1 + uncert_up_notTagged)*resTopSF_notTagged*resTopEff_notTagged)).prod()
             numerator_dn = ((1 - uncert_dn_tagged)*resTopSF_tagged*resTopEff_tagged).prod() * (1 - ((1 - uncert_dn_notTagged)*resTopSF_notTagged*resTopEff_notTagged)).prod()
+
+            # check if resolved top closure uncertainty is needed and apply it if necessary
+            if ((resTopGM == 0) & discCut).any():
+                closure_up = np.array([getattr(topCand, "syst_Closure_Up") for topCand in res])[resTopStop0l]
+                closure_dn = np.array([getattr(topCand, "syst_Closure_Down") for topCand in res])[resTopStop0l]
+                
+                try:
+                    closure_up_cut = closure_up[0]
+                except IndexError:
+                    closure_up_cut = 0.0;
+                try:
+                    closure_dn_cut = closure_dn[0]
+                except IndexError:
+                    closure_dn_cut = 0.0;
+                
+                numerator_up_closeure_uncert = numerator_up / numerator - 1
+                numerator_up_closeure_uncert_sign = np.sign(numerator_up_closeure_uncert)
+                numerator_up_closeure_uncert = np.sqrt(np.power(numerator_up_closeure_uncert, 2) + np.power(closure_up_cut, 2))
+                numerator_up = (1 + numerator_up_closeure_uncert_sign*numerator_up_closeure_uncert)*numerator
+                
+                numerator_dn_closeure_uncert = numerator_dn / numerator - 1
+                numerator_dn_closeure_uncert_sign = np.sign(numerator_dn_closeure_uncert)
+                numerator_dn_closeure_uncert = np.sqrt(np.power(numerator_dn_closeure_uncert, 2) + np.power(closure_dn_cut, 2))
+                numerator_dn = (1 + numerator_dn_closeure_uncert_sign*numerator_dn_closeure_uncert)*numerator
 
             fastSimErr = 0.05
             numerator_fast_up = ((1 + fastSimErr)*resTopSF_tagged*resTopEff_tagged).prod() * (1 - ((1 + fastSimErr)*resTopSF_notTagged*resTopEff_notTagged)).prod()
