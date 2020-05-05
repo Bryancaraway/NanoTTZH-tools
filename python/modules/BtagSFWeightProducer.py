@@ -63,7 +63,7 @@ class BtagSFWeightProducer(Module):
 
         if self.FastSim:
             import re
-            filename_  = os.path.splitext(os.path.basename(inputfile.getname()))[0]
+            filename_  = os.path.splitext(os.path.basename(inputFile.GetName()))[0]
             sampleName = re.split("_Skim|_split", filename_)[0]
         else:
             sampleName = self.sampleName

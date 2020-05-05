@@ -78,7 +78,7 @@ class ISRSFWeightProducer(Module):
         self.out.branch("nISRJets",       "F", title="The number of jets that contain a unmatched jet to a gen particle")
         if self.isFastsim and self.isSUSY:
             import re
-            filename_  = os.path.splitext(os.path.basename(inputfile.getname()))[0]
+            filename_  = os.path.splitext(os.path.basename(inputFile.GetName()))[0]
             self.sampleName = re.split("_Skim|_split", filename_)[0]
             self.h_eff         =self.fin.Get(("NJetsISR_" + self.sampleName));
             self.PropISRWeightUnc()

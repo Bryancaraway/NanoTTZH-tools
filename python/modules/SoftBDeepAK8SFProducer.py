@@ -280,7 +280,7 @@ class SoftBDeepAK8SFProducer(Module):
         if not self.isData:
             if self.isFastSim:
                 import re
-                filename_  = os.path.splitext(os.path.basename(inputfile.getname()))[0]
+                filename_  = os.path.splitext(os.path.basename(inputFile.GetName()))[0]
                 sample = re.split("_Skim|_split", filename_)[0]
             else:
                 # For QCD smear, using the orignal QCD
