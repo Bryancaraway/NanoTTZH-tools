@@ -4,21 +4,20 @@ import math
 import numpy as np
 from functools import reduce
 import operator
+import os
 
 from PhysicsTools.NanoAODTools.postprocessing.framework.datamodel import Collection, Object
 from PhysicsTools.NanoAODTools.postprocessing.framework.eventloop import Module
 from PhysicsTools.NanoSUSYTools.modules.datamodelRemap import ObjectRemapped, CollectionRemapped
-from PhysicsTools.NanoSUSYTools.modules.SoftBDeepAK8SFProducer import *
 from PhysicsTools.NanoAODTools.postprocessing.tools import deltaPhi, deltaR, closest
 
 class TopReweightProducer(Module):
     def __init__(self, era, Process, isData = False):
         self.era = era
-        self.process = Process
+        self.sampleName = Process
         self.isData = isData
-        self.metBranchName = "MET"
         self.xsRoot_mg = os.environ["CMSSW_BASE"] + "/src/PhysicsTools/NanoSUSYTools/data/toppt/topPT_MGPowheg_comp.root"
-	self.xsRoot_topptSyst = os.environ["CMSSW_BASE"] + "/src/PhysicsTools/NanoSUSYTools/data/toppt/LostLepton_topPt_systematics.root"
+        self.xsRoot_topptSyst = os.environ["CMSSW_BASE"] + "/src/PhysicsTools/NanoSUSYTools/data/toppt/LostLepton_topPt_systematics.root"
         self.hist_toppt_up = "topPt_up";
         self.hist_toppt_dn = "topPt_dn";
 
@@ -35,9 +34,17 @@ class TopReweightProducer(Module):
 
     def beginFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
         self.out = wrappedOutputTree
-        self.topMGPowheg=self.loadhisto(self.xsRoot_mg,self.era)
-        self.topPTSyst_up=self.loadhisto(self.xsRoot_topptSyst,self.hist_toppt_up)
-        self.topPTSyst_dn=self.loadhisto(self.xsRoot_topptSyst,self.hist_toppt_dn)
+        if "TTbar" in self.sampleName:
+           self.topMGPowheg=self.loadhisto(self.xsRoot_mg,self.era)
+           self.topPTSyst_up=self.loadhisto(self.xsRoot_topptSyst,self.hist_toppt_up)
+           self.topPTSyst_dn=self.loadhisto(self.xsRoot_topptSyst,self.hist_toppt_dn)
+
+        ## Description of variables
+        ## Stop0l_topptWeight is the full reweighting correction with the top pT + Pow/MG
+        ## Stop0l_topMGPowWeight is only the Pow/MG correction
+        ## Stop0l_topptOnly is only the top Pt reweighting that is done on gentops
+        ## Stop0l_topptOnly_Up/Down is the systematic variation using inputs from Zhenbin
+        ## Mathematically the relation is Stop0l_topptWeight = Stop0l_topptOnly * Stop0l_topMGPowWeight
         if not self.isData:
             self.out.branch('Stop0l_topptWeight', 			"F")
             self.out.branch('Stop0l_topMGPowWeight', 			"F")
@@ -120,7 +127,7 @@ class TopReweightProducer(Module):
         ## Getting objects
         if not self.isData: genpart   = Collection(event, "GenPart")
         
-        if "TTbar" in self.process:
+        if "TTbar" in self.sampleName:
             toppt_wgt, toppt_only, toppt_mgpow, toppt_up, toppt_dn  = self.topPTWeight(genpart) 
         else:
             toppt_wgt = 1.
