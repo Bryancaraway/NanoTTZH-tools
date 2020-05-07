@@ -29,51 +29,51 @@ SoftB_fastSF = {
 ## https://indico.cern.ch/event/828647/contributions/3468598/attachments/1863686/3063744/lg-hot-deepak8sf-20190617.pdf
 ## Also from Stop1lep AN2019_003_v11, Table 38
 DeepTop_SF = {
-    "2016" : {
-        (400, 480)  : (1.01, 0.11),
-        (480, 600)  : (1.05, 0.08),
-        (600, 9999) : (1.06, 0.05),
-    },
-    "2017" : {
-        (400, 480)  : (1.08, 0.10),
-        (480, 600)  : (0.97, 0.07),
-        (600, 9999) : (1.02, 0.08),
-    },
-    "2018" : {
-        (400, 480)  : (0.95, 0.07),
-        (480, 600)  : (1.06, 0.05),
-        (600, 9999) : (0.94, 0.05),
-    }
+    "2016" : [
+        ((400, 480)  , (1.01, 0.11)),
+        ((480, 600)  , (1.05, 0.08)),
+        ((600, 9999) , (1.06, 0.05)),
+    ],
+    "2017" : [
+        ((400, 480)  , (1.08, 0.10)),
+        ((480, 600)  , (0.97, 0.07)),
+        ((600, 9999) , (1.02, 0.08)),
+    ],
+    "2018" : [
+        ((400, 480)  , (0.95, 0.07)),
+        ((480, 600)  , (1.06, 0.05)),
+        ((600, 9999) , (0.94, 0.05)),
+    ]
 }
 ## from Stop1lep AN2019_003_v11, Table 39
 DeepTop_fastSF = {
-    "2016" : {
-        (400,  480)  : (0.99, 0.06),
-        (480,  600)  : (0.96, 0.04),
-        (600,  9999) : (0.92, 0.02),
-    },
-    "2017" : {
-        (400,  480)  : (0.95, 0.04),
-        (480,  600)  : (1.00, 0.04),
-        (600,  9999) : (0.96, 0.02),
-    },
-    "2018" : {
-        (400, 480)  : (1.03, 0.06),
-        (480, 600)  : (1.03, 0.04),
-        (600, 9999) : (1.03, 0.04),
-    }
+    "2016" : [
+        ((400,  480)  , (0.99, 0.06)),
+        ((480,  600)  , (0.96, 0.04)),
+        ((600,  9999) , (0.92, 0.02)),
+    ],
+    "2017" : [
+        ((400,  480)  , (0.95, 0.04)),
+        ((480,  600)  , (1.00, 0.04)),
+        ((600,  9999) , (0.96, 0.02)),
+    ],
+    "2018" : [
+        ((400, 480)  , (1.03, 0.06)),
+        ((480, 600)  , (1.03, 0.04)),
+        ((600, 9999) , (1.03, 0.04)),
+    ]
 }
 
 DeepTop_Fake_SF = {
-    "2016": {
-        (400, 9999) : (0.921, 0.072)
-    },
-    "2017": {
-        (400, 9999) : (1.213, 0.079)
-    },
-    "2018": {
-        (400, 9999) : (1.086, 0.069)
-    },
+    "2016": [
+        ((400, 9999) , (0.921, 0.072))
+    ],
+    "2017": [
+        ((400, 9999) , (1.213, 0.079))
+    ],
+    "2018": [
+        ((400, 9999) , (1.086, 0.069))
+    ],
 }
 
 # Get it from https://indico.cern.ch/event/840827/contributions/3527925/attachments/1895214/3126510/DeepAK8_Top_W_SFs_2017_JMAR_PK.pdf
@@ -82,59 +82,59 @@ DeepTop_Fake_SF = {
 # Use 1% mistag rate plots, taking the large side of asymmetric systematic as symmetric uncertainty
 # Using 2017 SF and uncertainty for 2018 
 DeepW_SF = {
-    "2016" : {
-        (200, 300) : (0.946, 0.132),
-        (300, 400) : (0.88, 0.107),
-        (400, 9999) : (0.901, 0.103),
-    },
-    "2017" : {
-        (200, 300) : (0.941, 0.037),
-        (300, 400) : (0.937, 0.078),
-        (400, 9999) : (0.908, 0.115),
-    },
-    "2018" : {
-        (200, 300) : (0.941, 0.037),
-        (300, 400) : (0.937, 0.078),
-        (400, 9999) : (0.908, 0.115),
-    }
+    "2016" : [
+        ((200, 300) , (0.946, 0.132)),
+        ((300, 400) , (0.88, 0.107)),
+        ((400, 9999) , (0.901, 0.103)),
+    ],
+    "2017" : [
+        ((200, 300) , (0.941, 0.037)),
+        ((300, 400) , (0.937, 0.078)),
+        ((400, 9999) , (0.908, 0.115)),
+    ],
+    "2018" : [
+        ((200, 300) , (0.941, 0.037)),
+        ((300, 400) , (0.937, 0.078)),
+        ((400, 9999) , (0.908, 0.115)),
+    ]
 }
 
 ## Fullsim/fastsim SF measured from 
 # https://indico.cern.ch/event/877611/contributions/3762997/attachments/1992874/3326860/Zhenbin_WtaggerSF_v3.pdf
 DeepW_fastSF = {
-    "2016" : {
-        (200, 300) : (0.94, 0.05),
-        (300, 400) : (0.99, 0.19),
-        (400, 9999) : (1.08, 0.12),
-    },
-    "2017" : {
-        (200, 300) : (1.05, 0.02),
-        (300, 400) : (1.12, 0.23),
-        (400, 9999) : (1.05, 0.12),
-    },
-    "2018" : {
-        (200, 300) : (1.11, 0.09),
-        (300, 400) : (1.04, 0.01),
-        (400, 9999) : (1.16, 0.02),
-    }
+    "2016" : [
+        ((200, 300) , (0.94, 0.05)),
+        ((300, 400) , (0.99, 0.19)),
+        ((400, 9999) , (1.08, 0.12)),
+    ],
+    "2017" : [
+        ((200, 300) , (1.05, 0.02)),
+        ((300, 400) , (1.12, 0.23)),
+        ((400, 9999) , (1.05, 0.12)),
+    ],
+    "2018" : [
+        ((200, 300) , (1.11, 0.09)),
+        ((300, 400) , (1.04, 0.01)),
+        ((400, 9999) , (1.16, 0.02)),
+    ]
 }
 
 DeepW_Fake_SF = {
-    "2016" : {
-        (200, 300) :  (1.161, 0.059),
-        (300, 400) :  (1.178, 0.060),
-        (400, 9999) : (1.314, 0.064),
-    },
-    "2017" : {
-        (200, 300) :  (1.072, 0.073),
-        (300, 400) :  (1.132, 0.065),
-        (400, 9999) : (1.159, 0.065),
-    },
-    "2018" : {
-        (200, 300) :  (1.087, 0.065),
-        (300, 400) :  (1.058, 0.067),
-        (400, 9999) : (1.139, 0.071),
-    }
+    "2016" : [
+        ((200, 300) ,  (1.161, 0.059)),
+        ((300, 400) ,  (1.178, 0.060)),
+        ((400, 9999) , (1.314, 0.064)),
+    ],
+    "2017" : [
+        ((200, 300) ,  (1.072, 0.073)),
+        ((300, 400) ,  (1.132, 0.065)),
+        ((400, 9999) , (1.159, 0.065)),
+    ],
+    "2018" : [
+        ((200, 300) ,  (1.087, 0.065)),
+        ((300, 400) ,  (1.058, 0.067)),
+        ((400, 9999) , (1.139, 0.071)),
+    ]
 }
 
 @numba.jit(nopython=True)
@@ -225,12 +225,11 @@ class SoftBDeepAK8SFProducer(Module):
 
         def createSFMap(inputData):
             return {
-                "edges": np.unique([edge  for pair in inputData[self.era].keys() for edge in pair]),
-                "values": np.array([val[0] for val in inputData[self.era].values()]),
-                "errors": np.array([val[1] for val in inputData[self.era].values()]),
+                "edges": np.unique([edge  for pair in inputData[self.era] for edge in pair[0]]),
+                "values": np.array([pair[1][0] for pair in inputData[self.era]]),
+                "errors": np.array([pair[1][1] for pair in inputData[self.era]]),
                 }
             
-
         self.topWSFMap = {}
         self.topWSFMap["DeepTop_SF"] = createSFMap(DeepTop_SF)
         self.topWSFMap["DeepTop_Fake_SF"] = createSFMap(DeepTop_Fake_SF)
@@ -266,6 +265,7 @@ class SoftBDeepAK8SFProducer(Module):
             self.out.branch("Stop0l_DeepAK8_SFWeight_veto_up" , "F")
             self.out.branch("Stop0l_DeepAK8_SFWeight_veto_dn" , "F")
             if self.isFastSim:
+                self.out.branch("Stop0l_DeepAK8_SFWeight_fast", "F")
                 self.out.branch("Stop0l_DeepAK8_SFWeight_fast_total_up", "F")
                 self.out.branch("Stop0l_DeepAK8_SFWeight_fast_total_dn", "F")
                 self.out.branch("Stop0l_DeepAK8_SFWeight_fast_top_up", "F")
@@ -347,32 +347,51 @@ class SoftBDeepAK8SFProducer(Module):
 
         return sb_sf, sb_sferr, sb_fastsf, sb_fastsferr
 
-    def GetDeepAK8SF(self, fjets, fatJetGenMatch, jetPt, stop0l):
+    def GetDeepAK8SF(self, fatJetGenMatch, jetPt, stop0l):
         ntop          = len(stop0l)
-        top_sf        = np.ones(ntop)
-        top_sferr     = np.zeros(ntop)
-        top_fastsf    = np.ones(ntop)
-        top_fastsferr = np.zeros(ntop)
+        self.top_sf        = np.ones(ntop)
+        self.top_sferr     = np.zeros(ntop)
+        self.top_fastsf    = np.ones(ntop)
+        self.top_fastsferr = np.zeros(ntop)
+
+        bgFilter = stop0l==0
+        nbg = len(bgFilter[bgFilter])
+        self.top_sf_bg_t     = np.ones(nbg)
+        self.top_sf_bg_t_err = np.zeros(nbg)
+        self.top_sf_bg_w     = np.ones(nbg)
+        self.top_sf_bg_w_err = np.zeros(nbg)
+
+        self.top_fastsf_bg_t     = np.ones(nbg)
+        self.top_fastsf_bg_t_err = np.zeros(nbg)
+        self.top_fastsf_bg_w     = np.ones(nbg)
+        self.top_fastsf_bg_w_err = np.zeros(nbg)
 
         if self.isData:
-            return top_sf, top_sferr, top_fastsf, top_fastsferr
+            return
 
-        
         def setSF(jetPt, filt, SFMap, sf_top, sf_topErr):
             sfBins = np.digitize(jetPt[filt], SFMap["edges"][:-1]) - 1
             sf_top[filt] = SFMap["values"][sfBins]
             sf_topErr[filt] = SFMap["errors"][sfBins]
        
         #veto SF for non-tagged jets in computed below because it needs to be weighted by efficiency 
-        setSF(jetPt, (fatJetGenMatch == 1) & (stop0l == 1), self.topWSFMap["DeepTop_SF"],      top_sf, top_sferr)
-        setSF(jetPt, (fatJetGenMatch == 2) & (stop0l == 2), self.topWSFMap["DeepW_SF"],        top_sf, top_sferr)
-        setSF(jetPt, (fatJetGenMatch != 1) & (stop0l == 1), self.topWSFMap["DeepTop_Fake_SF"], top_sf, top_sferr)
-        setSF(jetPt, (fatJetGenMatch != 2) & (stop0l == 2), self.topWSFMap["DeepW_Fake_SF"],   top_sf, top_sferr)
+        setSF(jetPt, (fatJetGenMatch == 1) & (stop0l == 1), self.topWSFMap["DeepTop_SF"],      self.top_sf, self.top_sferr)
+        setSF(jetPt, (fatJetGenMatch != 1) & (stop0l == 1), self.topWSFMap["DeepTop_Fake_SF"], self.top_sf, self.top_sferr)
+        setSF(jetPt, (fatJetGenMatch == 2) & (stop0l == 2), self.topWSFMap["DeepW_SF"],        self.top_sf, self.top_sferr)
+        setSF(jetPt, (fatJetGenMatch != 2) & (stop0l == 2), self.topWSFMap["DeepW_Fake_SF"],   self.top_sf, self.top_sferr)
 
-        setSF(jetPt,                          stop0l == 1 , self.topWSFMap["DeepTop_fastSF"],  top_fastsf, top_fastsferr)
-        setSF(jetPt,                          stop0l == 2 , self.topWSFMap["DeepW_fastSF"],    top_fastsf, top_fastsferr)
+        setSF(jetPt[bgFilter], fatJetGenMatch[bgFilter] == 1, self.topWSFMap["DeepTop_SF"],      self.top_sf_bg_t, self.top_sf_bg_t_err)
+        setSF(jetPt[bgFilter], fatJetGenMatch[bgFilter] != 1, self.topWSFMap["DeepTop_Fake_SF"], self.top_sf_bg_t, self.top_sf_bg_t_err)
+        setSF(jetPt[bgFilter], fatJetGenMatch[bgFilter] == 2, self.topWSFMap["DeepW_SF"],        self.top_sf_bg_w, self.top_sf_bg_w_err)
+        setSF(jetPt[bgFilter], fatJetGenMatch[bgFilter] != 2, self.topWSFMap["DeepW_Fake_SF"],   self.top_sf_bg_w, self.top_sf_bg_w_err)
 
-        return top_sf, top_sferr, top_fastsf, top_fastsferr
+        setSF(jetPt,                          stop0l == 1 , self.topWSFMap["DeepTop_fastSF"],  self.top_fastsf, self.top_fastsferr)
+        setSF(jetPt,                          stop0l == 2 , self.topWSFMap["DeepW_fastSF"],    self.top_fastsf, self.top_fastsferr)
+
+        setSF(jetPt[bgFilter], np.ones(nbg).astype(bool) , self.topWSFMap["DeepTop_fastSF"],  self.top_fastsf_bg_t, self.top_fastsf_bg_t_err)
+        setSF(jetPt[bgFilter], np.ones(nbg).astype(bool) , self.topWSFMap["DeepW_fastSF"],    self.top_fastsf_bg_w, self.top_fastsf_bg_w_err)
+
+        return
 
     class TTreeReaderArrayWrapper:
         def __init__(self, ttarray):
@@ -446,115 +465,72 @@ class SoftBDeepAK8SFProducer(Module):
     def calculateTopSFWeight(self, fatJetStop0l, fatJetPt, fatJetGenMatch):
 
         #Get efficiencies 
-        topEff = np.ones(self.top_sf.shape)
-        
-        def setEff(topPt, catName, topEff, filterArray, topSF, topSFerr, topSFfast, topSFfasterr):
-            if "_as_bg" in catName:
-                catAsT = catName.replace("_as_bg", "_as_t")
-                catAsW = catName.replace("_as_bg", "_as_w")
-                effBins_top = np.digitize(topPt[filterArray], self.topEffHists[catAsT]["edges"][:-1]) - 1
-                effBins_w   = np.digitize(topPt[filterArray], self.topEffHists[catAsW]["edges"][:-1]) - 1
-                eff_top = self.topEffHists[catAsT]["values"][effBins_top]
-                eff_w = self.topEffHists[catAsW]["values"][effBins_w]
-                eff_sum = eff_top + eff_w
-                eff_sum[eff_sum <= 0] = 0.0001
-                topEff[filterArray] =  eff_sum
+        def setEff(topPt, catName, topEff, filterArray):
+            effBins_top = np.digitize(topPt[filterArray], self.topEffHists[catName]["edges"][:-1]) - 1
+            topEff[filterArray] =  self.topEffHists[catName]["values"][effBins_top]
 
-                #hack to get veto SF right
-                sfBins_top = np.digitize(topPt[filterArray], self.topWSFMap["DeepTop_SF"]["edges"][:-1]) - 1
-                sfBins_w   = np.digitize(topPt[filterArray], self.topWSFMap["DeepW_SF"]["edges"][:-1]) - 1
-                sf_top = self.topWSFMap["DeepTop_SF"]["values"][sfBins_top]
-                sf_topErr = self.topWSFMap["DeepTop_SF"]["errors"][sfBins_top]
-                sf_w = self.topWSFMap["DeepW_SF"]["values"][sfBins_w]
-                sf_wErr = self.topWSFMap["DeepW_SF"]["errors"][sfBins_w]
+        topEff_t = np.ones(len(self.top_sf_bg_t))
+        topEff_w = np.ones(len(self.top_sf_bg_w))
 
-                sfBinsFast_top = np.digitize(topPt[filterArray], self.topWSFMap["DeepTop_fastSF"]["edges"][:-1]) - 1
-                sfBinsFast_w   = np.digitize(topPt[filterArray], self.topWSFMap["DeepW_fastSF"]["edges"][:-1]) - 1
-                sfFast_top = self.topWSFMap["DeepTop_fastSF"]["values"][sfBinsFast_top]
-                sfFast_topErr = self.topWSFMap["DeepTop_fastSF"]["errors"][sfBinsFast_top]
-                sfFast_w = self.topWSFMap["DeepW_fastSF"]["values"][sfBinsFast_w]
-                sfFast_wErr = self.topWSFMap["DeepW_fastSF"]["errors"][sfBinsFast_w]
+        recoBGFilter = fatJetStop0l == 0
 
-                SF_effective = (sf_top*eff_top+sf_w*eff_w)/(eff_sum)
-                #small approximation here that up and down are the same
-                SF_Up_effective = ((sf_top+sf_topErr)*eff_top+(sf_w+sf_wErr)*eff_w)/(eff_sum)
-
-                SFFast_effective = (sf_top*sfFast_top*eff_top+sf_w*sfFast_w*eff_w)/(eff_sum)
-                #small approximation here that up and down are the same
-                SFFast_Up_effective = (sf_top*(sfFast_top+sfFast_topErr)*eff_top+sf_w*(sfFast_w+sfFast_wErr)*eff_w)/(eff_sum)
-
-                topSF[filterArray] = SF_effective
-                topSFerr[filterArray] = SF_Up_effective - SF_effective
-
-                topSFfast[filterArray] = SFFast_effective
-                topSFfasterr[filterArray] = SFFast_Up_effective - SFFast_effective
-
-            else:
-                effBins_top = np.digitize(topPt[filterArray], self.topEffHists[catName]["edges"][:-1]) - 1
-                topEff[filterArray] =  self.topEffHists[catName]["values"][effBins_top]
-
-        setEff(fatJetPt, "t_as_t",   topEff, (fatJetGenMatch == 1) & (fatJetStop0l == 1), self.top_sf, self.top_sferr, self.top_fastsf, self.top_fastsferr)
-        setEff(fatJetPt, "t_as_w",   topEff, (fatJetGenMatch == 1) & (fatJetStop0l == 2), self.top_sf, self.top_sferr, self.top_fastsf, self.top_fastsferr)
-        setEff(fatJetPt, "t_as_bg",  topEff, (fatJetGenMatch == 1) & (fatJetStop0l == 0), self.top_sf, self.top_sferr, self.top_fastsf, self.top_fastsferr)
-        setEff(fatJetPt, "w_as_t",   topEff, (fatJetGenMatch == 2) & (fatJetStop0l == 1), self.top_sf, self.top_sferr, self.top_fastsf, self.top_fastsferr)
-        setEff(fatJetPt, "w_as_w",   topEff, (fatJetGenMatch == 2) & (fatJetStop0l == 2), self.top_sf, self.top_sferr, self.top_fastsf, self.top_fastsferr)
-        setEff(fatJetPt, "w_as_bg",  topEff, (fatJetGenMatch == 2) & (fatJetStop0l == 0), self.top_sf, self.top_sferr, self.top_fastsf, self.top_fastsferr)
-        setEff(fatJetPt, "bg_as_t",  topEff, (fatJetGenMatch == 0) & (fatJetStop0l == 1), self.top_sf, self.top_sferr, self.top_fastsf, self.top_fastsferr)
-        setEff(fatJetPt, "bg_as_w",  topEff, (fatJetGenMatch == 0) & (fatJetStop0l == 2), self.top_sf, self.top_sferr, self.top_fastsf, self.top_fastsferr)
-        setEff(fatJetPt, "bg_as_bg", topEff, (fatJetGenMatch == 0) & (fatJetStop0l == 0), self.top_sf, self.top_sferr, self.top_fastsf, self.top_fastsferr)
+        setEff(fatJetPt[recoBGFilter], "t_as_t",  topEff_t, fatJetGenMatch[recoBGFilter] == 1)
+        setEff(fatJetPt[recoBGFilter], "w_as_t",  topEff_t, fatJetGenMatch[recoBGFilter] == 2)
+        setEff(fatJetPt[recoBGFilter], "bg_as_t", topEff_t, fatJetGenMatch[recoBGFilter] == 0)
+        setEff(fatJetPt[recoBGFilter], "t_as_w",  topEff_w, fatJetGenMatch[recoBGFilter] == 1)
+        setEff(fatJetPt[recoBGFilter], "w_as_w",  topEff_w, fatJetGenMatch[recoBGFilter] == 2)
+        setEff(fatJetPt[recoBGFilter], "bg_as_w", topEff_w, fatJetGenMatch[recoBGFilter] == 0)
 
         #safety against very rare cases where eff = 0
-        topEff[topEff <= 0] = 0.0001
+        topEff_t[topEff_t <= 0.0001] = 0.0001
+        topEff_w[topEff_w <= 0.0001] = 0.0001
 
         topSF_t_tagged  = self.top_sf[fatJetStop0l == 1]
         topSF_w_tagged  = self.top_sf[fatJetStop0l == 2]
-        topSF_notTagged = self.top_sf[fatJetStop0l == 0]
 
-        topEff_t_tagged  = topEff[fatJetStop0l == 1]
-        topEff_w_tagged  = topEff[fatJetStop0l == 2]
-        topEff_notTagged = topEff[fatJetStop0l == 0]
+        numerator = topSF_t_tagged.prod() * topSF_w_tagged.prod() * (1 - topEff_t*self.top_sf_bg_t - topEff_w*self.top_sf_bg_w).prod()
+
+        denominator = (1 - topEff_t - topEff_w).prod()
 
         if self.isFastSim:
             topSF_fast_t_tagged  = self.top_fastsf[fatJetStop0l == 1]
             topSF_fast_w_tagged  = self.top_fastsf[fatJetStop0l == 2]
-            topSF_fast_notTagged = self.top_fastsf[fatJetStop0l == 0]
 
-            numerator = (topSF_t_tagged*topEff_t_tagged*topSF_fast_t_tagged).prod() * (topSF_w_tagged*topEff_w_tagged*topSF_fast_w_tagged).prod() * (1 - (topSF_notTagged*topEff_notTagged*topSF_fast_notTagged)).prod()
-        else:
-            numerator = (topSF_t_tagged*topEff_t_tagged).prod() * (topSF_w_tagged*topEff_w_tagged).prod() * (1 - (topSF_notTagged*topEff_notTagged)).prod()
-
-        denominator = topEff_t_tagged.prod() * topEff_w_tagged.prod() * (1 - topEff_notTagged).prod()
+            numerator_fast = (topSF_t_tagged*topSF_fast_t_tagged).prod() * (topSF_w_tagged*topSF_fast_w_tagged).prod() * (1 - topEff_t*self.top_sf_bg_t*self.top_fastsf_bg_t - topEff_w*self.top_sf_bg_w*self.top_fastsf_bg_w).prod()
 
 
         #calculate uncertainty variations of weight
         if not self.isData:
             uncert_t = self.top_sferr[fatJetStop0l == 1]
             uncert_w = self.top_sferr[fatJetStop0l == 2]
-            uncert_bg = self.top_sferr[fatJetStop0l == 0]
         
-            numerator_up = ((topSF_t_tagged+uncert_t)*topEff_t_tagged).prod() * ((topSF_w_tagged+uncert_w)*topEff_w_tagged).prod() * (1 - ((topSF_notTagged+uncert_bg)*topEff_notTagged)).prod()
-            numerator_dn = ((topSF_t_tagged-uncert_t)*topEff_t_tagged).prod() * ((topSF_w_tagged-uncert_w)*topEff_w_tagged).prod() * (1 - ((topSF_notTagged-uncert_bg)*topEff_notTagged)).prod()
+            numerator_up = (topSF_t_tagged + uncert_t).prod() * (topSF_w_tagged + uncert_w).prod() * (1 - topEff_t*(self.top_sf_bg_t + self.top_sf_bg_t_err) - topEff_w*(self.top_sf_bg_w + self.top_sf_bg_w_err)).prod()
+            numerator_dn = (topSF_t_tagged - uncert_t).prod() * (topSF_w_tagged - uncert_w).prod() * (1 - topEff_t*(self.top_sf_bg_t - self.top_sf_bg_t_err) - topEff_w*(self.top_sf_bg_w - self.top_sf_bg_w_err)).prod()
 
-            numerator_t_up = ((topSF_t_tagged+uncert_t)*topEff_t_tagged).prod() * ((topSF_w_tagged)*topEff_w_tagged).prod() * (1 - ((topSF_notTagged)*topEff_notTagged)).prod()
-            numerator_t_dn = ((topSF_t_tagged-uncert_t)*topEff_t_tagged).prod() * ((topSF_w_tagged)*topEff_w_tagged).prod() * (1 - ((topSF_notTagged)*topEff_notTagged)).prod()
-            numerator_w_up = ((topSF_t_tagged)*topEff_t_tagged).prod() * ((topSF_w_tagged+uncert_w)*topEff_w_tagged).prod() * (1 - ((topSF_notTagged)*topEff_notTagged)).prod()
-            numerator_w_dn = ((topSF_t_tagged)*topEff_t_tagged).prod() * ((topSF_w_tagged-uncert_w)*topEff_w_tagged).prod() * (1 - ((topSF_notTagged)*topEff_notTagged)).prod()
-            numerator_v_up = ((topSF_t_tagged)*topEff_t_tagged).prod() * ((topSF_w_tagged)*topEff_w_tagged).prod() * (1 - ((topSF_notTagged+uncert_bg)*topEff_notTagged)).prod()
-            numerator_v_dn = ((topSF_t_tagged)*topEff_t_tagged).prod() * ((topSF_w_tagged)*topEff_w_tagged).prod() * (1 - ((topSF_notTagged-uncert_bg)*topEff_notTagged)).prod()
+            numerator_t_up = (topSF_t_tagged + uncert_t).prod() * (topSF_w_tagged).prod()            * (1 - topEff_t*(self.top_sf_bg_t)                        - topEff_w*(self.top_sf_bg_w)).prod()
+            numerator_t_dn = (topSF_t_tagged - uncert_t).prod() * (topSF_w_tagged).prod()            * (1 - topEff_t*(self.top_sf_bg_t)                        - topEff_w*(self.top_sf_bg_w)).prod()
+            numerator_w_up = (topSF_t_tagged).prod()            * (topSF_w_tagged + uncert_w).prod() * (1 - topEff_t*(self.top_sf_bg_t)                        - topEff_w*(self.top_sf_bg_w)).prod()
+            numerator_w_dn = (topSF_t_tagged).prod()            * (topSF_w_tagged - uncert_w).prod() * (1 - topEff_t*(self.top_sf_bg_t)                        - topEff_w*(self.top_sf_bg_w)).prod()
+            numerator_v_up = (topSF_t_tagged).prod()            * (topSF_w_tagged).prod()            * (1 - topEff_t*(self.top_sf_bg_t + self.top_sf_bg_t_err) - topEff_w*(self.top_sf_bg_w + self.top_sf_bg_w_err)).prod()
+            numerator_v_dn = (topSF_t_tagged).prod()            * (topSF_w_tagged).prod()            * (1 - topEff_t*(self.top_sf_bg_t - self.top_sf_bg_t_err) - topEff_w*(self.top_sf_bg_w - self.top_sf_bg_w_err)).prod()
 
             if self.isFastSim:
                 uncert_fast_t  = self.top_fastsferr[fatJetStop0l == 1]
                 uncert_fast_w  = self.top_fastsferr[fatJetStop0l == 2]
-                uncert_fast_bg = self.top_fastsferr[fatJetStop0l == 0]
-                numerator_fast_up = ((topSF_t_tagged+uncert_fast_t)*topEff_t_tagged).prod() * ((topSF_w_tagged+uncert_fast_w)*topEff_w_tagged).prod() * (1 - ((topSF_notTagged+uncert_fast_bg)*topEff_notTagged)).prod()
-                numerator_fast_dn = ((topSF_t_tagged-uncert_fast_t)*topEff_t_tagged).prod() * ((topSF_w_tagged-uncert_fast_w)*topEff_w_tagged).prod() * (1 - ((topSF_notTagged-uncert_fast_bg)*topEff_notTagged)).prod()
 
-                numerator_fast_t_up = ((topSF_t_tagged+uncert_fast_t)*topEff_t_tagged).prod() * ((topSF_w_tagged)*topEff_w_tagged).prod() * (1 - ((topSF_notTagged)*topEff_notTagged)).prod()
-                numerator_fast_t_dn = ((topSF_t_tagged-uncert_fast_t)*topEff_t_tagged).prod() * ((topSF_w_tagged)*topEff_w_tagged).prod() * (1 - ((topSF_notTagged)*topEff_notTagged)).prod()
-                numerator_fast_w_up = ((topSF_t_tagged)*topEff_t_tagged).prod() * ((topSF_w_tagged+uncert_fast_w)*topEff_w_tagged).prod() * (1 - ((topSF_notTagged)*topEff_notTagged)).prod()
-                numerator_fast_w_dn = ((topSF_t_tagged)*topEff_t_tagged).prod() * ((topSF_w_tagged-uncert_fast_w)*topEff_w_tagged).prod() * (1 - ((topSF_notTagged)*topEff_notTagged)).prod()
-                numerator_fast_v_up = ((topSF_t_tagged)*topEff_t_tagged).prod() * ((topSF_w_tagged)*topEff_w_tagged).prod() * (1 - ((topSF_notTagged+uncert_fast_bg)*topEff_notTagged)).prod()
-                numerator_fast_v_dn = ((topSF_t_tagged)*topEff_t_tagged).prod() * ((topSF_w_tagged)*topEff_w_tagged).prod() * (1 - ((topSF_notTagged-uncert_fast_bg)*topEff_notTagged)).prod()
+                numerator_fast_up = (topSF_t_tagged*(topSF_fast_t_tagged + uncert_fast_t)).prod() * (topSF_w_tagged*(topSF_fast_w_tagged + uncert_fast_w)).prod() * (1 - topEff_t*self.top_sf_bg_t*(self.top_fastsf_bg_t + self.top_fastsf_bg_t_err) - topEff_w*self.top_sf_bg_w*(self.top_fastsf_bg_w + self.top_fastsf_bg_w_err)).prod()
+                numerator_fast_dn = (topSF_t_tagged*(topSF_fast_t_tagged - uncert_fast_t)).prod() * (topSF_w_tagged*(topSF_fast_w_tagged - uncert_fast_w)).prod() * (1 - topEff_t*self.top_sf_bg_t*(self.top_fastsf_bg_t - self.top_fastsf_bg_t_err) - topEff_w*self.top_sf_bg_w*(self.top_fastsf_bg_w - self.top_fastsf_bg_w_err)).prod()
+
+                numerator_fast_t_up = (topSF_t_tagged*(topSF_fast_t_tagged + uncert_fast_t)).prod() * (topSF_w_tagged*(topSF_fast_w_tagged)).prod()                 * (1 - topEff_t*self.top_sf_bg_t*(self.top_fastsf_bg_t)                            - topEff_w*self.top_sf_bg_w*(self.top_fastsf_bg_w)).prod()
+                numerator_fast_t_dn = (topSF_t_tagged*(topSF_fast_t_tagged - uncert_fast_t)).prod() * (topSF_w_tagged*(topSF_fast_w_tagged)).prod()                 * (1 - topEff_t*self.top_sf_bg_t*(self.top_fastsf_bg_t)                            - topEff_w*self.top_sf_bg_w*(self.top_fastsf_bg_w)).prod()
+                numerator_fast_w_up = (topSF_t_tagged*(topSF_fast_t_tagged)).prod()                 * (topSF_w_tagged*(topSF_fast_w_tagged + uncert_fast_w)).prod() * (1 - topEff_t*self.top_sf_bg_t*(self.top_fastsf_bg_t)                            - topEff_w*self.top_sf_bg_w*(self.top_fastsf_bg_w)).prod()
+                numerator_fast_w_dn = (topSF_t_tagged*(topSF_fast_t_tagged)).prod()                 * (topSF_w_tagged*(topSF_fast_w_tagged - uncert_fast_w)).prod() * (1 - topEff_t*self.top_sf_bg_t*(self.top_fastsf_bg_t)                            - topEff_w*self.top_sf_bg_w*(self.top_fastsf_bg_w)).prod()
+                numerator_fast_v_up = (topSF_t_tagged*(topSF_fast_t_tagged)).prod()                 * (topSF_w_tagged*(topSF_fast_w_tagged)).prod()                 * (1 - topEff_t*self.top_sf_bg_t*(self.top_fastsf_bg_t + self.top_fastsf_bg_t_err) - topEff_w*self.top_sf_bg_w*(self.top_fastsf_bg_w + self.top_fastsf_bg_w_err)).prod()
+                numerator_fast_v_dn = (topSF_t_tagged*(topSF_fast_t_tagged)).prod()                 * (topSF_w_tagged*(topSF_fast_w_tagged)).prod()                 * (1 - topEff_t*self.top_sf_bg_t*(self.top_fastsf_bg_t - self.top_fastsf_bg_t_err) - topEff_w*self.top_sf_bg_w*(self.top_fastsf_bg_w - self.top_fastsf_bg_w_err)).prod()
+
+
+
+
             else:
                 numerator_fast_up = 0.0
                 numerator_fast_dn = 0.0
@@ -576,6 +552,7 @@ class SoftBDeepAK8SFProducer(Module):
             self.out.fillBranch("Stop0l_DeepAK8_SFWeight_veto_up" , numerator_v_up/denominator)
             self.out.fillBranch("Stop0l_DeepAK8_SFWeight_veto_dn" , numerator_v_dn/denominator)
             if self.isFastSim:
+                self.out.fillBranch("Stop0l_DeepAK8_SFWeight_fast" , numerator_fast/denominator)
                 self.out.fillBranch("Stop0l_DeepAK8_SFWeight_fast_total_up" , numerator_fast_up/denominator)
                 self.out.fillBranch("Stop0l_DeepAK8_SFWeight_fast_total_dn" , numerator_fast_dn/denominator)
                 self.out.fillBranch("Stop0l_DeepAK8_SFWeight_fast_top_up", numerator_fast_t_up/denominator)
@@ -599,15 +576,17 @@ class SoftBDeepAK8SFProducer(Module):
         #gen match the fat jets
         fatJetGenMatch = self.fatJetGenMatch(event, fatJetEta, fatJetPhi)
 
+        fatJetPtFilter = fatJetPt >= 200.0
         sb_sf, sb_sferr, sb_fastsf, sb_fastsferr = self.GetSoftBSF(isvs)
-        self.top_sf, self.top_sferr, self.top_fastsf, self.top_fastsferr = self.GetDeepAK8SF(fatjets, fatJetGenMatch, fatJetPt, fatJetStop0l)
+        self.GetDeepAK8SF(fatJetGenMatch[fatJetPtFilter], fatJetPt[fatJetPtFilter], fatJetStop0l[fatJetPtFilter])
 
         #add additional uncertainty for tops with more than 3 gen particles matched 
         additionalUncertainty = 0.2
         nGenPart = self.nGenParts(event)
         fatJet_stop0l = np.fromiter(self.TTreeReaderArrayWrapper(event.FatJet_Stop0l), int)
         nGenPartCut = nGenPart[fatJet_stop0l == 1]
-        self.top_sferr[(fatJet_stop0l == 1) & (nGenPart >= 4)] = np.sqrt(np.power(self.top_sferr[(fatJet_stop0l == 1) & (nGenPart >= 4)], 2) + additionalUncertainty*additionalUncertainty)
+        denseTopFilter = (fatJet_stop0l[fatJetPtFilter] == 1) & (nGenPart[fatJetPtFilter] >= 4)
+        self.top_sferr[denseTopFilter] = np.sqrt(np.power(self.top_sferr[denseTopFilter], 2) + additionalUncertainty*additionalUncertainty)
 
         ### Store output
         self.out.fillBranch("SB_SF",        sb_sf)
@@ -623,5 +602,6 @@ class SoftBDeepAK8SFProducer(Module):
 
         if not self.isData:
             ### store all event weights for merged top/W 
-            self.calculateTopSFWeight(fatJetStop0l, fatJetPt, fatJetGenMatch)
+            # apply pT cut before calculation 
+            self.calculateTopSFWeight(fatJetStop0l[fatJetPtFilter], fatJetPt[fatJetPtFilter], fatJetGenMatch[fatJetPtFilter])
         return True
