@@ -17,16 +17,16 @@ from collections import defaultdict
 from multiprocessing import Pool
 from itertools import izip_longest
 
-DelExe    = '../Stop0l_postproc.py'
+DelExe    = '../Stop0l_postpost.py'
 tempdir = '/uscmst1b_scratch/lpc1/3DayLifetime/%s/TestCondor/'  % getpass.getuser()
 ShortProjectName = 'PostProcess'
-VersionNumber = '_v6'
+VersionNumber = '_v6p5'
 argument = "--inputFiles=%s.$(Process).list "
 sendfiles = ["../keep_and_drop.txt"]
 TTreeName = "Events"
 NProcess = 10
-splitbyNevent = True
-haddfiles = True
+splitbyNevent = False
+haddfiles = False
 
 def tar_cmssw():
     print("Tarring up CMSSW, ignoring file larger than 100MB")
@@ -125,7 +125,7 @@ def Condor_Sub(condor_file):
 def GetNEvent(file):
     return (file, uproot.numentries(file, TTreeName))
 
-def SplitPro(key, file, lineperfile=20, eventsplit=2**20, TreeName=None):
+def SplitPro(key, file, lineperfile=1, eventsplit=2**20, TreeName=None):
     # Default to 20 file per job, or 2**20 ~ 1M event per job
     # At 26Hz processing time in postv2, 1M event runs ~11 hours
     splitedfiles = []
