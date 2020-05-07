@@ -8,7 +8,6 @@ drop ChsMET_*
 drop PuppiMET_*
 drop GenDressedLepton_*
 drop SoftActivity*
-drop fixedGridRho*
 drop Electron_mva*
 # drop *btagCSVV2*
 drop *btagCMVA*
