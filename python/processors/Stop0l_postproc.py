@@ -29,6 +29,7 @@ from PhysicsTools.NanoSUSYTools.modules.PrefireCorr import PrefCorr
 from PhysicsTools.NanoSUSYTools.modules.ISRWeightProducer import ISRSFWeightProducer
 from PhysicsTools.NanoSUSYTools.modules.Stop0l_trigger import Stop0l_trigger
 from PhysicsTools.NanoSUSYTools.modules.SoftBDeepAK8SFProducer import SoftBDeepAK8SFProducer
+from PhysicsTools.NanoSUSYTools.modules.TopReweightProducer import TopReweightProducer
 from PhysicsTools.NanoSUSYTools.processors.FastsimISR import *
 
 # JEC files are those recomended here (as of Mar 1, 2019)
@@ -254,6 +255,7 @@ def main(args):
             mods.append(jecUncertProducer(DataDepInputs[dataType][args.era]["JECMC"]))
         ## Major modules for MC
         mods += [
+            TopReweightProducer(args.era, args.sampleName, isData=isdata),
             TopTaggerProducer(recalculateFromRawInputs=True, suffix="JESUp", AK4JetInputs=("Jet_pt_jesTotalUp",   "Jet_eta", "Jet_phi", "Jet_mass_jesTotalUp"),
                               topDiscCut=DeepResovledCandidateDiscCut, 
                               cfgWD=taggerWorkingDirectory,
