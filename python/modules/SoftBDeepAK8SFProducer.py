@@ -492,7 +492,7 @@ class SoftBDeepAK8SFProducer(Module):
         topSF_t_tagged  = self.top_sf[fatJetStop0l == 1]
         topSF_w_tagged  = self.top_sf[fatJetStop0l == 2]
 
-        denseTopFilter = ((fatJet_stop0l == 1) & (nGenPart >= 4)).astype(float)
+        denseTopFilter = (nGenPart >= 4)[fatJetStop0l == 1].astype(float)
 
         numerator = topSF_t_tagged.prod() * topSF_w_tagged.prod() * (1 - topEff_t*self.top_sf_bg_t - topEff_w*self.top_sf_bg_w).prod()
 
@@ -588,16 +588,11 @@ class SoftBDeepAK8SFProducer(Module):
         fatJetGenMatch = self.fatJetGenMatch(event, fatJetEta, fatJetPhi)
 
         #add additional uncertainty for tops with more than 3 gen particles matched 
-        #additionalUncertainty = 0.2
         nGenPart = self.nGenParts(event)
-        #fatJet_stop0l = np.fromiter(self.TTreeReaderArrayWrapper(event.FatJet_Stop0l), int)
-        #nGenPartCut = nGenPart[fatJet_stop0l == 1]
-        #denseTopFilter = (fatJet_stop0l[fatJetPtFilter] == 1) & (nGenPart[fatJetPtFilter] >= 4)
-        #self.top_sferr[denseTopFilter] = np.sqrt(np.power(self.top_sferr[denseTopFilter], 2) + additionalUncertainty*additionalUncertainty)
 
         fatJetPtFilter = fatJetPt >= 200.0
         sb_sf, sb_sferr, sb_fastsf, sb_fastsferr = self.GetSoftBSF(isvs)
-        self.GetDeepAK8SF(fatJetGenMatch[fatJetPtFilter], fatJetPt[fatJetPtFilter], fatJetStop0l[fatJetPtFilter], nGenPart[fatJetPtFilter])
+        self.GetDeepAK8SF(fatJetGenMatch[fatJetPtFilter], fatJetPt[fatJetPtFilter], fatJetStop0l[fatJetPtFilter])
 
         ### Store output
         self.out.fillBranch("SB_SF",        sb_sf)
@@ -614,5 +609,5 @@ class SoftBDeepAK8SFProducer(Module):
         if not self.isData:
             ### store all event weights for merged top/W 
             # apply pT cut before calculation 
-            self.calculateTopSFWeight(fatJetStop0l[fatJetPtFilter], fatJetPt[fatJetPtFilter], fatJetGenMatch[fatJetPtFilter])
+            self.calculateTopSFWeight(fatJetStop0l[fatJetPtFilter], fatJetPt[fatJetPtFilter], fatJetGenMatch[fatJetPtFilter], nGenPart[fatJetPtFilter])
         return True
