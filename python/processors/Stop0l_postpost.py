@@ -5,32 +5,14 @@ import ROOT
 ROOT.PyConfig.IgnoreCommandLineOptions = True
 
 from PhysicsTools.NanoAODTools.postprocessing.framework.postprocessor import PostProcessor
-from PhysicsTools.NanoAODTools.postprocessing.modules.common.puWeightProducer import *
-from PhysicsTools.NanoAODTools.postprocessing.modules.jme.jecUncertainties import jecUncertProducer
-from PhysicsTools.NanoAODTools.postprocessing.modules.jme.jetmetUncertainties import jetmetUncertaintiesProducer
-from PhysicsTools.NanoAODTools.postprocessing.modules.jme.jetRecalib import jetRecalib
-from PhysicsTools.NanoAODTools.postprocessing.modules.btv.btagSFProducer import btagSFProducer
 from TopTagger.TopTagger.TopTaggerProducer import TopTaggerProducer
 
 # NanoSUSY Tools modules
-from PhysicsTools.NanoSUSYTools.modules.eleMiniCutIDProducer import *
 from PhysicsTools.NanoSUSYTools.modules.Stop0lObjectsProducer import *
 from PhysicsTools.NanoSUSYTools.modules.Stop0lBaselineProducer import *
 from PhysicsTools.NanoSUSYTools.modules.DeepTopProducer import *
-from PhysicsTools.NanoSUSYTools.modules.updateEvtWeight import *
-from PhysicsTools.NanoSUSYTools.modules.lepSFProducer import *
-from PhysicsTools.NanoSUSYTools.modules.updateJetIDProducer import UpdateJetID
-from PhysicsTools.NanoSUSYTools.modules.PDFUncertaintyProducer import PDFUncertiantyProducer
-from PhysicsTools.NanoSUSYTools.modules.GenPartFilter import GenPartFilter
-from PhysicsTools.NanoSUSYTools.modules.BtagSFWeightProducer import BtagSFWeightProducer
-from PhysicsTools.NanoSUSYTools.modules.UpdateMETProducer import UpdateMETProducer
-from PhysicsTools.NanoSUSYTools.modules.FastsimOtherVarProducer import FastsimOtherVarProducer
-from PhysicsTools.NanoSUSYTools.modules.PrefireCorr import PrefCorr
-from PhysicsTools.NanoSUSYTools.modules.ISRWeightProducer import ISRSFWeightProducer
-from PhysicsTools.NanoSUSYTools.modules.Stop0l_trigger import Stop0l_trigger
 from PhysicsTools.NanoSUSYTools.modules.SoftBDeepAK8SFProducer import SoftBDeepAK8SFProducer
 from PhysicsTools.NanoSUSYTools.modules.TopReweightProducer import TopReweightProducer
-from PhysicsTools.NanoSUSYTools.processors.FastsimISR import *
 
 # JEC files are those recomended here (as of Mar 1, 2019)
 # https://twiki.cern.ch/twiki/bin/view/CMS/JECDataMC#Recommended_for_MC
@@ -199,71 +181,20 @@ def main(args):
 
     mods = []
 
-    #~~~~~ Different modules for Data and MC ~~~~~
-    # These modules must be run first in order to update JEC and MET approperiately for future modules 
-    # The MET update module must also be run before the JEC update modules 
-    if args.era == "2017":
-        # EE noise mitigation in PF MET
-        # https://hypernews.cern.ch/HyperNews/CMS/get/JetMET/1865.html
-        mods.append(UpdateMETProducer("METFixEE2017"))
-    if args.era == "2018":
-        # The 2018 JetID came after our production
-        mods.append(UpdateJetID(args.era))
-
-    if isdata:
-        # Apply resediual JEC on Data
-        if DataDepInputs[dataType][args.era + args.dataEra]["redoJEC"]:
-            mods.append(jetRecalib(DataDepInputs[dataType][args.era + args.dataEra]["JEC"]))
-    else:
-        # JetMET uncertainty ?
-        mods += [ jetmetUncertaintiesProducer(args.era, DataDepInputs[dataType][args.era]["JECMC"], 
-                                              jerTag=DataDepInputs[dataType][args.era]["JERMC"], 
-                                              redoJEC=DataDepInputs[dataType][args.era]["redoJEC"], 
-                                              doSmearing=False, doL2L3=not isfastsim)
-                ]
-
     #~~~~~ Common modules for Data and MC ~~~~~
     taggerWorkingDirectory = os.environ["CMSSW_BASE"] + "/src/PhysicsTools/NanoSUSYTools/python/processors/" + DataDepInputs[dataType][args.era if not isdata else (args.era + args.dataEra)]["taggerWD"]
-    if isfastsim:
-        mods.append(FastsimOtherVarProducer(isfastsim))
-    mods += [ eleMiniCutID(),
+    mods += [ 
              Stop0lObjectsProducer(args.era),
-             TopTaggerProducer(recalculateFromRawInputs=True, topDiscCut=DeepResovledCandidateDiscCut, 
-                               cfgWD=taggerWorkingDirectory,
-                               saveSFAndSyst=not isdata, 
-                               systToSave=["Btag_Up", "Btag_Down", "Pileup_Up", "Pileup_Down", "CSPur_Up", "CSPur_Down", "Stat_Up", "Stat_Down", "Closure_Up", "Closure_Down"]),
              DeepTopProducer(args.era, taggerWorkingDirectory, sampleName=args.sampleName, isFastSim=isfastsim, isData=isdata),
              Stop0lBaselineProducer(args.era, isData=isdata, isFastSim=isfastsim),
              SoftBDeepAK8SFProducer(args.era, taggerWorkingDirectory, isData=isdata, isFastSim=isfastsim, sampleName=args.sampleName),
-             Stop0l_trigger(args.era, isData=isdata),
-             UpdateEvtWeight(isdata, args.crossSection, args.nEvents, args.sampleName)
             ]
 
     #~~~~~ Modules for MC Only ~~~~
     if not isdata:
-        pufile_data = "%s/src/PhysicsTools/NanoSUSYTools/data/pileup/%s" % (os.environ['CMSSW_BASE'], DataDepInputs[dataType][args.era]["pileup_Data"])
-        pufile_mc = "%s/src/PhysicsTools/NanoSUSYTools/data/pileup/%s" % (os.environ['CMSSW_BASE'], DataDepInputs[dataType][args.era]["pileup_MC"])
-        if isfastsim:
-            mods += [
-                    btagSFProducer(args.era+"FastSim", algo="deepcsv"),
-                    FastsimOtherVarProducer(isfastsim, "JESUp"),
-                    FastsimOtherVarProducer(isfastsim, "JESDown"),
-                    FastsimOtherVarProducer(isfastsim, "METUnClustUp"),
-                    FastsimOtherVarProducer(isfastsim, "METUnClustDown"),
-                    ]
-        else:
-            mods.append(jecUncertProducer(DataDepInputs[dataType][args.era]["JECMC"]))
         ## Major modules for MC
         mods += [
             TopReweightProducer(args.era, args.sampleName, isData=isdata),
-            TopTaggerProducer(recalculateFromRawInputs=True, suffix="JESUp", AK4JetInputs=("Jet_pt_jesTotalUp",   "Jet_eta", "Jet_phi", "Jet_mass_jesTotalUp"),
-                              topDiscCut=DeepResovledCandidateDiscCut, 
-                              cfgWD=taggerWorkingDirectory,
-                               saveSFAndSyst=not isdata),
-            TopTaggerProducer(recalculateFromRawInputs=True, suffix="JESDown", AK4JetInputs=("Jet_pt_jesTotalDown", "Jet_eta", "Jet_phi", "Jet_mass_jesTotalDown"), 
-                              topDiscCut=DeepResovledCandidateDiscCut, 
-                              cfgWD=taggerWorkingDirectory,
-                              saveSFAndSyst=not isdata),
             DeepTopProducer(args.era, taggerWorkingDirectory, "JESUp", sampleName=args.sampleName, isFastSim=isfastsim, isData=isdata),
             DeepTopProducer(args.era, taggerWorkingDirectory, "JESDown", sampleName=args.sampleName, isFastSim=isfastsim, isData=isdata),
             Stop0lObjectsProducer(args.era, "JESUp"),
@@ -274,33 +205,7 @@ def main(args):
             Stop0lBaselineProducer(args.era, isData=isdata, isFastSim=isfastsim, applyUncert="JESDown"),
             Stop0lBaselineProducer(args.era, isData=isdata, isFastSim=isfastsim, applyUncert="METUnClustUp"),
             Stop0lBaselineProducer(args.era, isData=isdata, isFastSim=isfastsim, applyUncert="METUnClustDown"),
-            PDFUncertiantyProducer(isdata, isSUSY),
-            lepSFProducer(args.era),
-            lepSFProducer(args.era, muonSelectionTag="Medium",
-                          electronSelectionTag="Medium",
-                          photonSelectionTag="Medium", 
-                          tauSelectionTag="Tight"),
-            puWeightProducer(pufile_mc, pufile_data, args.sampleName,"pileup"),
-            btagSFProducer(args.era, algo="deepcsv"),
-            BtagSFWeightProducer(DataDepInputs[dataType][args.era]["bTagEff"], args.sampleName, DeepCSVMediumWP[args.era], isfastsim=isfastsim),
-            # statusFlag 0x2100 corresponds to "isLastCopy and fromHardProcess"
-            # statusFlag 0x2080 corresponds to "IsLastCopy and isHardProcess"
-            GenPartFilter(statusFlags = [0x2100, 0x2080, 0x2000, 0], pdgIds = [0, 0, 22, 0], statuses = [0, 0, 1, 23]),
-            # TODO: first implemtation, need double check
-            ISRSFWeightProducer(args.era, isSUSY, isfastsim, DataDepInputs[dataType][args.era]["nISRjets"], args.sampleName), 
             ]
-        # Special PU reweighting for 2017 separately
-        if args.era == "2017":
-            pufile_dataBtoE = "%s/src/PhysicsTools/NanoSUSYTools/data/pileup/Collisions17_BtoE.root" % os.environ['CMSSW_BASE']
-            pufile_dataF = "%s/src/PhysicsTools/NanoSUSYTools/data/pileup/Collisions17_F.root" % os.environ['CMSSW_BASE']
-            mods += [
-                puWeightProducer(pufile_mc, pufile_dataBtoE, args.sampleName,"pileup", name="17BtoEpuWeight"),
-                puWeightProducer(pufile_mc, pufile_dataF, args.sampleName,"pileup", name="17FpuWeight")
-            ]
-        # 2016 and 2017 L1 ECal prefiring reweighting
-        if args.era == "2016" or args.era == "2017":
-            mods.append(PrefCorr(args.era))
-
     #============================================================================#
     #-------------------------     Run PostProcessor     ------------------------#
     #============================================================================#
@@ -313,9 +218,7 @@ def main(args):
         with open(args.inputfile) as f:
             files = [line.strip() for line in f]
 
-    if isfastsim:
-        GetNISRJetDist(files, DataDepInputs[dataType][args.era]["nISRjets"])
-    p=PostProcessor(args.outputfile,files,cut=None, branchsel=None, outputbranchsel="keep_and_drop.txt", modules=mods,provenance=False,maxEvents=args.maxEvents)
+    p=PostProcessor(args.outputfile,files,cut=None, branchsel=None, postfix="", outputbranchsel=None, modules=mods,provenance=False,maxEvents=args.maxEvents)
     p.run()
 
 if __name__ == "__main__":

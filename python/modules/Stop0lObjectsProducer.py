@@ -129,7 +129,7 @@ class Stop0lObjectsProducer(Module):
         return True
 
     def CalMtW(self, lep, met):
-        return math.sqrt( 2 * met.pt * lep.pt * (1 - math.cos(met.phi-lep.phi)))
+        return math.sqrt( 2 * met.pt * lep.pt * (1 - math.cos(ROOT.TVector2.Phi_mpi_pi(met.phi-lep.phi))))
 
     def SelBtagJets(self, jet):
         global DeepCSVMediumWP
