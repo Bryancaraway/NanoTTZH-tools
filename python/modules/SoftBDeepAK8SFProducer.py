@@ -264,6 +264,8 @@ class SoftBDeepAK8SFProducer(Module):
             self.out.branch("Stop0l_DeepAK8_SFWeight_w_dn" , "F")
             self.out.branch("Stop0l_DeepAK8_SFWeight_veto_up" , "F")
             self.out.branch("Stop0l_DeepAK8_SFWeight_veto_dn" , "F")
+            self.out.branch("Stop0l_DeepAK8_SFWeight_densetop_up" , "F")
+            self.out.branch("Stop0l_DeepAK8_SFWeight_densetop_dn" , "F")
             if self.isFastSim:
                 self.out.branch("Stop0l_DeepAK8_SFWeight_fast", "F")
                 self.out.branch("Stop0l_DeepAK8_SFWeight_fast_total_up", "F")
@@ -464,7 +466,7 @@ class SoftBDeepAK8SFProducer(Module):
     
         return deltaRMatch(fatJetEta, fatJetPhi, genTopDaughters_eta, genTopDaughters_phi, genWDaughters_eta, genWDaughters_phi)
 
-    def calculateTopSFWeight(self, fatJetStop0l, fatJetPt, fatJetGenMatch):
+    def calculateTopSFWeight(self, fatJetStop0l, fatJetPt, fatJetGenMatch, nGenPart):
 
         #Get efficiencies 
         def setEff(topPt, catName, topEff, filterArray):
@@ -489,6 +491,8 @@ class SoftBDeepAK8SFProducer(Module):
 
         topSF_t_tagged  = self.top_sf[fatJetStop0l == 1]
         topSF_w_tagged  = self.top_sf[fatJetStop0l == 2]
+
+        denseTopFilter = (nGenPart >= 4)[fatJetStop0l == 1].astype(float)
 
         numerator = topSF_t_tagged.prod() * topSF_w_tagged.prod() * (1 - topEff_t*self.top_sf_bg_t - topEff_w*self.top_sf_bg_w).prod()
 
@@ -515,6 +519,9 @@ class SoftBDeepAK8SFProducer(Module):
             numerator_w_dn = (topSF_t_tagged).prod()            * (topSF_w_tagged - uncert_w).prod() * (1 - topEff_t*(self.top_sf_bg_t)                        - topEff_w*(self.top_sf_bg_w)).prod()
             numerator_v_up = (topSF_t_tagged).prod()            * (topSF_w_tagged).prod()            * (1 - topEff_t*(self.top_sf_bg_t + self.top_sf_bg_t_err) - topEff_w*(self.top_sf_bg_w + self.top_sf_bg_w_err)).prod()
             numerator_v_dn = (topSF_t_tagged).prod()            * (topSF_w_tagged).prod()            * (1 - topEff_t*(self.top_sf_bg_t - self.top_sf_bg_t_err) - topEff_w*(self.top_sf_bg_w - self.top_sf_bg_w_err)).prod()
+
+            numerator_densetop_up = (topSF_t_tagged*(1+0.2*denseTopFilter)).prod() * topSF_w_tagged.prod() * (1 - topEff_t*self.top_sf_bg_t - topEff_w*self.top_sf_bg_w).prod()
+            numerator_densetop_dn = (topSF_t_tagged/(1+0.2*denseTopFilter)).prod() * topSF_w_tagged.prod() * (1 - topEff_t*self.top_sf_bg_t - topEff_w*self.top_sf_bg_w).prod()
 
             if self.isFastSim:
                 uncert_fast_t  = self.top_fastsferr[fatJetStop0l == 1]
@@ -553,6 +560,8 @@ class SoftBDeepAK8SFProducer(Module):
             self.out.fillBranch("Stop0l_DeepAK8_SFWeight_w_dn" , numerator_w_dn/denominator)
             self.out.fillBranch("Stop0l_DeepAK8_SFWeight_veto_up" , numerator_v_up/denominator)
             self.out.fillBranch("Stop0l_DeepAK8_SFWeight_veto_dn" , numerator_v_dn/denominator)
+            self.out.fillBranch("Stop0l_DeepAK8_SFWeight_densetop_up" , numerator_densetop_up/denominator)
+            self.out.fillBranch("Stop0l_DeepAK8_SFWeight_densetop_dn" , numerator_densetop_dn/denominator)
             if self.isFastSim:
                 self.out.fillBranch("Stop0l_DeepAK8_SFWeight_fast" , numerator_fast/denominator)
                 self.out.fillBranch("Stop0l_DeepAK8_SFWeight_fast_total_up" , numerator_fast_up/denominator)
@@ -578,17 +587,12 @@ class SoftBDeepAK8SFProducer(Module):
         #gen match the fat jets
         fatJetGenMatch = self.fatJetGenMatch(event, fatJetEta, fatJetPhi)
 
+        #add additional uncertainty for tops with more than 3 gen particles matched 
+        nGenPart = self.nGenParts(event)
+
         fatJetPtFilter = fatJetPt >= 200.0
         sb_sf, sb_sferr, sb_fastsf, sb_fastsferr = self.GetSoftBSF(isvs)
         self.GetDeepAK8SF(fatJetGenMatch[fatJetPtFilter], fatJetPt[fatJetPtFilter], fatJetStop0l[fatJetPtFilter])
-
-        #add additional uncertainty for tops with more than 3 gen particles matched 
-        additionalUncertainty = 0.2
-        nGenPart = self.nGenParts(event)
-        fatJet_stop0l = np.fromiter(self.TTreeReaderArrayWrapper(event.FatJet_Stop0l), int)
-        nGenPartCut = nGenPart[fatJet_stop0l == 1]
-        denseTopFilter = (fatJet_stop0l[fatJetPtFilter] == 1) & (nGenPart[fatJetPtFilter] >= 4)
-        self.top_sferr[denseTopFilter] = np.sqrt(np.power(self.top_sferr[denseTopFilter], 2) + additionalUncertainty*additionalUncertainty)
 
         ### Store output
         self.out.fillBranch("SB_SF",        sb_sf)
@@ -605,5 +609,5 @@ class SoftBDeepAK8SFProducer(Module):
         if not self.isData:
             ### store all event weights for merged top/W 
             # apply pT cut before calculation 
-            self.calculateTopSFWeight(fatJetStop0l[fatJetPtFilter], fatJetPt[fatJetPtFilter], fatJetGenMatch[fatJetPtFilter])
+            self.calculateTopSFWeight(fatJetStop0l[fatJetPtFilter], fatJetPt[fatJetPtFilter], fatJetGenMatch[fatJetPtFilter], nGenPart[fatJetPtFilter])
         return True
