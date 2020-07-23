@@ -13,7 +13,8 @@ from PhysicsTools.NanoSUSYTools.modules.Stop0lBaselineProducer import *
 from PhysicsTools.NanoSUSYTools.modules.DeepTopProducer import *
 from PhysicsTools.NanoSUSYTools.modules.SoftBDeepAK8SFProducer import SoftBDeepAK8SFProducer
 from PhysicsTools.NanoSUSYTools.modules.TopReweightProducer import TopReweightProducer
-
+from PhysicsTools.NanoAODTools.postprocessing.modules.btv.btagSFProducer import btagSFProducer
+from PhysicsTools.NanoSUSYTools.modules.BtagSFWeightProducer import BtagSFWeightProducer
 # JEC files are those recomended here (as of Mar 1, 2019)
 # https://twiki.cern.ch/twiki/bin/view/CMS/JECDataMC#Recommended_for_MC
 # Actual text files are found here
@@ -194,6 +195,8 @@ def main(args):
     if not isdata:
         ## Major modules for MC
         mods += [
+            btagSFProducer(args.era, algo="deepcsv"),
+            BtagSFWeightProducer(DataDepInputs[dataType][args.era]["bTagEff"], args.sampleName, DeepCSVMediumWP[args.era], isfastsim=isfastsim),
             TopReweightProducer(args.era, args.sampleName, isData=isdata),
             DeepTopProducer(args.era, taggerWorkingDirectory, "JESUp", sampleName=args.sampleName, isFastSim=isfastsim, isData=isdata),
             DeepTopProducer(args.era, taggerWorkingDirectory, "JESDown", sampleName=args.sampleName, isFastSim=isfastsim, isData=isdata),
