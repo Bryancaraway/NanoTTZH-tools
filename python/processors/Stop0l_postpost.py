@@ -185,9 +185,9 @@ def main(args):
     #~~~~~ Common modules for Data and MC ~~~~~
     taggerWorkingDirectory = os.environ["CMSSW_BASE"] + "/src/PhysicsTools/NanoSUSYTools/python/processors/" + DataDepInputs[dataType][args.era if not isdata else (args.era + args.dataEra)]["taggerWD"]
     mods += [ 
-             Stop0lObjectsProducer(args.era),
-             DeepTopProducer(args.era, taggerWorkingDirectory, sampleName=args.sampleName, isFastSim=isfastsim, isData=isdata),
-             Stop0lBaselineProducer(args.era, isData=isdata, isFastSim=isfastsim),
+             #Stop0lObjectsProducer(args.era),
+             #DeepTopProducer(args.era, taggerWorkingDirectory, sampleName=args.sampleName, isFastSim=isfastsim, isData=isdata),
+             #Stop0lBaselineProducer(args.era, isData=isdata, isFastSim=isfastsim),
              SoftBDeepAK8SFProducer(args.era, taggerWorkingDirectory, isData=isdata, isFastSim=isfastsim, sampleName=args.sampleName),
             ]
 
@@ -198,12 +198,12 @@ def main(args):
             btagSFProducer(args.era, algo="deepcsv"),
             BtagSFWeightProducer(DataDepInputs[dataType][args.era]["bTagEff"], args.sampleName, DeepCSVMediumWP[args.era], isfastsim=isfastsim),
             TopReweightProducer(args.era, args.sampleName, isData=isdata),
-            DeepTopProducer(args.era, taggerWorkingDirectory, "JESUp", sampleName=args.sampleName, isFastSim=isfastsim, isData=isdata),
-            DeepTopProducer(args.era, taggerWorkingDirectory, "JESDown", sampleName=args.sampleName, isFastSim=isfastsim, isData=isdata),
-            Stop0lObjectsProducer(args.era, "JESUp"),
-            Stop0lObjectsProducer(args.era, "JESDown"),
-            Stop0lObjectsProducer(args.era, "METUnClustUp"),
-            Stop0lObjectsProducer(args.era, "METUnClustDown"),
+            #DeepTopProducer(args.era, taggerWorkingDirectory, "JESUp", sampleName=args.sampleName, isFastSim=isfastsim, isData=isdata),
+            #DeepTopProducer(args.era, taggerWorkingDirectory, "JESDown", sampleName=args.sampleName, isFastSim=isfastsim, isData=isdata),
+            #Stop0lObjectsProducer(args.era, "JESUp"),
+            #Stop0lObjectsProducer(args.era, "JESDown"),
+            #Stop0lObjectsProducer(args.era, "METUnClustUp"),
+            #Stop0lObjectsProducer(args.era, "METUnClustDown"),
             Stop0lBaselineProducer(args.era, isData=isdata, isFastSim=isfastsim, applyUncert="JESUp"),
             Stop0lBaselineProducer(args.era, isData=isdata, isFastSim=isfastsim, applyUncert="JESDown"),
             Stop0lBaselineProducer(args.era, isData=isdata, isFastSim=isfastsim, applyUncert="METUnClustUp"),
