@@ -20,7 +20,7 @@ cmsenv
 git clone https://github.com/cms-tau-pog/TauIDSFs TauPOG/TauIDSFs
 git clone -b Stop0l git@github.com:susy2015/nanoAOD-tools.git PhysicsTools/NanoAODTools
 # For condor submission check the specific tag checkout instructions in [readme](python/processors/Condor/README.md)
-git clone -b dev_v6p5 git@github.com:susy2015/NanoSUSY-tools.git PhysicsTools/NanoSUSYTools
+git clone -b PostProduction_v7_2020Jul24 git@github.com:susy2015/NanoSUSY-tools.git PhysicsTools/NanoSUSYTools
 git clone -b Stop0l_NanoAOD_production_V6.2 git@github.com:susy2015/TopTagger.git
 scram b
 cd $CMSSW_BASE/src/TopTagger/TopTagger/test
