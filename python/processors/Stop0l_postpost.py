@@ -197,7 +197,7 @@ def main(args):
         mods += [
             btagSFProducer(args.era, algo="deepcsv"),
             BtagSFWeightProducer(DataDepInputs[dataType][args.era]["bTagEff"], args.sampleName, DeepCSVMediumWP[args.era], isfastsim=isfastsim),
-            TopReweightProducer(args.era, args.sampleName, isData=isdata),
+            #TopReweightProducer(args.era, args.sampleName, isData=isdata),
             #DeepTopProducer(args.era, taggerWorkingDirectory, "JESUp", sampleName=args.sampleName, isFastSim=isfastsim, isData=isdata),
             #DeepTopProducer(args.era, taggerWorkingDirectory, "JESDown", sampleName=args.sampleName, isFastSim=isfastsim, isData=isdata),
             #Stop0lObjectsProducer(args.era, "JESUp"),
