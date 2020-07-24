@@ -20,11 +20,11 @@ from itertools import izip_longest
 DelExe    = '../Stop0l_postpost.py'
 tempdir = '/uscmst1b_scratch/lpc1/3DayLifetime/%s/TestCondor/'  % getpass.getuser()
 ShortProjectName = 'PostProcess'
-VersionNumber = '_v6p5'
+VersionNumber = '_v7'
 argument = "--inputFiles=%s.$(Process).list "
 sendfiles = ["../keep_and_drop.txt"]
 TTreeName = "Events"
-NProcess = 10
+NProcess = 15
 splitbyNevent = False
 haddfiles = False
 
