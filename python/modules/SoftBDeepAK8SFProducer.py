@@ -246,10 +246,10 @@ class SoftBDeepAK8SFProducer(Module):
 
     def beginFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
         self.out = wrappedOutputTree
-        self.out.branch("SB_SF"        , "F", lenVar="nSB")
-        self.out.branch("SB_SFerr"     , "F", lenVar="nSB")
-        self.out.branch("SB_fastSF"    , "F", lenVar="nSB")
-        self.out.branch("SB_fastSFerr" , "F", lenVar="nSB")
+        # self.out.branch("SB_SF"        , "F", lenVar="nSB")
+        # self.out.branch("SB_SFerr"     , "F", lenVar="nSB")
+        # self.out.branch("SB_fastSF"    , "F", lenVar="nSB")
+        # self.out.branch("SB_fastSFerr" , "F", lenVar="nSB")
         self.out.branch("FatJet_SF"        , "F", lenVar="nFatJet")
         self.out.branch("FatJet_SFerr"     , "F", lenVar="nFatJet")
         self.out.branch("FatJet_fastSF"    , "F", lenVar="nFatJet")
@@ -576,7 +576,7 @@ class SoftBDeepAK8SFProducer(Module):
 
     def analyze(self, event):
         """process event, return True (go to next module) or False (fail, go to next event)"""
-        isvs    = Collection(event, "SB")
+        # isvs    = Collection(event, "SB")
         fatjets  = Collection(event, "FatJet")
 
         fatJetStop0l = np.fromiter(self.TTreeReaderArrayWrapper(event.FatJet_Stop0l), dtype=int)
@@ -591,14 +591,14 @@ class SoftBDeepAK8SFProducer(Module):
         nGenPart = self.nGenParts(event)
 
         fatJetPtFilter = fatJetPt >= 200.0
-        sb_sf, sb_sferr, sb_fastsf, sb_fastsferr = self.GetSoftBSF(isvs)
+        # sb_sf, sb_sferr, sb_fastsf, sb_fastsferr = self.GetSoftBSF(isvs)
         self.GetDeepAK8SF(fatJetGenMatch[fatJetPtFilter], fatJetPt[fatJetPtFilter], fatJetStop0l[fatJetPtFilter])
 
         ### Store output
-        self.out.fillBranch("SB_SF",        sb_sf)
-        self.out.fillBranch("SB_SFerr",     sb_sferr)
-        self.out.fillBranch("SB_fastSF",    sb_fastsf)
-        self.out.fillBranch("SB_fastSFerr", sb_fastsferr)
+        # self.out.fillBranch("SB_SF",        sb_sf)
+        # self.out.fillBranch("SB_SFerr",     sb_sferr)
+        # self.out.fillBranch("SB_fastSF",    sb_fastsf)
+        # self.out.fillBranch("SB_fastSFerr", sb_fastsferr)
         self.out.fillBranch("FatJet_SF",        self.top_sf)
         self.out.fillBranch("FatJet_SFerr",     self.top_sferr)
         self.out.fillBranch("FatJet_fastSF",    self.top_fastsf)

@@ -37,7 +37,7 @@ class Stop0l_trigger(Module):
         self.out.branch("Pass_trigger_MET", "O")
         self.out.branch("Pass_trigger_muon", "O")
         self.out.branch("Pass_trigger_electron", "O")
-        self.out.branch("Pass_trigger_photon", "O")
+        # self.out.branch("Pass_trigger_photon", "O")
 
         self.out.branch("Stop0l_trigger_eff_MET_loose_baseline", "F")
         self.out.branch("Stop0l_trigger_eff_MET_loose_baseline_down", "F")
@@ -73,12 +73,12 @@ class Stop0l_trigger(Module):
         self.out.branch("Stop0l_trigger_eff_Muon_eta", "F")
         self.out.branch("Stop0l_trigger_eff_Muon_eta_down", "F")
         self.out.branch("Stop0l_trigger_eff_Muon_eta_up", "F")
-        self.out.branch("Stop0l_trigger_eff_Photon_pt", "F")
-        self.out.branch("Stop0l_trigger_eff_Photon_pt_down", "F")
-        self.out.branch("Stop0l_trigger_eff_Photon_pt_up", "F")
-        self.out.branch("Stop0l_trigger_eff_Photon_eta", "F")
-        self.out.branch("Stop0l_trigger_eff_Photon_eta_down", "F")
-        self.out.branch("Stop0l_trigger_eff_Photon_eta_up", "F")
+        # self.out.branch("Stop0l_trigger_eff_Photon_pt", "F")
+        # self.out.branch("Stop0l_trigger_eff_Photon_pt_down", "F")
+        # self.out.branch("Stop0l_trigger_eff_Photon_pt_up", "F")
+        # self.out.branch("Stop0l_trigger_eff_Photon_eta", "F")
+        # self.out.branch("Stop0l_trigger_eff_Photon_eta_down", "F")
+        # self.out.branch("Stop0l_trigger_eff_Photon_eta_up", "F")
 
         self.out.branch("Stop0l_trigger_eff_Zee_pt", "F")
         self.out.branch("Stop0l_trigger_eff_Zee_pt_down", "F")
@@ -142,7 +142,7 @@ class Stop0l_trigger(Module):
         met       = Object(event, "MET")
         electrons = Collection(event, "Electron")
         muons	  = Collection(event, "Muon")
-        photons   = Collection(event, "Photon")
+        # photons   = Collection(event, "Photon")
 
 	if not self.isData: Pass_trigger_MET = True
         else: Pass_trigger_MET = (
@@ -206,11 +206,11 @@ class Stop0l_trigger(Module):
             or self.mygetattr(hlt, 'DoubleEle33_CaloIdL_MW', False)
         )
 
-	if not self.isData: Pass_trigger_photon = True
-        else: Pass_trigger_photon = (
-            self.mygetattr(hlt, 'Photon175', False)
-            or self.mygetattr(hlt, 'Photon200', False)
-        )
+	# if not self.isData: Pass_trigger_photon = True
+        # else: Pass_trigger_photon = (
+            # self.mygetattr(hlt, 'Photon175', False)
+            # or self.mygetattr(hlt, 'Photon200', False)
+        # )
 
 	ele_veto = []
 	ele_mid = []
@@ -256,23 +256,23 @@ class Stop0l_trigger(Module):
 			zmumu_mid.append(zmumu_cand)
 	n_zmumu = len(zmumu_mid)
 
-        photon_loose = []
-        photon_mid = []
-        for photon in photons:
-                if (abs(photon.eta) < 1.442 or (1.566 < abs(photon.eta) and abs(photon.eta) < 2.5)):
-                        #cutbase =  photon.cutBasedBitmap if self.era != "2016" else photon.cutBased
-                        #if(cutbase >=1):
-                        #        photon_loose.append(photon)
-                        #if(cutbase >=2):
-                        #        photon_mid.append(photon)
-			if self.era == "2016":
-				if photon.cutBased >=1: photon_loose.append(photon)
-				if photon.cutBased >=2: photon_mid.append(photon)
-			else:
-				if bool(photon.cutBasedBitmap & 1): photon_loose.append(photon)
-				if bool(photon.cutBasedBitmap & 2): photon_mid.append(photon)
-        n_photon = len(photon_loose)
-        n_photon_mid = len(photon_mid)
+        # photon_loose = []
+        # photon_mid = []
+        # for photon in photons:
+                # if (abs(photon.eta) < 1.442 or (1.566 < abs(photon.eta) and abs(photon.eta) < 2.5)):
+                        # #cutbase =  photon.cutBasedBitmap if self.era != "2016" else photon.cutBased
+                        # #if(cutbase >=1):
+                        # #        photon_loose.append(photon)
+                        # #if(cutbase >=2):
+                        # #        photon_mid.append(photon)
+			# if self.era == "2016":
+				# if photon.cutBased >=1: photon_loose.append(photon)
+				# if photon.cutBased >=2: photon_mid.append(photon)
+			# else:
+				# if bool(photon.cutBasedBitmap & 1): photon_loose.append(photon)
+				# if bool(photon.cutBasedBitmap & 2): photon_mid.append(photon)
+        # n_photon = len(photon_loose)
+        # n_photon_mid = len(photon_mid)
 
 	MET_trigger_eff_loose_baseline = MET_trigger_eff_loose_baseline_down = MET_trigger_eff_loose_baseline_up = 0
 	MET_trigger_eff_high_dm = MET_trigger_eff_high_dm_down = MET_trigger_eff_high_dm_up = 0
@@ -299,10 +299,10 @@ class Stop0l_trigger(Module):
 	Muon_trigger_eff_eta = Muon_trigger_eff_eta_down = Muon_trigger_eff_eta_up = 0
 	if (n_mu_mid >=1): Muon_trigger_eff_eta, Muon_trigger_eff_eta_down, Muon_trigger_eff_eta_up = self.get_efficiency("Muon_eta", mu_mid[0].eta)
 
-	Photon_trigger_eff_pt = Photon_trigger_eff_pt_down = Photon_trigger_eff_pt_up = 0
-	if (n_photon_mid >=1): Photon_trigger_eff_pt, Photon_trigger_eff_pt_down, Photon_trigger_eff_pt_up = self.get_efficiency("Photon_pt", photon_mid[0].pt)
-	Photon_trigger_eff_eta = Photon_trigger_eff_eta_down = Photon_trigger_eff_eta_up = 0
-	if (n_photon_mid >=1): Photon_trigger_eff_eta, Photon_trigger_eff_eta_down, Photon_trigger_eff_eta_up = self.get_efficiency("Photon_eta", photon_mid[0].eta)
+	# Photon_trigger_eff_pt = Photon_trigger_eff_pt_down = Photon_trigger_eff_pt_up = 0
+	# if (n_photon_mid >=1): Photon_trigger_eff_pt, Photon_trigger_eff_pt_down, Photon_trigger_eff_pt_up = self.get_efficiency("Photon_pt", photon_mid[0].pt)
+	# Photon_trigger_eff_eta = Photon_trigger_eff_eta_down = Photon_trigger_eff_eta_up = 0
+	# if (n_photon_mid >=1): Photon_trigger_eff_eta, Photon_trigger_eff_eta_down, Photon_trigger_eff_eta_up = self.get_efficiency("Photon_eta", photon_mid[0].eta)
 
 	Zee_trigger_eff_pt = Zee_trigger_eff_pt_down = Zee_trigger_eff_pt_up = 0
 	if (n_zee ==1): Zee_trigger_eff_pt, Zee_trigger_eff_pt_down, Zee_trigger_eff_pt_up = self.get_efficiency("Zee_pt", zee_mid[0].Pt())
@@ -313,7 +313,7 @@ class Stop0l_trigger(Module):
         self.out.fillBranch("Pass_trigger_MET", Pass_trigger_MET)
         self.out.fillBranch("Pass_trigger_muon", Pass_trigger_muon)
         self.out.fillBranch("Pass_trigger_electron", Pass_trigger_electron)
-        self.out.fillBranch("Pass_trigger_photon", Pass_trigger_photon)
+        # self.out.fillBranch("Pass_trigger_photon", Pass_trigger_photon)
 
         self.out.fillBranch("Stop0l_trigger_eff_MET_loose_baseline", MET_trigger_eff_loose_baseline)
         self.out.fillBranch("Stop0l_trigger_eff_MET_loose_baseline_down", MET_trigger_eff_loose_baseline_down)
@@ -349,12 +349,12 @@ class Stop0l_trigger(Module):
         self.out.fillBranch("Stop0l_trigger_eff_Muon_eta", Muon_trigger_eff_eta)
         self.out.fillBranch("Stop0l_trigger_eff_Muon_eta_down", Muon_trigger_eff_eta_down)
         self.out.fillBranch("Stop0l_trigger_eff_Muon_eta_up", Muon_trigger_eff_eta_up)
-        self.out.fillBranch("Stop0l_trigger_eff_Photon_pt", Photon_trigger_eff_pt)
-        self.out.fillBranch("Stop0l_trigger_eff_Photon_pt_down", Photon_trigger_eff_pt_down)
-        self.out.fillBranch("Stop0l_trigger_eff_Photon_pt_up", Photon_trigger_eff_pt_up)
-        self.out.fillBranch("Stop0l_trigger_eff_Photon_eta", Photon_trigger_eff_eta)
-        self.out.fillBranch("Stop0l_trigger_eff_Photon_eta_down", Photon_trigger_eff_eta_down)
-        self.out.fillBranch("Stop0l_trigger_eff_Photon_eta_up", Photon_trigger_eff_eta_up)
+        # self.out.fillBranch("Stop0l_trigger_eff_Photon_pt", Photon_trigger_eff_pt)
+        # self.out.fillBranch("Stop0l_trigger_eff_Photon_pt_down", Photon_trigger_eff_pt_down)
+        # self.out.fillBranch("Stop0l_trigger_eff_Photon_pt_up", Photon_trigger_eff_pt_up)
+        # self.out.fillBranch("Stop0l_trigger_eff_Photon_eta", Photon_trigger_eff_eta)
+        # self.out.fillBranch("Stop0l_trigger_eff_Photon_eta_down", Photon_trigger_eff_eta_down)
+        # self.out.fillBranch("Stop0l_trigger_eff_Photon_eta_up", Photon_trigger_eff_eta_up)
 
         self.out.fillBranch("Stop0l_trigger_eff_Zee_pt", Zee_trigger_eff_pt)
         self.out.fillBranch("Stop0l_trigger_eff_Zee_pt_down", Zee_trigger_eff_pt_down)

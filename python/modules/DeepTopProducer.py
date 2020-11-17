@@ -72,25 +72,12 @@ class DeepTopProducer(Module):
     def beginFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
         self.out = wrappedOutputTree
         self.out.branch("FatJet_Stop0l", "I", lenVar="nFatJet")
-        self.out.branch("ResolvedTop_Stop0l" + self.suffix, "O", lenVar="nResolvedTopCandidate" + self.suffix)
+        # self.out.branch("ResolvedTop_Stop0l" + self.suffix, "O", lenVar="nResolvedTopCandidate" + self.suffix)
         self.out.branch("Stop0l_nTop" + self.suffix, "I")
         self.out.branch("Stop0l_nW" + self.suffix, "I")
         self.out.branch("Stop0l_nResolved" + self.suffix, "I")
         self.out.branch("Stop0l_ISRJetIdx" + self.suffix, "I")
         self.out.branch("Stop0l_ISRJetPt" + self.suffix, "F")
-        if not self.isData:
-            self.out.branch("Stop0l_ResTopWeight" + self.suffix, "F")
-            if not self.applyUncert:
-                self.out.branch("Stop0l_ResTopWeight_Up" + self.suffix, "F")
-                self.out.branch("Stop0l_ResTopWeight_Dn" + self.suffix, "F")
-                if self.isFastSim:
-                    self.out.branch("Stop0l_ResTopWeight_fast_Up" + self.suffix, "F")
-                    self.out.branch("Stop0l_ResTopWeight_fast_Dn" + self.suffix, "F")
-        self.out.branch("HOT_pt" + self.suffix,   "F", lenVar = "nHOT" + self.suffix)
-        self.out.branch("HOT_eta" + self.suffix,  "F", lenVar = "nHOT" + self.suffix)
-        self.out.branch("HOT_phi" + self.suffix,  "F", lenVar = "nHOT" + self.suffix)
-        self.out.branch("HOT_mass" + self.suffix, "F", lenVar = "nHOT" + self.suffix)
-        self.out.branch("HOT_type" + self.suffix, "I", lenVar = "nHOT" + self.suffix)
 
         if not self.isData:
             #get resolved top eff histos
@@ -386,15 +373,15 @@ class DeepTopProducer(Module):
         """process event, return True (go to next module) or False (fail, go to next event)"""
         ## Getting objects
         if self.applyUncert == "JESUp":
-            resolves  = Collection(event, "ResolvedTopCandidate_JESUp")
+            # resolves  = Collection(event, "ResolvedTopCandidate_JESUp")
             jets      = CollectionRemapped(event, "Jet", replaceMap={"pt":"pt_jesTotalUp", "mass":"mass_jesTotalUp"})
             met       = ObjectRemapped(event,     "MET", replaceMap={"pt":"pt_jesTotalUp", "phi":"phi_jesTotalUp"})
         elif self.applyUncert == "JESDown":
-            resolves  = Collection(event, "ResolvedTopCandidate_JESDown")
+            # resolves  = Collection(event, "ResolvedTopCandidate_JESDown")
             jets      = CollectionRemapped(event, "Jet", replaceMap={"pt":"pt_jesTotalDown", "mass":"mass_jesTotalDown"})
             met       = ObjectRemapped(event,     "MET", replaceMap={"pt":"pt_jesTotalDown", "phi":"phi_jesTotalDown"})
         else:
-            resolves  = Collection(event, "ResolvedTopCandidate")
+            # resolves  = Collection(event, "ResolvedTopCandidate")
             jets      = Collection(event, "Jet")
             met       = Object(event,     "MET")
 
@@ -405,43 +392,29 @@ class DeepTopProducer(Module):
         ## Selecting objects
         self.FatJet_Stop0l = map(self.SelDeepAK8, fatjets)
         #apply initial selection to reduce combinatorics, discriminator cut moved later for SF calculation
-        self.ResolvedTop_Stop0l = map(lambda x : self.SelDeepResolved(x, jets), resolves)
+        # self.ResolvedTop_Stop0l = map(lambda x : self.SelDeepResolved(x, jets), resolves)
         #resolve overlap between resolved top candidates and between resovled tops and merged top/W
-        self.ResovleOverlapDeepAK8(resolves, fatjets, jets, subjets)
+        # self.ResovleOverlapDeepAK8(resolves, fatjets, jets, subjets)
         #calcualte resolved top scaler factor (the merged top SF is calculated in SoftBDeepAK8SFProducer.py for ... reasons ...)
-        if not self.isData:
-            resolvedTopSF, resolvedTopSF_Up, resolvedTopSF_Dn, resolvedTopSF_fast_Up, resolvedTopSF_fast_Dn = self.calculateResTopSFWeight(resolves)
-        #we need all the overlap resolved candidates in the step above, so the discriminator filter is moved here
-        self.ResolvedTop_Stop0l = map(lambda x : self.DeepResolvedDiscCut(x), zip(resolves, self.ResolvedTop_Stop0l))
+        # if not self.isData:
+            # resolvedTopSF, resolvedTopSF_Up, resolvedTopSF_Dn, resolvedTopSF_fast_Up, resolvedTopSF_fast_Dn = self.calculateResTopSFWeight(resolves)
+        # #we need all the overlap resolved candidates in the step above, so the discriminator filter is moved here
+        # self.ResolvedTop_Stop0l = map(lambda x : self.DeepResolvedDiscCut(x), zip(resolves, self.ResolvedTop_Stop0l))
         self.nTop = sum( [ i for i in self.FatJet_Stop0l if i == 1 ])
         self.nW = sum( [ 1 for i in self.FatJet_Stop0l if i == 2 ])
-        self.nResolved = sum(self.ResolvedTop_Stop0l)
+        self.nResolved = 0
         self.ISRJetidx = self.GetISRJets(fatjets, subjets, met.phi)
         ISRJetPt = fatjets[self.ISRJetidx].pt if self.ISRJetidx != -1 else 0
-        (HOTpt, HOTeta, HOTphi, HOTmass, HOTtype) =  self.CreateHOTs(fatjets, resolves)
+        # (HOTpt, HOTeta, HOTphi, HOTmass, HOTtype) =  self.CreateHOTs(fatjets, resolves)
 
         ### Store output
         self.out.fillBranch("FatJet_Stop0l", self.FatJet_Stop0l)
-        self.out.fillBranch("ResolvedTop_Stop0l" + self.suffix, self.ResolvedTop_Stop0l)
+        # self.out.fillBranch("ResolvedTop_Stop0l" + self.suffix, self.ResolvedTop_Stop0l)
         self.out.fillBranch("Stop0l_nTop" + self.suffix, self.nTop)
         self.out.fillBranch("Stop0l_nW" + self.suffix, self.nW)
         self.out.fillBranch("Stop0l_nResolved" + self.suffix, self.nResolved)
         self.out.fillBranch("Stop0l_ISRJetIdx" + self.suffix, self.ISRJetidx)
         self.out.fillBranch("Stop0l_ISRJetPt" + self.suffix, ISRJetPt)
-        if not self.isData:
-            self.out.fillBranch("Stop0l_ResTopWeight" + self.suffix, resolvedTopSF)
-            if not self.applyUncert:
-                self.out.fillBranch("Stop0l_ResTopWeight_Up" + self.suffix, resolvedTopSF_Up)
-                self.out.fillBranch("Stop0l_ResTopWeight_Dn" + self.suffix, resolvedTopSF_Dn)
-                if self.isFastSim:
-                    self.out.fillBranch("Stop0l_ResTopWeight_fast_Up" + self.suffix, resolvedTopSF_fast_Up)
-                    self.out.fillBranch("Stop0l_ResTopWeight_fast_Dn" + self.suffix, resolvedTopSF_fast_Dn)
-                
-        self.out.fillBranch("HOT_pt" + self.suffix, HOTpt)
-        self.out.fillBranch("HOT_eta" + self.suffix, HOTeta)
-        self.out.fillBranch("HOT_phi" + self.suffix, HOTphi)
-        self.out.fillBranch("HOT_mass" + self.suffix, HOTmass)
-        self.out.fillBranch("HOT_type" + self.suffix, HOTtype)
         return True
 
 # define modules using the syntax 'name = lambda : constructor' to avoid having them loaded when not needed
