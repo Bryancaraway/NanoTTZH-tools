@@ -17,7 +17,7 @@ from collections import defaultdict
 from multiprocessing import Pool
 from itertools import izip_longest
 
-DelExe    = '../Stop0l_postpost.py'
+DelExe    = '../TTZ_postproc.py'
 tempdir = '/uscmst1b_scratch/lpc1/3DayLifetime/%s/TestCondor/'  % getpass.getuser()
 ShortProjectName = 'PostProcess'
 VersionNumber = '_v7'
@@ -89,11 +89,15 @@ def ConfigList(config):
                 nCut = i
                 break
         replaced_outdir = "/".join(replaced_outdir[:nCut + 1])
+
+        if stripped_entry[2].isspace() or not stripped_entry[2]:
+            filepath = GetFilelistDas(stripped_entry[0], stripped_entry[1])
+        else:
+            filepath = "%s/%s" % (stripped_entry[1], stripped_entry[2])
             
         process[stripped_entry[0]] = {
             #Note that anything appended with __ will not be passed along. These are for bookkeeping. Furthermore, Outpath is not used if an output directory argument is given.
-            "Filepath__" : "%s/%s" % (stripped_entry[1], stripped_entry[2]),
-            #"Outpath__" : "%s" % (stripped_entry[1]) + "/" + ShortProjectName + VersionNumber + "/" + stripped_entry[0]+"/", #old
+            "Filepath__" : filepath,
             "Outpath__" : "%s" % (replaced_outdir) + VersionNumber + "/" + stripped_entry[0] + "/", #new
             "isData__" : "Data" in stripped_entry[0],
             "isFastSim" : "fastsim" in stripped_entry[0], #isFastSim is a toggle in Stop0l_postproc.py, so it should be sent with no value.
@@ -124,6 +128,29 @@ def Condor_Sub(condor_file):
 
 def GetNEvent(file):
     return (file, uproot.numentries(file, TTreeName))
+
+def GetFilelistDas(name,dataset):
+    global splitbyNevent
+    ## can't split by event if run on das
+    if splitbyNevent:
+        splitbyNevent = False
+
+    outfolder = tempdir + '/' + "Dataset"
+    try:
+        os.makedirs(outfolder)
+    except OSError:
+        pass
+
+    outfilename = outfolder +"/"+name+".list"
+    outfile = open(outfilename, "w")
+
+    p = subprocess.Popen('dasgoclient --query=\"file dataset=%s\"' % dataset, shell=True, \
+                         stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    out, err = p.communicate()
+    for l in out.splitlines():
+        outfile.write("root://cmsxrootd.fnal.gov/%s\n" % l.strip())
+    outfile.close()
+    return outfilename
 
 def SplitPro(key, file, lineperfile=1, eventsplit=2**20, TreeName=None):
     # Default to 20 file per job, or 2**20 ~ 1M event per job
