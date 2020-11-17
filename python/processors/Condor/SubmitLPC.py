@@ -26,7 +26,7 @@ sendfiles = ["../keep_and_drop.txt"]
 TTreeName = "Events"
 NProcess = 15
 splitbyNevent = False
-haddfiles = False
+haddfiles = True
 
 def tar_cmssw():
     print("Tarring up CMSSW, ignoring file larger than 100MB")
@@ -155,7 +155,7 @@ def GetFilelistDas(name,datasets):
     outfile.close()
     return outfilename
 
-def SplitPro(key, file, lineperfile=1, eventsplit=2**20, TreeName=None):
+def SplitPro(key, file, lineperfile=2, eventsplit=2**20, TreeName=None):
     # Default to 20 file per job, or 2**20 ~ 1M event per job
     # At 26Hz processing time in postv2, 1M event runs ~11 hours
     splitedfiles = []
