@@ -20,7 +20,7 @@ from itertools import izip_longest
 DelExe    = '../TTZ_postproc.py'
 tempdir = '/uscmst1b_scratch/lpc1/3DayLifetime/%s/TestCondor/'  % getpass.getuser()
 ShortProjectName = 'PostProcess'
-VersionNumber = '_v7'
+VersionNumber = '_v9'
 argument = "--inputFiles=%s.$(Process).list "
 sendfiles = ["../keep_and_drop.txt"]
 TTreeName = "Events"
@@ -90,8 +90,8 @@ def ConfigList(config):
                 break
         replaced_outdir = "/".join(replaced_outdir[:nCut + 1])
 
-        if stripped_entry[2].isspace() or not stripped_entry[2]:
-            filepath = GetFilelistDas(stripped_entry[0], stripped_entry[1])
+        if "NANOAODSIM" in stripped_entry[1]  or "NANOAODSIM" in stripped_entry[2]:
+            filepath = GetFilelistDas(stripped_entry[0], stripped_entry[1:2])
         else:
             filepath = "%s/%s" % (stripped_entry[1], stripped_entry[2])
             
@@ -129,7 +129,7 @@ def Condor_Sub(condor_file):
 def GetNEvent(file):
     return (file, uproot.numentries(file, TTreeName))
 
-def GetFilelistDas(name,dataset):
+def GetFilelistDas(name,datasets):
     global splitbyNevent
     ## can't split by event if run on das
     if splitbyNevent:
@@ -144,11 +144,14 @@ def GetFilelistDas(name,dataset):
     outfilename = outfolder +"/"+name+".list"
     outfile = open(outfilename, "w")
 
-    p = subprocess.Popen('dasgoclient --query=\"file dataset=%s\"' % dataset, shell=True, \
-                         stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    out, err = p.communicate()
-    for l in out.splitlines():
-        outfile.write("root://cmsxrootd.fnal.gov/%s\n" % l.strip())
+    for dataset in datasets:
+        if not dataset:
+            continue
+        p = subprocess.Popen('dasgoclient --query=\"file dataset=%s\"' % dataset, shell=True, \
+                             stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        out, err = p.communicate()
+        for l in out.splitlines():
+            outfile.write("root://cmsxrootd.fnal.gov/%s\n" % l.strip())
     outfile.close()
     return outfilename
 
