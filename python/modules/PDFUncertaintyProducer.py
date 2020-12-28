@@ -6,10 +6,9 @@ import numpy as np
 from PhysicsTools.NanoAODTools.postprocessing.framework.datamodel import Collection, Object
 from PhysicsTools.NanoAODTools.postprocessing.framework.eventloop import Module
 
-class PDFUncertiantyProducer(Module):
-    def __init__(self, isData, isSUSY):
+class PDFUncertaintyProducer(Module):
+    def __init__(self, isData):
         self.isData = isData
-        self.isSUSY = isSUSY
         self.pset = None
         self.pdfs = None
 
@@ -101,7 +100,7 @@ class PDFUncertiantyProducer(Module):
             nPdfW = self.getattr_safe(event, "nLHEPdfWeight")
             self.isFirstEventOfFile = False
 
-        if not self.isSUSY and (nPdfW == 0 or nPdfW is None):
+        if (nPdfW == 0 or nPdfW is None):
             nPdfW, PdfWs = self.GetfromLHAPDF(Object(event,     "Generator"))
 
         if nPdfW is not None and nPdfW != 0:
@@ -123,11 +122,6 @@ class PDFUncertiantyProducer(Module):
                 mean = np.mean(lPdfWs[1:])
                 err  = np.std(lPdfWs[1:])
 
-        if self.isSUSY:
-            ## The PDF uncertainty is recommended to ignore 
-            ## https://twiki.cern.ch/twiki/bin/view/CMS/SUSYSignalSystematicsRun2#Post_Jamboree_recommendation_abo
-            mean = 1
-            err = 0
 
         ### Store output
         self.out.fillBranch("pdfWeight_Up",   1+err/mean)

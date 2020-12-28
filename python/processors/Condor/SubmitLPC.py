@@ -17,7 +17,7 @@ from collections import defaultdict
 from multiprocessing import Pool
 from itertools import izip_longest
 
-DelExe    = '../TTZ_postproc.py'
+DelExe    = '../TTZH_postproc.py'
 tempdir = '/uscmst1b_scratch/lpc1/3DayLifetime/%s/TestCondor/'  % getpass.getuser()
 ShortProjectName = 'PostProcess'
 VersionNumber = '_v9'
@@ -26,7 +26,7 @@ sendfiles = ["../keep_and_drop.txt"]
 TTreeName = "Events"
 NProcess = 15
 splitbyNevent = False
-haddfiles = True
+haddfiles = False
 
 def tar_cmssw():
     print("Tarring up CMSSW, ignoring file larger than 100MB")

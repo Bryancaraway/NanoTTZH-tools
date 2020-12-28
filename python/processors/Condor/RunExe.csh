@@ -62,9 +62,9 @@ if ($argv[2] =~ *fastsim*  || $Hadd != true ) then
         echo "Copying " $outfile " to root://cmseos.fnal.gov/${OUTPUT}/${pre}_${newpost}"
         xrdcp -f $outfile "root://cmseos.fnal.gov/${OUTPUT}/${pre}_${newpost}"
         ## Remove output file once it is copied
-        if ($? == 0) then
-            rm $outfile
-        endif
+        #if ($? == 0) then
+        #    rm $outfile
+        #endif
     end
 else
     echo "Process finished. Listing current files: "
