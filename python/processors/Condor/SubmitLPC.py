@@ -133,7 +133,6 @@ def GetNEvent(file):
 
 def GetFilelistDas(name):#,datasets):
     global splitbyNevent
-    print(name)
     # get datasets from json file
     json_file = open("TTZH_samples/sampleDas_nano_{}.json".format(args.era))
     das_dict = json.load(json_file)
