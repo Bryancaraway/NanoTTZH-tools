@@ -17,7 +17,7 @@ cmsenv
 cd $CMSSW_BASE/src
 cmsenv
 git clone -b TTZH git@github.com:Bryancaraway/nanoAOD-tools.git PhysicsTools/NanoAODTools
-# For condor submission check the specific tag checkout instructions in [readme](python/processors/Condor/README.md)
+# For condor submission: python/processors/Condor/README.md
 git clone -b TTZH git@github.com:Bryancaraway/NanoTTZH-tools.git PhysicsTools/NanoTTZHTools
 scram b
 cd $CMSSW_BASE/src/PhysicsTools/NanoTTZHTools/python/processors
@@ -33,6 +33,3 @@ python TTZH_postproc.py -i file:[input file] -s [MC sample name (from sampleSet 
 python TTZH_postproc.py -i file:[input file] -d [data period] -e [year]
 ```
 
-
-## To Do:
-* propagate jec uncertainties to jet/fatjet selection (not super necessary)

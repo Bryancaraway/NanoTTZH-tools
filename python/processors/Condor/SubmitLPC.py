@@ -5,12 +5,14 @@ from __future__ import division
 import os
 import re
 import time
+from threading import Timer
 import subprocess
 import glob
 import tarfile
 import shutil
 import getpass
 import math
+import json
 import argparse
 import uproot
 from collections import defaultdict
@@ -20,7 +22,7 @@ from itertools import izip_longest
 DelExe    = '../TTZH_postproc.py'
 tempdir = '/uscmst1b_scratch/lpc1/3DayLifetime/%s/TestCondor/'  % getpass.getuser()
 ShortProjectName = 'PostProcess'
-VersionNumber = '_v9'
+VersionNumber = '_v7'
 argument = "--inputFiles=%s.$(Process).list "
 sendfiles = ["../keep_and_drop.txt"]
 TTreeName = "Events"
@@ -90,8 +92,8 @@ def ConfigList(config):
                 break
         replaced_outdir = "/".join(replaced_outdir[:nCut + 1])
 
-        if "NANOAODSIM" in stripped_entry[1]  or "NANOAODSIM" in stripped_entry[2]:
-            filepath = GetFilelistDas(stripped_entry[0], stripped_entry[1:2])
+        if "NANOAOD" in stripped_entry[1]  or "NANOAOD" in stripped_entry[2]:
+            filepath = GetFilelistDas(stripped_entry[0])#, stripped_entry[1:2])
         else:
             filepath = "%s/%s" % (stripped_entry[1], stripped_entry[2])
             
@@ -116,7 +118,7 @@ def ConfigList(config):
                 "sampleName": stripped_entry[0], #process
                 "totEvents__":  int(stripped_entry[5]) + int(stripped_entry[6]), # using all event weight
             })
-
+    exit()
     return process
 
 def Condor_Sub(condor_file):
@@ -129,8 +131,12 @@ def Condor_Sub(condor_file):
 def GetNEvent(file):
     return (file, uproot.numentries(file, TTreeName))
 
-def GetFilelistDas(name,datasets):
+def GetFilelistDas(name):#,datasets):
     global splitbyNevent
+    print(name)
+    # get datasets from json file
+    json_file = open("TTZH_samples/sampleDas_nano_{}.json".format(args.era))
+    das_dict = json.load(json_file)
     ## can't split by event if run on das
     if splitbyNevent:
         splitbyNevent = False
@@ -144,18 +150,31 @@ def GetFilelistDas(name,datasets):
     outfilename = outfolder +"/"+name+".list"
     outfile = open(outfilename, "w")
 
-    for dataset in datasets:
+    #for dataset in datasets:
+    for dataset in das_dict[name]:
         if not dataset:
             continue
-        p = subprocess.Popen('dasgoclient --query=\"file dataset=%s\"' % dataset, shell=True, \
+        p = subprocess.Popen('dasgoclient --query=\"file dataset=%s\"' % dataset, shell=True,
                              stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         out, err = p.communicate()
+        #pool = Pool()
+        #result = pool.map(CheckFile, out.splitlines())
+        #pool.close()
+        #outfile.writelines(["root://cmsxrootd.fnal.gov/{}\n".format(l) for l in result])
         for l in out.splitlines():
             outfile.write("root://cmsxrootd.fnal.gov/%s\n" % l.strip())
     outfile.close()
     return outfilename
 
-def SplitPro(key, file, lineperfile=2, eventsplit=2**20, TreeName=None):
+def CheckFile(roo):
+    try:
+        with uproot.open("root://cmsxrootd.fnal.gov/{0}".format(roo)) as _:
+            return roo
+    except:
+        print("Failed to open: {0}".format(roo))
+        return
+
+def SplitPro(key, file, lineperfile=1, eventsplit=2**20, TreeName=None):
     # Default to 20 file per job, or 2**20 ~ 1M event per job
     # At 26Hz processing time in postv2, 1M event runs ~11 hours
     splitedfiles = []
@@ -233,6 +252,10 @@ def my_process(args):
         Tarfiles+= npro
         NewNpro[key] = nque
 
+    site_dict = {'lpc'   : 'root://cmseos.fnal.gov/',
+                 'kodiak': 'gsiftp://kodiak-se.baylor.edu//cms/data/',
+                 ''      : ''}
+
     Tarfiles.append(os.path.abspath(DelExe))
     tarballname ="%s/%s.tar.gz" % (tempdir, ProjectName)
     with tarfile.open(tarballname, "w:gz", dereference=True) as tar:
@@ -247,7 +270,8 @@ def my_process(args):
         #define output directory
         if args.outputdir == "": outdir = sample["Outpath__"]
         else: outdir = args.outputdir + "/" + name + "/"
-
+        outdir = site_dict[args.site]+outdir # give the ability to write off-site
+        print(outdir)
         #Update RunExe.csh
         RunHTFile = tempdir + "/" + name + "_RunExe.csh"
         with open(RunHTFile, "wt") as outfile:
@@ -297,6 +321,10 @@ if __name__ == "__main__":
     parser.add_argument('-o', '--outputdir',
         default = "", 
         help = 'Path to the output directory.')
-
+    parser.add_argument('--site',
+        default = 'lpc',
+        help = 'select eos site to store results',
+        required=False,
+        choices = ['lpc','kodiak'])
     args = parser.parse_args()
     my_process(args)

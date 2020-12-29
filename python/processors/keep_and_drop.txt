@@ -9,7 +9,7 @@ drop PuppiMET_*
 drop GenDressedLepton_*
 drop SoftActivity*
 drop Electron_mva*
-# drop *btagCSVV2*
+ drop *btagCSVV2*
 drop *btagCMVA*
 #drop FatJet_deepTagMD_*
 drop OtherPV_*

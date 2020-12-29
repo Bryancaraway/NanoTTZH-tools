@@ -53,18 +53,25 @@ if ($? != 0) then
 endif
 
 ## Special treat me
+#
 if ($argv[2] =~ *fastsim*  || $Hadd != true ) then
-    echo "Fastsim Process finished." 
+    echo "Process finished." 
     set newpost = `echo $argv[1] | rev | cut -f 1 -d _ | rev`
     foreach outfile (`ls *.root`)
         #Cut off ".root" and append "_{ProcessNum}.root", passed as first argument
         set pre = `echo $outfile | cut -f 1 -d .`
-        echo "Copying " $outfile " to root://cmseos.fnal.gov/${OUTPUT}/${pre}_${newpost}"
-        xrdcp -f $outfile "root://cmseos.fnal.gov/${OUTPUT}/${pre}_${newpost}"
-        ## Remove output file once it is copied
-        #if ($? == 0) then
-        #    rm $outfile
-        #endif
+        echo "Copying " $outfile " to ${OUTPUT}/${pre}_${newpost}"
+	if ($OUTPUT =~ *gsiftp*) then
+	    # for gfal to work, turn off cmsenv
+	    #setenv PYTHONHOME /cvmfs/cms.cern.ch/slc7_amd64_gcc700/external/python/2.7.14/
+	    eval `scram unsetenv -csh`; gfal-copy -fp $outfile "${OUTPUT}/${pre}_${newpost}"
+	else
+	    xrdcp -f $outfile "${OUTPUT}/${pre}_${newpost}"
+	endif
+        # Remove output file once it is copied
+        if ($? == 0) then
+            rm $outfile
+        endif
     end
 else
     echo "Process finished. Listing current files: "
@@ -77,7 +84,14 @@ else
         end
     endif
     foreach i (1 2 3)
-        xrdcp -f $argv[1] "root://cmseos.fnal.gov/${OUTPUT}/$argv[1]"
+	if ($OUTPUT =~ *gsiftp*) then
+	    # for gfal to work, turn off cmsenv
+	    #setenv PYTHONHOME /cvmfs/cms.cern.ch/slc7_amd64_gcc700/external/python/2.7.14/
+	    eval `scram unsetenv -csh`; gfal-copy -fp $argv[1] "${OUTPUT}/${pre}_${newpost}"
+	else
+	    xrdcp -f $argv[1] "${OUTPUT}/${pre}_${newpost}"
+	endif
+        #xrdcp -f $argv[1] "root://cmseos.fnal.gov/${OUTPUT}/$argv[1]"
         ## Remove output file once it is copied
         if ($? == 0) then
             rm $argv[1] 

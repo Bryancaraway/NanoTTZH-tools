@@ -19,7 +19,6 @@ from PhysicsTools.NanoTTZHTools.modules.PDFUncertaintyProducer import PDFUncerta
 from PhysicsTools.NanoTTZHTools.modules.GenPartFilter import GenPartFilter
 from PhysicsTools.NanoTTZHTools.modules.BtagSFWeightProducer import BtagSFWeightProducer
 from PhysicsTools.NanoTTZHTools.modules.UpdateMETProducer import UpdateMETProducer
-from PhysicsTools.NanoTTZHTools.modules.SoftBDeepAK8SFProducer import SoftBDeepAK8SFProducer
 
 # JEC files are those recomended here for nanoAODv7 samples (as of Dec 27th, 2020)
 # https://twiki.cern.ch/twiki/bin/view/CMS/JECDataMC#Recommended_for_MC
@@ -31,73 +30,22 @@ DataDepInputs = {
         "2016" : {
             "pileup_Data": "PileupData_GoldenJSON_Full2016.root",
             "pileup_MC": "pileup_profile_Summer16.root", 
-            "taggerWD": "TopTaggerCfg-DeepResolved_DeepCSV_GR_nanoAOD_2016_v1.0.6",
         },
         "2017" : {
             "pileup_Data": "PileupHistogram-goldenJSON-13tev-2017-99bins_withVar.root", 
             "pileup_MC": "mcPileup2017.root",
-            "taggerWD": "TopTaggerCfg-DeepResolved_DeepCSV_GR_nanoAOD_2017_v1.0.6",
         },
         "2018" : {
             "pileup_Data": "PileupHistogram-goldenJSON-13tev-2018-100bins_withVar.root",
             "pileup_MC": "mcPileup2018.root",
-            "taggerWD": "TopTaggerCfg-DeepResolved_DeepCSV_GR_nanoAOD_2018_v1.0.6",
         }
     },
 
     "Data": {
-        "2016B" : { 
-                    "taggerWD": "TopTaggerCfg-DeepResolved_DeepCSV_GR_nanoAOD_2016_v1.0.6",
-                   },
-        "2016C" : { 
-                    "taggerWD": "TopTaggerCfg-DeepResolved_DeepCSV_GR_nanoAOD_2016_v1.0.6",
-                   },
-        "2016D" : { 
-                    "taggerWD": "TopTaggerCfg-DeepResolved_DeepCSV_GR_nanoAOD_2016_v1.0.6",
-                   },
-        "2016E" : { 
-                    "taggerWD": "TopTaggerCfg-DeepResolved_DeepCSV_GR_nanoAOD_2016_v1.0.6",
-                   },
-        "2016F" : { 
-                    "taggerWD": "TopTaggerCfg-DeepResolved_DeepCSV_GR_nanoAOD_2016_v1.0.6",
-                   },
-        "2016G" : { 
-                    "taggerWD": "TopTaggerCfg-DeepResolved_DeepCSV_GR_nanoAOD_2016_v1.0.6",
-                   },
-        "2016H" : { 
-                    "taggerWD": "TopTaggerCfg-DeepResolved_DeepCSV_GR_nanoAOD_2016_v1.0.6",
-                   },
-
-        "2017B" : { 
-                    "taggerWD": "TopTaggerCfg-DeepResolved_DeepCSV_GR_nanoAOD_2017_v1.0.6",
-                   },
-        "2017C" : { 
-                    "taggerWD": "TopTaggerCfg-DeepResolved_DeepCSV_GR_nanoAOD_2017_v1.0.6",
-                   },
-        "2017D" : { 
-                    "taggerWD": "TopTaggerCfg-DeepResolved_DeepCSV_GR_nanoAOD_2017_v1.0.6",
-                   },
-        "2017E" : { 
-                    "taggerWD": "TopTaggerCfg-DeepResolved_DeepCSV_GR_nanoAOD_2017_v1.0.6",
-                   },
-        "2017F" : { 
-                    "taggerWD": "TopTaggerCfg-DeepResolved_DeepCSV_GR_nanoAOD_2017_v1.0.6",
-                   },
-
-        "2018A" : { 
-                    "taggerWD": "TopTaggerCfg-DeepResolved_DeepCSV_GR_nanoAOD_2018_v1.0.6",
-                   },
-        "2018B" : { 
-                    "taggerWD": "TopTaggerCfg-DeepResolved_DeepCSV_GR_nanoAOD_2018_v1.0.6",
-                   },
-        "2018C" : { 
-                    "taggerWD": "TopTaggerCfg-DeepResolved_DeepCSV_GR_nanoAOD_2018_v1.0.6",
-                   },
-
-        "2018D" : { 
-                    "taggerWD": "TopTaggerCfg-DeepResolved_DeepCSV_GR_nanoAOD_2018_v1.0.6",
-                   },
-            }
+        "2016B","2016C","2016D","2016E","2016F","2016G","2016H",
+        "2017B","2017C","2017D","2017E","2017F",
+        "2018A","2018B","2018C","2018D"
+    }
 }
 
 
@@ -106,7 +54,7 @@ def main(args):
 
     if isdata:
         dataType="Data"
-        if not args.era + args.dataEra in DataDepInputs[dataType].keys():
+        if not args.era + args.dataEra in DataDepInputs[dataType]:
             print "ERROR: Era \"" + args.era + "\" not recognized"
             exit(0)
 
@@ -134,10 +82,7 @@ def main(args):
         mods.append(createJMECorrector(isMC=True, dataYear=int(args.era), jesUncert="Merged", jetType = "AK8PFPuppi", applyHEMfix=(True if args.era == '2018' else False))())
 
     #~~~~~ Common modules for Data and MC ~~~~~
-    taggerWorkingDirectory = os.environ["CMSSW_BASE"] + "/src/PhysicsTools/NanoSUSYTools/python/processors/" + DataDepInputs[dataType][args.era if not isdata else (args.era + args.dataEra)]["taggerWD"]
-    mods += [ eleMiniCutID(),
-              #SoftBDeepAK8SFProducer(args.era, taggerWorkingDirectory, isData=isdata, isFastSim=isfastsim, sampleName=args.sampleName),
-            ]
+    mods.append(eleMiniCutID())
 
     #~~~~~ Modules for MC Only ~~~~
     if not isdata:
