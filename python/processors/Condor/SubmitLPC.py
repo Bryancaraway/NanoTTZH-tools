@@ -118,7 +118,6 @@ def ConfigList(config):
                 "sampleName": stripped_entry[0], #process
                 "totEvents__":  int(stripped_entry[5]) + int(stripped_entry[6]), # using all event weight
             })
-    exit()
     return process
 
 def Condor_Sub(condor_file):
