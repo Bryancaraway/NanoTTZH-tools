@@ -153,7 +153,9 @@ def GetFilelistDas(name):#,datasets):
     outfile = open(outfilename, "w")
     if not das_dict[name]['files']: return False
     for job_file in das_dict[name]['files']:
-        outfile.write("root://cmsxrootd.fnal.gov/{0}\n".format(job_file.decode().strip())) # may change to cms-xrd-global.cern.ch
+        #print("root://cms-xrd-global.cern.ch/{0}\n".format(job_file.decode().strip()))
+        #outfile.write("root://cmsxrootd.fnal.gov/{0}\n".format(job_file.decode().strip())) # may change to cms-xrd-global.cern.ch
+        outfile.write("root://cms-xrd-global.cern.ch/{0}\n".format(job_file.decode().strip())) # may change to cms-xrd-global.cern.ch
     #for dataset in datasets:
     #for dataset in das_dict[name]:
     #    if not dataset:
