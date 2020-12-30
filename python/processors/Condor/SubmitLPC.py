@@ -133,7 +133,7 @@ def GetNEvent(file):
 def GetFilelistDas(name):#,datasets):
     global splitbyNevent
     # get datasets from json file
-    json_file = open("TTZH_samples/sampleDas_nano_{}.json".format(args.era))
+    json_file = open("TTZH_samples/sampleDas_nano_{}_v2.json".format(args.era)) # new version contains files already
     das_dict = json.load(json_file)
     ## can't split by event if run on das
     if splitbyNevent:
@@ -147,20 +147,22 @@ def GetFilelistDas(name):#,datasets):
 
     outfilename = outfolder +"/"+name+".list"
     outfile = open(outfilename, "w")
-
+    print(das_dict[name]['files'])
+    for job_file in das_dict[name]['files']:
+        outfile.write("root://cmsxrootd.fnal.gov/{0}\n".format(job_file.decode().strip())) # may change to cms-xrd-global.cern.ch
     #for dataset in datasets:
-    for dataset in das_dict[name]:
-        if not dataset:
-            continue
-        p = subprocess.Popen('dasgoclient --query=\"file dataset=%s\"' % dataset, shell=True,
-                             stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        out, err = p.communicate()
-        #pool = Pool()
-        #result = pool.map(CheckFile, out.splitlines())
-        #pool.close()
-        #outfile.writelines(["root://cmsxrootd.fnal.gov/{}\n".format(l) for l in result])
-        for l in out.splitlines():
-            outfile.write("root://cmsxrootd.fnal.gov/%s\n" % l.strip())
+    #for dataset in das_dict[name]:
+    #    if not dataset:
+    #        continue
+    #    p = subprocess.Popen('dasgoclient --query=\"file dataset=%s\"' % dataset, shell=True,
+    #                         stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    #    out, err = p.communicate()
+    #    #pool = Pool()
+    #    #result = pool.map(CheckFile, out.splitlines())
+    #    #pool.close()
+    #    #outfile.writelines(["root://cmsxrootd.fnal.gov/{}\n".format(l) for l in result])
+    #    for l in out.splitlines():
+    #        outfile.write("root://cmsxrootd.fnal.gov/%s\n" % l.strip())
     outfile.close()
     return outfilename
 
