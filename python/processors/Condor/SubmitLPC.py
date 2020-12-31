@@ -259,7 +259,7 @@ def my_process(args):
         NewNpro[key] = nque
 
     site_dict = {'lpc'   : 'root://cmseos.fnal.gov/',
-                 'kodiak': 'gsiftp://kodiak-se.baylor.edu//cms/data/',
+                 'kodiak': 'gsiftp://kodiak-se.baylor.edu//',
                  ''      : ''}
 
     Tarfiles.append(os.path.abspath(DelExe))
