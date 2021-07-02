@@ -64,7 +64,12 @@ if ($argv[2] =~ *fastsim*  || $Hadd != true ) then
 	if ($OUTPUT =~ *gsiftp*) then
 	    # for gfal to work, turn off cmsenv
 	    #setenv PYTHONHOME /cvmfs/cms.cern.ch/slc7_amd64_gcc700/external/python/2.7.14/
-	    eval `scram unsetenv -csh`; gfal-copy -fp $outfile "${OUTPUT}/${pre}_${newpost}"
+	    #xrdcp -f $outfile `echo "${OUTPUT}/${pre}_${newpost}" | sed "s/gsiftp:\/\/kodiak-se.baylor.edu/root:\/\/cmseos.fnal.gov/"`
+	    eval `scram unsetenv -csh`; gfal-copy -fp -t 9000 $outfile `echo "${OUTPUT}/${pre}_${newpost}" | sed "s/store/cms\/data\/store/"`
+	    if ( $? != 0 ) then
+	    	echo "Transfer to kodiak unsucessful, backup up on lpc"
+	    	xrdcp -f $outfile `echo "${OUTPUT}/${pre}_${newpost}" | sed "s/gsiftp:\/\/kodiak-se.baylor.edu/root:\/\/cmseos.fnal.gov/"`
+	    endif
 	else
 	    xrdcp -f $outfile "${OUTPUT}/${pre}_${newpost}"
 	endif
@@ -87,7 +92,14 @@ else
 	if ($OUTPUT =~ *gsiftp*) then
 	    # for gfal to work, turn off cmsenv
 	    #setenv PYTHONHOME /cvmfs/cms.cern.ch/slc7_amd64_gcc700/external/python/2.7.14/
-	    eval `scram unsetenv -csh`; gfal-copy -fp $argv[1] "${OUTPUT}/${pre}_${newpost}"
+	    #xrdcp -f $argv[1] "${OUTPUT}/${pre}_${newpost}"
+	    #xrdcp -f $argv[1] `echo "${OUTPUT}/${pre}_${newpost}" | sed "s/gsiftp:\/\/kodiak-se.baylor.edu/root:\/\/cmseos.fnal.gov/"`
+	    #eval `scram unsetenv -csh`; gfal-copy -fp -t 9000 -T 9000 $argv[1] "${OUTPUT}/${pre}_${newpost}"
+	    eval `scram unsetenv -csh`; gfal-copy -fp -t 9000  $argv[1] `echo "${OUTPUT}/${pre}_${newpost}" | sed "s/store/cms\/data\/store/"`
+	    if ( $? != 0 ) then
+	    	echo "Transfer to kodiak unsucessful, backup up on lpc"
+	    	xrdcp -f $outfile `echo "${OUTPUT}/${pre}_${newpost}" | sed "s/gsiftp:\/\/kodiak-se.baylor.edu/root:\/\/cmseos.fnal.gov/"`
+	    endif
 	else
 	    xrdcp -f $argv[1] "${OUTPUT}/${pre}_${newpost}"
 	endif

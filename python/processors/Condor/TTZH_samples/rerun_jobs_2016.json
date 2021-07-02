@@ -1,0 +1,241 @@
+{
+    "TTZToQQ_2016": {
+        "files": []
+    },
+    "TTZToBB_2016": {
+        "files": []
+    },
+    "TTZToLLNuNu_2016": {
+        "files": []
+    },
+    "ttHTobb_2016": {
+        "files": []
+    },
+    "ttHToNonbb_2016": {
+        "files": []
+    },
+    "TTToSemiLeptonic_2016": {
+        "files": []
+    },
+    "TTTo2L2Nu_2016": {
+        "files": []
+    },
+    "TTToHadronic_2016": {
+        "files": []
+    },
+    "TTbb_SemiLeptonic_2016": {
+        "files": []
+    },
+    "TTbb_2L2Nu_2016": {
+        "files": []
+    },
+    "TTbb_Hadronic_2016": {
+        "files": []
+    },
+    "TTTT_2016": {
+        "files": []
+    },
+    "TTGJets_2016": {
+        "files": []
+    },
+    "TTWJetsToLNu_2016": {
+        "files": []
+    },
+    "TTWJetsToQQ_2016": {
+        "files": []
+    },
+    "ST_s_lep_2016": {
+        "files": []
+    },
+    "ST_t_top_2016": {
+        "files": []
+    },
+    "ST_t_antitop_2016": {
+        "files": []
+    },
+    "tZq_ll_2016": {
+        "files": []
+    },
+    "ST_tW_top_2016": {
+        "files": []
+    },
+    "ST_tW_antitop_2016": {
+        "files": []
+    },
+    "DYJetsToLL_HT_2500toInf_2016": {
+        "files": []
+    },
+    "DYJetsToLL_HT_1200to2500_2016": {
+        "files": []
+    },
+    "DYJetsToLL_HT_800to1200_2016": {
+        "files": []
+    },
+    "DYJetsToLL_HT_600to800_2016": {
+        "files": []
+    },
+    "DYJetsToLL_HT_400to600_2016": {
+        "files": []
+    },
+    "DYJetsToLL_HT_200to400_2016": {
+        "files": []
+    },
+    "DYJetsToLL_HT_100to200_2016": {
+        "files": []
+    },
+    "DYJetsToLL_HT_70to100_2016": {
+        "files": []
+    },
+    "WJetsToLNu_HT_2500toInf_2016": {
+        "files": []
+    },
+    "WJetsToLNu_HT_1200to2500_2016": {
+        "files": []
+    },
+    "WJetsToLNu_HT_800to1200_2016": {
+        "files": []
+    },
+    "WJetsToLNu_HT_600to800_2016": {
+        "files": []
+    },
+    "WJetsToLNu_HT_400to600_2016": {
+        "files": []
+    },
+    "WJetsToLNu_HT_200to400_2016": {
+        "files": []
+    },
+    "WJetsToLNu_HT_100to200_2016": {
+        "files": [
+            "/store/mc/RunIISummer16NanoAODv7/WJetsToLNu_HT-100To200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/NANOAODSIM/PUMoriond17_Nano02Apr2020_102X_mcRun2_asymptotic_v8_ext2-v1/120000/2F1F11E0-129D-E049-8942-D5ED17035AB6.root"
+        ]
+    },
+    "WJetsToLNu_HT_70to100_2016": {
+        "files": []
+    },
+    "WW_2016": {
+        "files": []
+    },
+    "ZZ_2016": {
+        "files": []
+    },
+    "WZ_2016": {
+        "files": []
+    },
+    "WWW_2016": {
+        "files": []
+    },
+    "WWZ_2016": {
+        "files": []
+    },
+    "WZZ_2016": {
+        "files": []
+    },
+    "ZZZ_2016": {
+        "files": []
+    },
+    "WWG_2016": {
+        "files": []
+    },
+    "WZG_2016": {
+        "files": []
+    },
+    "TTToSemiLeptonic_UEDown_2016": {
+        "files": []
+    },
+    "TTToSemiLeptonic_UEUp_2016": {
+        "files": []
+    },
+    "TTToSemiLeptonic_hdampDown_2016": {
+        "files": []
+    },
+    "TTToSemiLeptonic_hdampUp_2016": {
+        "files": []
+    },
+    "TTTo2L2Nu_UEDown_2016": {
+        "files": []
+    },
+    "TTTo2L2Nu_UEUp_2016": {
+        "files": []
+    },
+    "TTTo2L2Nu_hdampDown_2016": {
+        "files": []
+    },
+    "TTTo2L2Nu_hdampUp_2016": {
+        "files": []
+    },
+    "TTToHadronic_UEDown_2016": {
+        "files": []
+    },
+    "TTToHadronic_UEUp_2016": {
+        "files": []
+    },
+    "TTToHadronic_hdampDown_2016": {
+        "files": [
+            "/store/mc/RunIISummer16NanoAODv7/TTToHadronic_hdampDOWN_TuneCP5_PSweights_13TeV-powheg-pythia8/NANOAODSIM/PUMoriond17_Nano02Apr2020_102X_mcRun2_asymptotic_v8-v1/270000/B845E031-3746-714F-BD7A-344681031611.root",
+            "/store/mc/RunIISummer16NanoAODv7/TTToHadronic_hdampDOWN_TuneCP5_PSweights_13TeV-powheg-pythia8/NANOAODSIM/PUMoriond17_Nano02Apr2020_102X_mcRun2_asymptotic_v8-v1/120000/F9FF96C1-7D36-574E-8B4B-A374F0FAE541.root"
+        ]
+    },
+    "TTToHadronic_hdampUp_2016": {
+        "files": []
+    },
+    "TTbb_SemiLeptonic_hdampDown_2016": {
+        "files": []
+    },
+    "TTbb_SemiLeptonic_hdampUp_2016": {
+        "files": []
+    },
+    "TTbb_2L2Nu_hdampDown_2016": {
+        "files": []
+    },
+    "TTbb_2L2Nu_hdampUp_2016": {
+        "files": []
+    },
+    "TTbb_Hadronic_hdampDown_2016": {
+        "files": []
+    },
+    "TTbb_Hadronic_hdampUp_2016": {
+        "files": []
+    },
+    "Data_SingleElectron_2016_PeriodB": {
+        "files": []
+    },
+    "Data_SingleElectron_2016_PeriodC": {
+        "files": []
+    },
+    "Data_SingleElectron_2016_PeriodD": {
+        "files": []
+    },
+    "Data_SingleElectron_2016_PeriodE": {
+        "files": []
+    },
+    "Data_SingleElectron_2016_PeriodF": {
+        "files": []
+    },
+    "Data_SingleElectron_2016_PeriodG": {
+        "files": []
+    },
+    "Data_SingleElectron_2016_PeriodH": {
+        "files": []
+    },
+    "Data_SingleMuon_2016_PeriodB": {
+        "files": []
+    },
+    "Data_SingleMuon_2016_PeriodC": {
+        "files": []
+    },
+    "Data_SingleMuon_2016_PeriodD": {
+        "files": []
+    },
+    "Data_SingleMuon_2016_PeriodE": {
+        "files": []
+    },
+    "Data_SingleMuon_2016_PeriodF": {
+        "files": []
+    },
+    "Data_SingleMuon_2016_PeriodG": {
+        "files": []
+    },
+    "Data_SingleMuon_2016_PeriodH": {
+        "files": []
+    }
+}

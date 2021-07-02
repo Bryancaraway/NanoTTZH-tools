@@ -94,6 +94,9 @@ def ConfigList(config):
 
         if "NANOAOD" in stripped_entry[1]  or "NANOAOD" in stripped_entry[2]:
             filepath = GetFilelistDas(stripped_entry[0])#, stripped_entry[1:2])
+            if not filepath: 
+                print('Skipping --> '+stripped_entry[0])
+                continue
         else:
             filepath = "%s/%s" % (stripped_entry[1], stripped_entry[2])
             
@@ -134,6 +137,7 @@ def GetFilelistDas(name):#,datasets):
     global splitbyNevent
     # get datasets from json file
     json_file = open("TTZH_samples/sampleDas_nano_{}_v2.json".format(args.era)) # new version contains files already
+    #json_file = open("TTZH_samples/rerun_jobs_{}.json".format(args.era)) # new version contains files already
     das_dict = json.load(json_file)
     ## can't split by event if run on das
     if splitbyNevent:
@@ -147,9 +151,11 @@ def GetFilelistDas(name):#,datasets):
 
     outfilename = outfolder +"/"+name+".list"
     outfile = open(outfilename, "w")
-    print(das_dict[name]['files'])
+    if not das_dict[name]['files']: return False
     for job_file in das_dict[name]['files']:
-        outfile.write("root://cmsxrootd.fnal.gov/{0}\n".format(job_file.decode().strip())) # may change to cms-xrd-global.cern.ch
+        #print("root://cms-xrd-global.cern.ch/{0}\n".format(job_file.decode().strip()))
+        #outfile.write("root://cmsxrootd.fnal.gov/{0}\n".format(job_file.decode().strip())) # may change to cms-xrd-global.cern.ch
+        outfile.write("root://cms-xrd-global.cern.ch/{0}\n".format(job_file.decode().strip())) # may change to cms-xrd-global.cern.ch
     #for dataset in datasets:
     #for dataset in das_dict[name]:
     #    if not dataset:
@@ -253,7 +259,7 @@ def my_process(args):
         NewNpro[key] = nque
 
     site_dict = {'lpc'   : 'root://cmseos.fnal.gov/',
-                 'kodiak': 'gsiftp://kodiak-se.baylor.edu//cms/data/',
+                 'kodiak': 'gsiftp://kodiak-se.baylor.edu//',
                  ''      : ''}
 
     Tarfiles.append(os.path.abspath(DelExe))
