@@ -97,10 +97,7 @@
         "files": []
     },
     "ST_s_lep_2017": {
-        "files": [
-            "/store/mc/RunIIFall17NanoAODv7/ST_s-channel_4f_leptonDecays_TuneCP5_PSweights_13TeV-amcatnlo-pythia8/NANOAODSIM/PU2017_12Apr2018_Nano02Apr2020_new_pmx_102X_mc2017_realistic_v8-v1/100000/BFF87AA2-671D-4E40-8EB5-B5B57252D23D.root",
-            "/store/mc/RunIIFall17NanoAODv7/ST_s-channel_4f_leptonDecays_TuneCP5_PSweights_13TeV-amcatnlo-pythia8/NANOAODSIM/PU2017_12Apr2018_Nano02Apr2020_new_pmx_102X_mc2017_realistic_v8-v1/100000/DAEF91EC-2C01-B54D-AA7A-8354376623E7.root"
-        ]
+        "files": []
     },
     "ST_t_top_2017": {
         "files": [
@@ -108,9 +105,7 @@
         ]
     },
     "ST_t_antitop_2017": {
-        "files": [
-            "/store/mc/RunIIFall17NanoAODv7/ST_t-channel_antitop_4f_inclusiveDecays_TuneCP5_13TeV-powhegV2-madspin-pythia8/NANOAODSIM/PU2017_12Apr2018_Nano02Apr2020_102X_mc2017_realistic_v8-v1/70000/BE3FDEE1-C7E0-EC47-AD42-C302BDB58663.root"
-        ]
+        "files": []
     },
     "tZq_ll_2017": {
         "files": [
@@ -141,16 +136,10 @@
         "files": []
     },
     "DYJetsToLL_HT_400to600_2017": {
-        "files": [
-            "/store/mc/RunIIFall17NanoAODv7/DYJetsToLL_M-50_HT-400to600_TuneCP5_13TeV-madgraphMLM-pythia8/NANOAODSIM/PU2017_12Apr2018_Nano02Apr2020_new_pmx_102X_mc2017_realistic_v8-v1/110000/6B313895-8C78-A74D-827D-E724ECCC7DF8.root",
-            "/store/mc/RunIIFall17NanoAODv7/DYJetsToLL_M-50_HT-400to600_TuneCP5_13TeV-madgraphMLM-pythia8/NANOAODSIM/PU2017_12Apr2018_Nano02Apr2020_new_pmx_102X_mc2017_realistic_v8-v1/110000/83391C88-2E86-044D-B288-ED8C3940699D.root",
-            "/store/mc/RunIIFall17NanoAODv7/DYJetsToLL_M-50_HT-400to600_TuneCP5_13TeV-madgraphMLM-pythia8/NANOAODSIM/PU2017_12Apr2018_Nano02Apr2020_new_pmx_102X_mc2017_realistic_v8-v1/110000/E0557D40-9CDF-3647-8A95-67804F6E61FD.root"
-        ]
+        "files": []
     },
     "DYJetsToLL_HT_200to400_2017": {
-        "files": [
-            "/store/mc/RunIIFall17NanoAODv7/DYJetsToLL_M-50_HT-200to400_TuneCP5_13TeV-madgraphMLM-pythia8/NANOAODSIM/PU2017_12Apr2018_Nano02Apr2020_102X_mc2017_realistic_v8-v1/130000/9D3215FE-0F3C-0D4C-B7B9-EA5DF112591A.root"
-        ]
+        "files": []
     },
     "DYJetsToLL_HT_100to200_2017": {
         "files": [
@@ -159,9 +148,7 @@
         ]
     },
     "DYJetsToLL_HT_70to100_2017": {
-        "files": [
-            "/store/mc/RunIIFall17NanoAODv7/DYJetsToLL_M-50_HT-70to100_TuneCP5_13TeV-madgraphMLM-pythia8/NANOAODSIM/PU2017_12Apr2018_Nano02Apr2020_102X_mc2017_realistic_v8-v1/100000/D62ACC6E-46FE-AA4C-A3E5-DC58D1766C9B.root"
-        ]
+        "files": []
     },
     "WJetsToLNu_HT_2500toInf_2017": {
         "files": [

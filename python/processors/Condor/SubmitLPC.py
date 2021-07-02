@@ -136,8 +136,8 @@ def GetNEvent(file):
 def GetFilelistDas(name):#,datasets):
     global splitbyNevent
     # get datasets from json file
-    #json_file = open("TTZH_samples/sampleDas_nano_{}_v2.json".format(args.era)) # new version contains files already
-    json_file = open("TTZH_samples/rerun_jobs_{}.json".format(args.era)) # new version contains files already
+    json_file = open("TTZH_samples/sampleDas_nano_{}_v2.json".format(args.era)) # new version contains files already
+    #json_file = open("TTZH_samples/rerun_jobs_{}.json".format(args.era)) # new version contains files already
     das_dict = json.load(json_file)
     ## can't split by event if run on das
     if splitbyNevent:
